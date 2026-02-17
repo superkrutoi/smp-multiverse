@@ -131,7 +131,10 @@ devMenuModal.addEventListener('click', (e) => {
 // Рендер содержимого для пунктов меню разработчика
 function renderDevMenuItem(itemNumber) {
     if (String(itemNumber) === '1') {
-        // Управление — поисковая строка сверху + список настроек
+        // Настройки — поисковая строка сверху + список настроек (восстановленный)
+        const devSubtabs = document.getElementById('dev-subtabs');
+        if (devSubtabs) devSubtabs.classList.add('hidden');
+
         devMenuBody.innerHTML = `
             <div class="dev-settings-container">
                 <input id="dev-search" class="dev-search" type="search" placeholder="Поиск настроек..." aria-label="Поиск настроек" />
@@ -152,7 +155,6 @@ function renderDevMenuItem(itemNumber) {
         const listEl = document.getElementById('dev-settings-list');
         function renderList(filter = '') {
             const q = filter.trim().toLowerCase();
-            // render as: <label><span>text</span><input/></label> so checkbox appears on the right
             listEl.innerHTML = settings
                 .filter(s => s.name.toLowerCase().includes(q))
                 .map(s => `
@@ -178,6 +180,110 @@ function renderDevMenuItem(itemNumber) {
         return;
     }
 
+    if (String(itemNumber) === '2') {
+        // "Вид сайта" — header + content; subtabs live in the top-left of the main modal
+        devMenuBody.innerHTML = `
+            <div class="dev-viewsite">
+                <div class="dev-tab-content" id="dev-tab-content">
+                    <!-- content injected by JS -->
+                </div>
+            </div>
+        `;
+
+        // Themes presets
+        const themes = [
+            { id: 'theme-dark', name: 'Cosmic Dark', vars: { '--bg': '#08010b', '--accent': '#c79cff', '--muted': '#6b6178' } },
+            { id: 'theme-pastel', name: 'Pastel Dream', vars: { '--bg': '#fff8fc', '--accent': '#ffb6d5', '--muted': '#b89aa8' } },
+            { id: 'theme-neon', name: 'Neon', vars: { '--bg': '#050014', '--accent': '#00ffea', '--muted': '#6fffd6' } }
+        ];
+
+        const tabContent = document.getElementById('dev-tab-content');
+
+        function renderColors() {
+            tabContent.innerHTML = `
+                <div class="theme-grid">
+                    ${themes.map(t => `
+                        <button class="theme-item" data-theme-id="${t.id}">
+                            <div class="theme-swatch" style="background: linear-gradient(135deg, ${t.vars['--bg']}, ${t.vars['--accent']})"></div>
+                            <div class="theme-name">${t.name}</div>
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+
+            document.querySelectorAll('.theme-item').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.dataset.themeId;
+                    const theme = themes.find(t => t.id === id);
+                    if (!theme) return;
+                    Object.entries(theme.vars).forEach(([k, v]) => document.documentElement.style.setProperty(k, v));
+                    localStorage.setItem('site.theme', id);
+                });
+            });
+        }
+
+        async function renderImages() {
+            tabContent.innerHTML = `<div class="image-tree" id="image-tree">Загрузка...</div>`;
+            try {
+                const res = await fetch('assets/manifest.json');
+                const manifest = await res.json();
+                const treeEl = document.getElementById('image-tree');
+                function renderNode(obj) {
+                    let html = '<ul>';
+                    for (const key of Object.keys(obj)) {
+                        const items = obj[key];
+                        html += `<li class="image-node"><strong>/${key}</strong><ul>`;
+                        items.forEach(f => {
+                            const filePath = `assets/${key}/${encodeURIComponent(f)}`;
+                            if (f.toLowerCase().match(/\.(png|jpg|jpeg|gif)$/)) {
+                                html += `<li class="image-file"><a href="${filePath}" target="_blank"><img src="${filePath}" class="image-thumb" alt="${f}"/></a><span class="image-name">${f}</span></li>`;
+                            } else {
+                                html += `<li class="image-file"><span class="image-name">${f}</span></li>`;
+                            }
+                        });
+                        html += `</ul></li>`;
+                    }
+                    html += '</ul>';
+                    return html;
+                }
+                treeEl.innerHTML = renderNode(manifest);
+            } catch (err) {
+                tabContent.innerHTML = `<div class="error">Не удалось загрузить manifest.json: ${err}</div>`;
+            }
+        }
+
+        // Use the global subtabs in the modal (top-left) for switching
+        const devSubtabs = document.getElementById('dev-subtabs');
+        if (devSubtabs) {
+            devSubtabs.classList.remove('hidden');
+            const subButtons = devSubtabs.querySelectorAll('.dev-subtab');
+            function setActiveSub(key) {
+                subButtons.forEach(b => b.classList.toggle('active', b.dataset.sub === key));
+            }
+            // attach handlers
+            subButtons.forEach(b => b.addEventListener('click', async () => {
+                const key = b.dataset.sub;
+                setActiveSub(key);
+                if (key === 'colors') renderColors();
+                if (key === 'images') await renderImages();
+            }));
+            // default to colors
+            setActiveSub('colors');
+        }
+
+        const savedTheme = localStorage.getItem('site.theme');
+        if (savedTheme) {
+            const theme = themes.find(t => t.id === savedTheme);
+            if (theme) Object.entries(theme.vars).forEach(([k, v]) => document.documentElement.style.setProperty(k, v));
+        }
+
+        renderColors();
+        return;
+    }
+
+    // для других пунктов — скрываем глобальные subtabs и показываем плейсхолдер
+    const globalSubtabs = document.getElementById('dev-subtabs');
+    if (globalSubtabs) globalSubtabs.classList.add('hidden');
     // Хардкодный fallback для других пунктов — пока плейсхолдер
     devMenuBody.innerHTML = `<p>тут будет пункт ${itemNumber}</p>`;
 }

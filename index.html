@@ -68,8 +68,8 @@
         <div class="dev-menu-container">
             <!-- Боковое меню -->
             <div class="dev-menu-sidebar">
-                <button class="dev-menu-item active" data-item="1">Управление</button>
-                <button class="dev-menu-item" data-item="2">пункт 2</button>
+                <button class="dev-menu-item active" data-item="1">⚙️ Настройки</button>
+                <button class="dev-menu-item" data-item="2">🎨 Вид сайта</button>
                 <button class="dev-menu-item" data-item="3">пункт 3</button>
                 <button class="dev-menu-item" data-item="4">пункт 4</button>
                 <button class="dev-menu-item" data-item="5">пункт 5</button>
@@ -81,6 +81,10 @@
             </div>
             <!-- Контентная область -->
             <div class="dev-menu-content">
+                <div id="dev-subtabs" class="dev-subtabs hidden" aria-hidden="true">
+                    <button class="dev-subtab" data-sub="colors">🎨 Цвета</button>
+                    <button class="dev-subtab" data-sub="images">🖼️ Картинки</button>
+                </div>
                 <button class="dev-menu-close" aria-label="Закрыть меню разработчика">✕</button>
                 <div class="dev-menu-body" id="dev-menu-body">
                     <p>тут будет пункт 1</p>
