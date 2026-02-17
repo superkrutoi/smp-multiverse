@@ -40,3 +40,28 @@ document.querySelector('.notification-bell').addEventListener('click', () => {
     console.log('Notifications clicked');
     // TODO: Добавить логику toast-уведомлений
 });
+
+// Модальное окно настроек
+const settingsModal = document.getElementById('settings-modal');
+const settingsClose = document.querySelector('.settings-close');
+const mascotMenu = document.getElementById('mascot-menu');
+
+// Открыть настройки по клику на кнопку в меню маскота
+mascotMenu.addEventListener('click', (e) => {
+    if (e.target.textContent.trim() === 'Настройки') {
+        settingsModal.classList.remove('hidden');
+        mascotMenu.classList.add('hidden');
+    }
+});
+
+// Закрыть настройки по клику на крестик
+settingsClose.addEventListener('click', () => {
+    settingsModal.classList.add('hidden');
+});
+
+// Закрыть настройки по клику вне окна (на фон)
+settingsModal.addEventListener('click', (e) => {
+    if (e.target === settingsModal) {
+        settingsModal.classList.add('hidden');
+    }
+});
