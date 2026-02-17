@@ -227,6 +227,32 @@ body {
     font-family: Arial, sans-serif;
 }
 
+/* Tooltip стиль */
+.dev-toggle::after,
+.notification-bell::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: #e0d0ff;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1002;
+    border: 1px solid rgba(255, 105, 180, 0.4);
+}
+
+.dev-toggle:hover::after,
+.notification-bell:hover::after {
+    opacity: 1;
+}
+
 .dev-toggle {
     right: 180px;      /* самый левый из трех */
 }
