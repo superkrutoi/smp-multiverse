@@ -153,21 +153,21 @@ body {
 /* Маскот */
 .mascot {
     position: fixed;
-    bottom: 40px;
-    right: 40px;
+    top: 16px;         /* перемещено в верхний угол */
+    right: 16px;       /* самый правый */
     z-index: 900;
     cursor: pointer;
 }
 
 .mascot-icon {
-    width: 64px;
-    height: 64px;
+    width: 80px;       /* увеличено с 64px */
+    height: 80px;      /* увеличено с 64px */
     background: #9370db;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 40px;
+    font-size: 48px;   /* увеличено с 40px */
     box-shadow: 0 0 15px #ff69b4;
     animation: float 4s ease-in-out infinite;
 }
@@ -231,11 +231,11 @@ body {
 }
 
 .dev-toggle {
-    right: 24px;
+    right: 180px;      /* самый левый из трех */
 }
 
 .notification-bell {
-    right: 80px;
+    right: 110px;      /* в центре, между dev-toggle и mascot */
 }
 
 .dev-toggle:hover,
@@ -267,6 +267,17 @@ body.dev-active .dev-toggle {
     .dev-toggle,
     .notification-bell {
         top: 16px;
-        transform: scale(0.9);
+        transform: scale(0.85);
+    }
+    
+    .mascot {
+        top: 12px;
+        right: 12px;
+    }
+    
+    .mascot-icon {
+        width: 64px;
+        height: 64px;
+        font-size: 36px;
     }
 }
