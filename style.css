@@ -553,33 +553,41 @@ body.dev-active .dev-toggle {
     font-size: 14px;
     z-index: 12; /* над кнопкой закрытия, если потребуется */
 }
+.dev-settings-container {
+    width: 100%;
+    max-width: 720px;
+    align-self: flex-start; /* прижать контейнер к левому краю правой панели */
+    padding-left: 0;
+}
+
 .dev-settings-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    padding-left: 0;
 }
+
 .dev-setting-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
+    gap: 8px;
+    padding: 6px 8px; /* чуть плотнее */
     border-radius: 8px;
     background: rgba(255,255,255,0.02);
-}
-.dev-setting-item {
     justify-content: flex-start; /* прижать к левой стороне */
     text-align: left;
     width: 100%;
-    font-size: 13px; /* уменьшенный шрифт для параметров */
+    font-size: 12px; /* чуть мельче */
 }
 
 .dev-setting-item span {
     flex: 1; /* чтобы текст занимал оставшееся пространство и был слева */
-    font-size: 13px;
+    font-size: 12px;
 }
+
 .dev-setting-item input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
 }
 
 .dev-menu-body p {

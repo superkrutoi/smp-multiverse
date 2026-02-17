@@ -124,7 +124,7 @@ function renderDevMenuItem(itemNumber) {
     if (String(itemNumber) === '1') {
         // Управление — поисковая строка сверху + список настроек
         devMenuBody.innerHTML = `
-            <div style="width:100%; max-width:720px;">
+            <div class="dev-settings-container">
                 <input id="dev-search" class="dev-search" type="search" placeholder="Поиск настроек..." aria-label="Поиск настроек" />
                 <div id="dev-settings-list" class="dev-settings-list">
                     <!-- элементы списка будут вставлены JS -->
