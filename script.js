@@ -34,6 +34,15 @@ mascotEl.addEventListener('click', (e) => {
     }
 });
 
+// Закрывать меню маскота при клике вне него
+document.addEventListener('click', (e) => {
+    if (!mascotEl.contains(e.target) && !mascotMenu.contains(e.target)) {
+        if (!mascotMenu.classList.contains('hidden')) {
+            mascotMenu.classList.add('hidden');
+        }
+    }
+});
+
 // Notification Bell (toggle demo between bell1/bell2)
 const notificationBtn = document.querySelector('.notification-bell');
 const notificationImg = notificationBtn.querySelector('img');
