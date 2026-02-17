@@ -127,9 +127,8 @@ devMenuModal.addEventListener('click', (e) => {
         devMenuModal.classList.add('hidden');
     }
 });
-
 // Рендер содержимого для пунктов меню разработчика
-function renderDevMenuItem(itemNumber) {
+async function renderDevMenuItem(itemNumber) {
     if (String(itemNumber) === '1') {
         // Настройки — поисковая строка сверху + список настроек (восстановленный)
         const devSubtabs = document.getElementById('dev-subtabs');
