@@ -22,10 +22,15 @@ showBtn.addEventListener('click', () => {
     showBtn.classList.add('hidden');
 });
 
-// Меню маскота
-document.getElementById('mascot').addEventListener('click', (e) => {
-    if (e.target.closest('.mascot-icon')) {
-        document.getElementById('mascot-menu').classList.toggle('hidden');
+// Меню маскота — открыть/скрыть по клику на маскота (кнопки в меню не закрывают)
+const mascotEl = document.getElementById('mascot');
+mascotEl.addEventListener('click', (e) => {
+    // если клик был внутри самого меню — не закрываем/не открываем
+    if (e.target.closest('#mascot-menu')) return;
+
+    // клик по картинке или по контейнеру маскота открывает меню
+    if (e.target.closest('.mascot-img') || e.target === mascotEl) {
+        mascotMenu.classList.toggle('hidden');
     }
 });
 
