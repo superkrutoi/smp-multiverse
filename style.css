@@ -592,6 +592,16 @@ body.dev-active .dev-toggle {
     order: 2;
 }
 
+/* Hover: показываем лёгкую подложку/рамку при наведении */
+.dev-setting-item {
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.dev-setting-item:hover {
+    background: rgba(255,105,180,0.06);
+    box-shadow: 0 0 0 1px rgba(255,105,180,0.08) inset;
+    border-radius: 6px;
+}
+
 .dev-menu-body p {
     margin: 0;
     text-align: center;
