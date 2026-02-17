@@ -45,6 +45,15 @@ function updateNotificationIcon() {
     }
 }
 
+// Если картинка не найдена — подставим data-атрибут или внешнюю заглушку
+notificationImg.addEventListener('error', () => {
+    const fallback = notificationImg.dataset.bellEmpty || 'https://placehold.co/24';
+    if (notificationImg.src !== fallback) {
+        console.warn('Notification icon failed to load, using fallback:', fallback);
+        notificationImg.src = fallback;
+    }
+});
+
 notificationBtn.addEventListener('click', () => {
     // Для демонстрации — переключаем между состояниями "есть уведомления" и "нет"
     notificationCount = notificationCount > 0 ? 0 : 3;
