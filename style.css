@@ -571,23 +571,25 @@ body.dev-active .dev-toggle {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 8px; /* чуть плотнее */
-    border-radius: 8px;
-    background: rgba(255,255,255,0.02);
-    justify-content: flex-start; /* прижать к левой стороне */
+    padding: 6px 6px; /* плотнее */
+    border-radius: 0; /* убрать рамку/скругления */
+    background: transparent; /* убрать фон */
+    justify-content: space-between; /* текст слева, чекбокс справа */
     text-align: left;
     width: 100%;
     font-size: 12px; /* чуть мельче */
 }
 
 .dev-setting-item span {
-    flex: 1; /* чтобы текст занимал оставшееся пространство и был слева */
+    flex: 1; /* чтобы текст занимал доступное пространство */
     font-size: 12px;
 }
 
 .dev-setting-item input[type="checkbox"] {
     width: 16px;
     height: 16px;
+    margin-left: 12px;
+    order: 2;
 }
 
 .dev-menu-body p {

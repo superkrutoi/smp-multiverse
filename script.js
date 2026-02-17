@@ -143,12 +143,13 @@ function renderDevMenuItem(itemNumber) {
         const listEl = document.getElementById('dev-settings-list');
         function renderList(filter = '') {
             const q = filter.trim().toLowerCase();
+            // render as: <label><span>text</span><input/></label> so checkbox appears on the right
             listEl.innerHTML = settings
                 .filter(s => s.name.toLowerCase().includes(q))
                 .map(s => `
                     <label class="dev-setting-item" data-name="${s.name}">
-                        <input type="${s.type}" id="${s.id}" ${s.checked ? 'checked' : ''} />
                         <span>${s.name}</span>
+                        <input type="${s.type}" id="${s.id}" ${s.checked ? 'checked' : ''} />
                     </label>
                 `).join('');
         }
