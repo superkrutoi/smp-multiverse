@@ -1,28 +1,26 @@
+// Элементы
 const sidebar = document.getElementById('sidebar');
 const mapArea = document.getElementById('map-area');
-const hideSidebarButton = document.getElementById('hide-sidebar');
-const showSidebarButton = document.getElementById('show-sidebar');
-const mascot = document.getElementById('mascot');
-const mascotMenu = document.getElementById('mascot-menu');
+const hideBtn = document.getElementById('hide-sidebar');
+const showBtn = document.getElementById('show-sidebar');
 
-function setSidebarState(isOpen) {
-    sidebar.classList.toggle('is-collapsed', !isOpen);
-    mapArea.classList.toggle('is-fullwidth', !isOpen);
-    showSidebarButton.classList.toggle('is-visible', !isOpen);
-}
-
-hideSidebarButton.addEventListener('click', () => {
-    setSidebarState(false);
+// Скрытие панели
+hideBtn.addEventListener('click', () => {
+    sidebar.classList.add('hidden');
+    mapArea.classList.add('expanded');
+    showBtn.classList.remove('hidden');
 });
 
-showSidebarButton.addEventListener('click', () => {
-    setSidebarState(true);
+// Показ панели обратно
+showBtn.addEventListener('click', () => {
+    sidebar.classList.remove('hidden');
+    mapArea.classList.remove('expanded');
+    showBtn.classList.add('hidden');
 });
 
-mascot.addEventListener('click', (event) => {
-    if (event.target.closest('.mascot-icon')) {
-        mascotMenu.classList.toggle('hidden');
+// Меню маскота
+document.getElementById('mascot').addEventListener('click', (e) => {
+    if (e.target.closest('.mascot-icon')) {
+        document.getElementById('mascot-menu').classList.toggle('hidden');
     }
 });
-
-setSidebarState(true);

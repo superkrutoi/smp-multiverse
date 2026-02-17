@@ -1,128 +1,144 @@
-:root {
-    --sidebar-width: 280px;
-    --bg-main: #0a001f;
-    --bg-map: #1a003f;
-    --bg-panel: rgba(30, 10, 60, 0.9);
-    --accent-pink: #ff69b4;
-    --accent-purple: #9370db;
-}
-
-* {
-    box-sizing: border-box;
-}
-
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: var(--bg-main);
+    background: #0a001f; /* тёмно-космический фон */
     color: #e0d0ff;
     height: 100vh;
     overflow: hidden;
 }
 
+.hidden {
+    display: none;
+}
+
+/* Сайдбар (sliding эффект) */
 .sidebar {
+    height: 100%;
+    width: 280px;  /* ← ширина по умолчанию — виден сразу */
     position: fixed;
-    inset: 0 auto 0 0;
-    width: var(--sidebar-width);
-    padding: 20px;
-    background: var(--bg-panel);
-    transform: translateX(0);
-    transition: transform 0.25s ease;
-    z-index: 20;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background: rgba(30, 10, 60, 0.85);
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
 }
 
-.sidebar.is-collapsed {
-    transform: translateX(calc(-1 * var(--sidebar-width)));
+.sidebar:not(.open) {
+    width: 0;  /* скрывается только когда нет класса open */
 }
 
-.sidebar-close,
-.show-sidebar-btn {
+.sidebar button {
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 25px;
+    color: #818181;
+    display: block;
+    transition: 0.3s;
+    background: none;
     border: none;
-    border-radius: 10px;
-    color: #fff;
-    background: var(--accent-pink);
-    box-shadow: 0 0 12px rgba(255, 105, 180, 0.55);
     cursor: pointer;
 }
 
-.sidebar-close {
-    width: 40px;
-    height: 40px;
-    font-size: 24px;
-    margin-bottom: 18px;
+.sidebar #hide-sidebar {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+    background: none;
+    color: #ff69b4;
+    cursor: pointer;
 }
 
-.show-sidebar-btn {
-    display: none;
+#show-sidebar {
     position: fixed;
-    left: 14px;
-    top: 14px;
-    width: 42px;
-    height: 42px;
-    font-size: 24px;
-    z-index: 30;
+    top: 20px;
+    left: 10px;
+    font-size: 30px;
+    cursor: pointer;
+    color: #ff69b4;
+    background: rgba(147, 112, 219, 0.7);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    line-height: 50px;
+    z-index: 999;
+    transition: 0.3s;
+    display: none;
 }
 
-.show-sidebar-btn.is-visible {
+#show-sidebar.visible {
     display: block;
 }
 
-.map-area {
-    margin-left: var(--sidebar-width);
-    height: 100vh;
-    background: linear-gradient(to bottom, var(--bg-main), var(--bg-map));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    text-align: center;
-    transition: margin-left 0.25s ease;
+#show-sidebar:hover {
+    background: rgba(147, 112, 219, 0.9);
 }
 
-.map-area.is-fullwidth {
+.map-area {
+    margin-left: 280px;  /* ← сдвиг вправо по умолчанию */
+    margin-left: 280px;
+    transition: margin-left .5s;
+    padding: 16px;
+    height: 100vh;
+    background: linear-gradient(to bottom, #0a001f, #1a003f);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.map-area.expanded {
+    margin-left: 0;
+    background: linear-gradient(to bottom, #0a001f, #1a003f);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.map-area.expanded {
     margin-left: 0;
 }
 
+/* Маскот */
 .mascot {
     position: fixed;
     top: 15px;
     right: 15px;
     z-index: 100;
+    cursor: pointer;
 }
 
 .mascot-icon {
     width: 64px;
     height: 64px;
+    background: #9370db;
     border-radius: 50%;
-    font-size: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    background: var(--accent-purple);
-    box-shadow: 0 0 15px var(--accent-pink);
+    font-size: 40px;
+    box-shadow: 0 0 15px #ff69b4;
     animation: float 4s ease-in-out infinite;
 }
 
 @keyframes float {
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-10px);
-    }
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
 
 .mascot-menu {
     position: absolute;
     top: 80px;
     right: 0;
-    min-width: 160px;
+    background: rgba(30, 10, 60, 0.95);
     padding: 10px;
     border-radius: 8px;
-    background: rgba(30, 10, 60, 0.95);
+    min-width: 160px;
 }
 
 .mascot-menu button {
@@ -130,12 +146,8 @@ body {
     width: 100%;
     padding: 10px;
     margin: 5px 0;
+    background: #4b0082;
+    color: white;
     border: none;
     cursor: pointer;
-    color: #fff;
-    background: #4b0082;
-}
-
-.hidden {
-    display: none;
 }
