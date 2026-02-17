@@ -23,6 +23,7 @@ body {
     overflow-x: hidden;
     transition: width 0.5s ease, transform 0.5s ease;
     padding-top: 60px;
+    padding-left: 24px;  /* Минимальный комфортный отступ от левого краю */
 }
 
 .sidebar.hidden {
@@ -31,12 +32,12 @@ body {
 
 .sidebar ul {
     list-style: none;
-    padding: 0;
+    padding: 0 0 0 16px;  /* Дополнительный внутренний отступ (итого э 40px от левого краю) */
     margin: 0;
 }
 
 .sidebar li {
-    padding: 12px 16px;
+    padding: 12px 16px 12px 0;  /* Отступ убран слева (потому что ul уже имеет padding-left) */
     color: #e0d0ff;
     cursor: pointer;
     transition: 0.3s;
@@ -44,6 +45,21 @@ body {
 
 .sidebar li:hover {
     background: rgba(147, 112, 219, 0.3);
+}
+
+.sidebar h2,
+.sidebar h3 {
+    margin-left: 0;  /* Убираем дефолтный margin */
+    color: #e0d0ff;
+}
+
+.sidebar #server-info {
+    margin-left: 0;  /* Убираем дефолтный margin */
+    padding-left: 16px;  /* Дополнительный отступ для блока информации */
+}
+
+.sidebar p {
+    margin-left: 0;  /* Убираем дефолтный margin */
 }
 
 .sidebar button {
@@ -64,6 +80,7 @@ body {
     position: absolute;
     top: 10px;
     right: 15px;
+    left: 24px;  /* Отступ КНЮПКИ закрытия от левого края */
     font-size: 28px;
     background: none;
     color: #ff69b4;
