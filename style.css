@@ -555,10 +555,15 @@ body.dev-active .dev-toggle {
 .theme-name { margin-top:6px; font-size:12px; }
 
 /* Image browser */
-.image-tree { margin-top:12px; font-size:13px; }
-.image-node { margin-bottom:8px; }
-.image-file { display:flex; align-items:center; gap:8px; margin:6px 0; }
-.image-thumb { width:48px; height:48px; object-fit:cover; border-radius:4px; border:1px solid rgba(255,255,255,0.04); }
+.image-tree { margin-top:12px; font-size:13px; text-align:left; padding-left:0; }
+.image-tree ul { list-style:none; padding-left:16px; margin:0; }
+.image-tree li { margin:4px 0; }
+.image-folder-btn { background:none; border:none; color:inherit; cursor:pointer; font-size:13px; padding:0; display:flex; align-items:center; gap:6px; }
+.image-folder-btn:hover { color:var(--accent, #c79cff); }
+.image-node { margin-bottom:4px; }
+.image-node.collapsed > ul { display:none; }
+.image-file { display:flex; align-items:center; gap:8px; margin:4px 0; }
+.image-thumb { width:40px; height:40px; object-fit:cover; border-radius:4px; border:1px solid rgba(255,255,255,0.04); flex-shrink:0; }
 .image-name { font-size:12px; color:var(--muted,#999); }
 
 }

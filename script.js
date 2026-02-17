@@ -232,13 +232,14 @@ function renderDevMenuItem(itemNumber) {
                     let html = '<ul>';
                     for (const key of Object.keys(obj)) {
                         const items = obj[key];
-                        html += `<li class="image-node"><strong>/${key}</strong><ul>`;
-                        items.forEach(f => {
+                        // Filter out .gitkeep files
+                        const imageFiles = items.filter(f => !f.startsWith('.'));
+                        if (imageFiles.length === 0) continue; // skip folders with no images
+                        html += `<li class="image-node" data-folder="${key}"><button class="image-folder-btn"><span class="folder-icon">📁</span><strong>/${key}</strong></button><ul>`;
+                        imageFiles.forEach(f => {
                             const filePath = `assets/${key}/${encodeURIComponent(f)}`;
                             if (f.toLowerCase().match(/\.(png|jpg|jpeg|gif)$/)) {
                                 html += `<li class="image-file"><a href="${filePath}" target="_blank"><img src="${filePath}" class="image-thumb" alt="${f}"/></a><span class="image-name">${f}</span></li>`;
-                            } else {
-                                html += `<li class="image-file"><span class="image-name">${f}</span></li>`;
                             }
                         });
                         html += `</ul></li>`;
@@ -247,6 +248,17 @@ function renderDevMenuItem(itemNumber) {
                     return html;
                 }
                 treeEl.innerHTML = renderNode(manifest);
+                
+                // Add click handlers for folder toggle
+                document.querySelectorAll('.image-folder-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const node = btn.closest('.image-node');
+                        const icon = btn.querySelector('.folder-icon');
+                        node.classList.toggle('collapsed');
+                        icon.textContent = node.classList.contains('collapsed') ? '📂' : '📁';
+                    });
+                });
             } catch (err) {
                 tabContent.innerHTML = `<div class="error">Не удалось загрузить manifest.json: ${err}</div>`;
             }
