@@ -30,13 +30,13 @@ document.getElementById('mascot').addEventListener('click', (e) => {
 });
 
 // Dev Tools Toggle
-document.getElementById('dev-toggle').addEventListener('click', () => {
+document.querySelector('.dev-toggle').addEventListener('click', () => {
     document.body.classList.toggle('dev-active');
     console.log('Dev Mode:', document.body.classList.contains('dev-active') ? 'ON' : 'OFF');
 });
 
 // Notification Bell
-document.getElementById('notification-bell').addEventListener('click', () => {
+document.querySelector('.notification-bell').addEventListener('click', () => {
     console.log('Notifications clicked');
     // TODO: Добавить логику toast-уведомлений
 });
