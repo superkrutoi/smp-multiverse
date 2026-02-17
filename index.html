@@ -19,7 +19,7 @@
         </ul>
         <div id="server-info">
             <h3>Космическая погода</h3>
-            <p>Звёздный шторм 🌌 (обновляется раз в сутки)</p>
+            <p>Звёздный шторм 🌌</p>
         </div>
     </aside>
 
@@ -41,11 +41,11 @@
     </div>
 
     <!-- Dev Tools & Notifications (верхний правый угол) -->
-    <button class="dev-toggle" aria-label="Режим разработчика" data-tooltip="Режим разработчика">
-        🔧
+    <button class="dev-toggle" aria-label="Меню разработчика" data-tooltip="Меню разработчика">
+        <img src="assets/icons/wrench.png" alt="Меню разработчика" class="icon" width="24" height="24">
     </button>
     <button class="notification-bell" aria-label="Уведомления" data-tooltip="Уведомления">
-        🔔
+        <img src="assets/icons/bell.png" alt="Уведомления" class="icon" width="24" height="24">
     </button>
 
     <!-- Модальное окно настроек -->
@@ -62,6 +62,41 @@
         </div>
     </div>
 
+    <!-- Модальное окно меню разработчика -->
+    <div id="dev-menu-modal" class="dev-menu-modal hidden">
+        <div class="dev-menu-container">
+            <!-- Боковое меню -->
+            <div class="dev-menu-sidebar">
+                <button class="dev-menu-item active" data-item="1">пункт 1</button>
+                <button class="dev-menu-item" data-item="2">пункт 2</button>
+                <button class="dev-menu-item" data-item="3">пункт 3</button>
+                <button class="dev-menu-item" data-item="4">пункт 4</button>
+                <button class="dev-menu-item" data-item="5">пункт 5</button>
+                <button class="dev-menu-item" data-item="6">пункт 6</button>
+                <button class="dev-menu-item" data-item="7">пункт 7</button>
+                <button class="dev-menu-item" data-item="8">пункт 8</button>
+                <button class="dev-menu-item" data-item="9">пункт 9</button>
+                <button class="dev-menu-item" data-item="10">пункт 10</button>
+            </div>
+            <!-- Контентная область -->
+            <div class="dev-menu-content">
+                <button class="dev-menu-close" aria-label="Закрыть меню разработчика">✕</button>
+                <div class="dev-menu-body" id="dev-menu-body">
+                    <p>тут будет пункт 1</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
+
+        <!-- Проверка отображения изображений -->
+        <section id="image-test" style="padding:12px; border-top:1px dashed #ddd; margin-top:18px;">
+            <h2>Тест изображений</h2>
+            <p>Локальные (из папки <strong>assets/icons</strong>) и внешняя заглушка:</p>
+            <img src="assets/icons/wrench.png" alt="wrench" width="80">
+            <img src="assets/icons/bell.png" alt="bell" width="80">
+            <img src="https://placehold.co/120x80" alt="external test" width="120">
+        </section>
 </body>
 </html>

@@ -29,12 +29,6 @@ document.getElementById('mascot').addEventListener('click', (e) => {
     }
 });
 
-// Dev Tools Toggle
-document.querySelector('.dev-toggle').addEventListener('click', () => {
-    document.body.classList.toggle('dev-active');
-    console.log('Dev Mode:', document.body.classList.contains('dev-active') ? 'ON' : 'OFF');
-});
-
 // Notification Bell
 document.querySelector('.notification-bell').addEventListener('click', () => {
     console.log('Notifications clicked');
@@ -64,4 +58,43 @@ settingsModal.addEventListener('click', (e) => {
     if (e.target === settingsModal) {
         settingsModal.classList.add('hidden');
     }
+});
+// Dev Menu Logic
+const devMenuModal = document.getElementById('dev-menu-modal');
+const devMenuClose = document.querySelector('.dev-menu-close');
+const devMenuItems = document.querySelectorAll('.dev-menu-item');
+const devMenuBody = document.getElementById('dev-menu-body');
+
+// Открыть меню разработчика
+document.querySelector('.dev-toggle').addEventListener('click', () => {
+    devMenuModal.classList.remove('hidden');
+});
+
+// Закрыть меню по крестику
+devMenuClose.addEventListener('click', () => {
+    devMenuModal.classList.add('hidden');
+});
+
+// Закрыть меню по клику на фон (вне контейнера)
+devMenuModal.addEventListener('click', (e) => {
+    if (e.target === devMenuModal) {
+        devMenuModal.classList.add('hidden');
+    }
+});
+
+// Переключение между пунктами меню
+devMenuItems.forEach((item) => {
+    item.addEventListener('click', () => {
+        // Убрать активный класс со всех пунктов
+        devMenuItems.forEach((btn) => {
+            btn.classList.remove('active');
+        });
+        
+        // Добавить активный класс текущему пункту
+        item.classList.add('active');
+        
+        // Обновить содержимое
+        const itemNumber = item.getAttribute('data-item');
+        devMenuBody.innerHTML = `<p>тут будет пункт ${itemNumber}</p>`;
+    });
 });
