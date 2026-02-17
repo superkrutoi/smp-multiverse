@@ -536,6 +536,35 @@ body.dev-active .dev-toggle {
     height: 100%;
 }
 
+/* Стили для раздела "Управление" в меню разработчика */
+.dev-search {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,105,180,0.15);
+    background: rgba(255,255,255,0.03);
+    color: #e0d0ff;
+    font-size: 14px;
+}
+.dev-settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.dev-setting-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.02);
+}
+.dev-setting-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
 .dev-menu-body p {
     margin: 0;
     text-align: center;

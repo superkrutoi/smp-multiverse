@@ -119,19 +119,71 @@ devMenuModal.addEventListener('click', (e) => {
     }
 });
 
+// Рендер содержимого для пунктов меню разработчика
+function renderDevMenuItem(itemNumber) {
+    if (String(itemNumber) === '1') {
+        // Управление — поисковая строка сверху + список настроек
+        devMenuBody.innerHTML = `
+            <div style="width:100%; max-width:720px;">
+                <input id="dev-search" class="dev-search" type="search" placeholder="Поиск настроек..." aria-label="Поиск настроек" />
+                <div id="dev-settings-list" class="dev-settings-list">
+                    <!-- элементы списка будут вставлены JS -->
+                </div>
+            </div>
+        `;
+
+        const settings = [
+            { id: 'ui-dark', name: 'Тёмная тема', type: 'checkbox', checked: true },
+            { id: 'show-tooltips', name: 'Показывать подсказки', type: 'checkbox', checked: true },
+            { id: 'compact-mode', name: 'Компактный режим', type: 'checkbox', checked: false },
+            { id: 'map-animations', name: 'Анимация карты', type: 'checkbox', checked: true },
+            { id: 'enable-sounds', name: 'Звуковые уведомления', type: 'checkbox', checked: false }
+        ];
+
+        const listEl = document.getElementById('dev-settings-list');
+        function renderList(filter = '') {
+            const q = filter.trim().toLowerCase();
+            listEl.innerHTML = settings
+                .filter(s => s.name.toLowerCase().includes(q))
+                .map(s => `
+                    <label class="dev-setting-item" data-name="${s.name}">
+                        <input type="${s.type}" id="${s.id}" ${s.checked ? 'checked' : ''} />
+                        <span>${s.name}</span>
+                    </label>
+                `).join('');
+        }
+
+        renderList();
+
+        const searchInput = document.getElementById('dev-search');
+        searchInput.addEventListener('input', (e) => renderList(e.target.value));
+
+        // Обработчики для переключения (демо): сохраняем в localStorage
+        listEl.addEventListener('change', (e) => {
+            const input = e.target;
+            if (input && input.id) {
+                localStorage.setItem('dev.setting.' + input.id, input.checked);
+            }
+        });
+        return;
+    }
+
+    // Хардкодный fallback для других пунктов — пока плейсхолдер
+    devMenuBody.innerHTML = `<p>тут будет пункт ${itemNumber}</p>`;
+}
+
 // Переключение между пунктами меню
 devMenuItems.forEach((item) => {
     item.addEventListener('click', () => {
-        // Убрать активный класс со всех пунктов
-        devMenuItems.forEach((btn) => {
-            btn.classList.remove('active');
-        });
-        
-        // Добавить активный класс текущему пункту
+        devMenuItems.forEach((btn) => btn.classList.remove('active'));
         item.classList.add('active');
-        
-        // Обновить содержимое
         const itemNumber = item.getAttribute('data-item');
-        devMenuBody.innerHTML = `<p>тут будет пункт ${itemNumber}</p>`;
+        renderDevMenuItem(itemNumber);
     });
 });
+
+// При загрузке — отрисовать контент для активного пункта
+const activeItem = document.querySelector('.dev-menu-item.active');
+if (activeItem) {
+    renderDevMenuItem(activeItem.getAttribute('data-item'));
+}
