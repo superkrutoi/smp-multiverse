@@ -503,7 +503,7 @@ body.dev-active .dev-toggle {
 
 .dev-menu-close {
     position: absolute;
-    top: 16px;
+    top: 20px; /* align vertically with the search input */
     right: 16px;
     background: none;
     border: none;
