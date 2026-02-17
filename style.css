@@ -16,40 +16,64 @@ body {
     height: 100%;
     width: 280px;  /* ← ширина по умолчанию — виден сразу */
     position: fixed;
-    z-index: 1;
+    z-index: 1001;
     top: 0;
     left: 0;
     background: rgba(30, 10, 60, 0.85);
     overflow-x: hidden;
-    transition: 0.5s;
+    transition: width 0.5s ease, transform 0.5s ease;
     padding-top: 60px;
 }
 
-.sidebar:not(.open) {
-    width: 0;  /* скрывается только когда нет класса open */
+.sidebar.hidden {
+    width: 0;  /* скрывается когда есть класс hidden */
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar li {
+    padding: 12px 16px;
+    color: #e0d0ff;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.sidebar li:hover {
+    background: rgba(147, 112, 219, 0.3);
 }
 
 .sidebar button {
-    padding: 8px 8px 8px 32px;
+    padding: 8px 16px;
     text-decoration: none;
-    font-size: 25px;
-    color: #818181;
+    font-size: 16px;
+    color: #e0d0ff;
     display: block;
     transition: 0.3s;
     background: none;
     border: none;
     cursor: pointer;
+    width: 100%;
+    text-align: left;
 }
 
 .sidebar #hide-sidebar {
     position: absolute;
-    top: 0;
-    right: 25px;
-    font-size: 36px;
-    margin-left: 50px;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
     background: none;
     color: #ff69b4;
     cursor: pointer;
+    padding: 4px 8px;
+    transition: 0.3s;
+}
+
+.sidebar #hide-sidebar:hover {
+    color: #ff1493;
 }
 
 #show-sidebar {
@@ -65,13 +89,16 @@ body {
     height: 50px;
     text-align: center;
     line-height: 50px;
-    z-index: 999;
-    transition: 0.3s;
-    display: none;
+    z-index: 1000;
+    border: none;
+    transition: opacity 0.3s ease, background 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
 }
 
-#show-sidebar.visible {
-    display: block;
+#show-sidebar:not(.hidden) {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 #show-sidebar:hover {
@@ -79,9 +106,8 @@ body {
 }
 
 .map-area {
-    margin-left: 280px;  /* ← сдвиг вправо по умолчанию */
     margin-left: 280px;
-    transition: margin-left .5s;
+    transition: margin-left 0.5s ease;
     padding: 16px;
     height: 100vh;
     background: linear-gradient(to bottom, #0a001f, #1a003f);
@@ -89,15 +115,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-}
-
-.map-area.expanded {
-    margin-left: 0;
-    background: linear-gradient(to bottom, #0a001f, #1a003f);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    overflow-y: auto;
 }
 
 .map-area.expanded {
@@ -150,4 +168,10 @@ body {
     color: white;
     border: none;
     cursor: pointer;
+    border-radius: 4px;
+    transition: 0.3s;
+}
+
+.mascot-menu button:hover {
+    background: #6a0dad;
 }

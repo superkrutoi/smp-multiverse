@@ -4,6 +4,10 @@ const mapArea = document.getElementById('map-area');
 const hideBtn = document.getElementById('hide-sidebar');
 const showBtn = document.getElementById('show-sidebar');
 
+// Инициализация: сайдбар видна по умолчанию, кнопка возврата скрыта
+sidebar.classList.remove('hidden');
+showBtn.classList.add('hidden');
+
 // Скрытие панели
 hideBtn.addEventListener('click', () => {
     sidebar.classList.add('hidden');
