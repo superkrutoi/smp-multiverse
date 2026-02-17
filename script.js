@@ -223,42 +223,46 @@ function renderDevMenuItem(itemNumber) {
         }
 
         async function renderImages() {
-            tabContent.innerHTML = `<div class="image-tree" id="image-tree">Загрузка...</div>`;
+            tabContent.innerHTML = `<div class="dev-image-browser"><div class="dev-image-sidebar" id="image-sidebar">Загрузка...</div><div class="dev-image-content" id="image-content"></div></div>`;
             try {
                 const res = await fetch('assets/manifest.json');
                 const manifest = await res.json();
-                const treeEl = document.getElementById('image-tree');
-                function renderNode(obj) {
-                    let html = '<ul>';
-                    for (const key of Object.keys(obj)) {
-                        const items = obj[key];
-                        // Filter out .gitkeep files
-                        const imageFiles = items.filter(f => !f.startsWith('.'));
-                        if (imageFiles.length === 0) continue; // skip folders with no images
-                        html += `<li class="image-node" data-folder="${key}"><button class="image-folder-btn"><span class="folder-icon">📁</span><strong>/${key}</strong></button><ul>`;
-                        imageFiles.forEach(f => {
-                            const filePath = `assets/${key}/${encodeURIComponent(f)}`;
-                            if (f.toLowerCase().match(/\.(png|jpg|jpeg|gif)$/)) {
-                                html += `<li class="image-file"><a href="${filePath}" target="_blank"><img src="${filePath}" class="image-thumb" alt="${f}"/></a><span class="image-name">${f}</span></li>`;
-                            }
-                        });
-                        html += `</ul></li>`;
-                    }
-                    html += '</ul>';
-                    return html;
-                }
-                treeEl.innerHTML = renderNode(manifest);
+                const sidebarEl = document.getElementById('image-sidebar');
+                const contentEl = document.getElementById('image-content');
                 
-                // Add click handlers for folder toggle
-                document.querySelectorAll('.image-folder-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const node = btn.closest('.image-node');
-                        const icon = btn.querySelector('.folder-icon');
-                        node.classList.toggle('collapsed');
-                        icon.textContent = node.classList.contains('collapsed') ? '📂' : '📁';
+                // Build sidebar tree
+                let sidebarHtml = '<ul class="image-tree">';
+                for (const key of Object.keys(manifest)) {
+                    const items = manifest[key];
+                    const imageFiles = items.filter(f => !f.startsWith('.'));
+                    sidebarHtml += `<li class="image-node" data-folder="${key}"><button class="image-folder-btn"><span class="folder-icon">📁</span>${key}</button></li>`;
+                }
+                sidebarHtml += '</ul>';
+                sidebarEl.innerHTML = sidebarHtml;
+                
+                // Add sidebar folder click handlers
+                document.querySelectorAll('.dev-image-sidebar .image-folder-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const folder = btn.closest('.image-node').dataset.folder;
+                        const items = manifest[folder] || [];
+                        const imageFiles = items.filter(f => !f.startsWith('.') && f.toLowerCase().match(/\.(png|jpg|jpeg|gif)$/));
+                        
+                        let contentHtml = `<h4>${folder}</h4>`;
+                        if (imageFiles.length === 0) {
+                            contentHtml += '<div class="image-empty">Изображений нет</div>';
+                        } else {
+                            imageFiles.forEach(f => {
+                                const filePath = `assets/${folder}/${encodeURIComponent(f)}`;
+                                contentHtml += `<div class="image-file"><a href="${filePath}" target="_blank"><img src="${filePath}" class="image-thumb" alt="${f}"/></a><span class="image-name">${f}</span></div>`;
+                            });
+                        }
+                        contentEl.innerHTML = contentHtml;
                     });
                 });
+                
+                // Show first folder by default
+                const firstBtn = sidebarEl.querySelector('.image-folder-btn');
+                if (firstBtn) firstBtn.click();
             } catch (err) {
                 tabContent.innerHTML = `<div class="error">Не удалось загрузить manifest.json: ${err}</div>`;
             }
