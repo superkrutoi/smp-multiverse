@@ -542,7 +542,8 @@ body.dev-active .dev-toggle {
     position: absolute;
     top: 20px;
     left: 20px;
-    width: calc(100% - 40px);
+    right: 72px; /* оставляем место справа для кнопки закрытия */
+    width: auto;
     padding: 10px 12px;
     margin: 0;
     border-radius: 8px;
@@ -550,6 +551,7 @@ body.dev-active .dev-toggle {
     background: rgba(255,255,255,0.03);
     color: #e0d0ff;
     font-size: 14px;
+    z-index: 12; /* над кнопкой закрытия, если потребуется */
 }
 .dev-settings-list {
     display: flex;
