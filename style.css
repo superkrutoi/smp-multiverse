@@ -566,6 +566,17 @@ body.dev-active .dev-toggle {
     border-radius: 8px;
     background: rgba(255,255,255,0.02);
 }
+.dev-setting-item {
+    justify-content: flex-start; /* прижать к левой стороне */
+    text-align: left;
+    width: 100%;
+    font-size: 13px; /* уменьшенный шрифт для параметров */
+}
+
+.dev-setting-item span {
+    flex: 1; /* чтобы текст занимал оставшееся пространство и был слева */
+    font-size: 13px;
+}
 .dev-setting-item input[type="checkbox"] {
     width: 18px;
     height: 18px;
