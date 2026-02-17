@@ -203,3 +203,59 @@ body {
 .mascot-menu button:hover {
     background: #6a0dad;
 }
+
+/* Dev Tools and Notifications (верхний правый угол) */
+.dev-toggle,
+.notification-bell {
+    position: fixed;
+    top: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(147, 112, 219, 0.7);
+    border: none;
+    cursor: pointer;
+    z-index: 999;
+    transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    padding: 0;
+}
+
+.dev-toggle img,
+.notification-bell img {
+    width: 24px;
+    height: 24px;
+    filter: brightness(1) drop-shadow(0 0 2px #ff69b4);
+}
+
+.dev-toggle {
+    right: 20px;
+}
+
+.notification-bell {
+    right: 74px;
+}
+
+.dev-toggle:hover,
+.notification-bell:hover {
+    background: rgba(147, 112, 219, 0.9);
+    transform: scale(1.08);
+    box-shadow: 0 0 15px rgba(255, 105, 180, 0.5);
+}
+
+.dev-toggle:active,
+.notification-bell:active {
+    transform: scale(0.96);
+}
+
+/* Dev Mode active state */
+body.dev-active {
+    --dev-mode: true;
+}
+
+body.dev-active .dev-toggle {
+    background: rgba(255, 105, 180, 0.9);
+    box-shadow: 0 0 20px rgba(255, 105, 180, 0.8);
+}
