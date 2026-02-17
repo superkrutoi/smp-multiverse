@@ -29,11 +29,34 @@ document.getElementById('mascot').addEventListener('click', (e) => {
     }
 });
 
-// Notification Bell
-document.querySelector('.notification-bell').addEventListener('click', () => {
-    console.log('Notifications clicked');
-    // TODO: Добавить логику toast-уведомлений
+// Notification Bell (toggle demo between bell1/bell2)
+const notificationBtn = document.querySelector('.notification-bell');
+const notificationImg = notificationBtn.querySelector('img');
+let notificationCount = 0; // demo count
+
+function updateNotificationIcon() {
+    const emptySrc = notificationImg.dataset.bellEmpty;
+    const activeSrc = notificationImg.dataset.bellActive;
+    notificationImg.src = notificationCount > 0 ? activeSrc : emptySrc;
+    if (notificationCount > 0) {
+        notificationBtn.classList.add('has-notifications');
+    } else {
+        notificationBtn.classList.remove('has-notifications');
+    }
+}
+
+notificationBtn.addEventListener('click', () => {
+    // Для демонстрации — переключаем между состояниями "есть уведомления" и "нет"
+    notificationCount = notificationCount > 0 ? 0 : 3;
+    updateNotificationIcon();
+    console.log('Notifications clicked, count=', notificationCount);
 });
+
+// expose helper for other code (optional)
+window.setNotificationCount = (n) => {
+    notificationCount = Math.max(0, Number(n) || 0);
+    updateNotificationIcon();
+};
 
 // Модальное окно настроек
 const settingsModal = document.getElementById('settings-modal');

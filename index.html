@@ -31,7 +31,7 @@
 
     <!-- Маскот справа сверху -->
     <div id="mascot" class="mascot">
-        <div class="mascot-icon">👻</div> <!-- позже заменишь на свою GIF -->
+        <img src="assets/icons/aliens.png" alt="Mascot" class="mascot-img" width="80" height="80">
         <div id="mascot-menu" class="mascot-menu hidden">
             <button>Профиль</button>
             <button>Мои серверы</button>
@@ -42,10 +42,11 @@
 
     <!-- Dev Tools & Notifications (верхний правый угол) -->
     <button class="dev-toggle" aria-label="Меню разработчика" data-tooltip="Меню разработчика">
-        <img src="assets/icons/wrench.png" alt="Меню разработчика" class="icon" width="24" height="24">
+        <img src="assets/icons/support.png" alt="Меню разработчика" class="icon" width="24" height="24">
     </button>
     <button class="notification-bell" aria-label="Уведомления" data-tooltip="Уведомления">
-        <img src="assets/icons/bell.png" alt="Уведомления" class="icon" width="24" height="24">
+        <img src="assets/icons/bell1.png" alt="Уведомления" class="icon" width="24" height="24"
+             data-bell-empty="assets/icons/bell1.png" data-bell-active="assets/icons/bell2.png">
     </button>
 
     <!-- Модальное окно настроек -->
@@ -94,8 +95,10 @@
         <section id="image-test" style="padding:12px; border-top:1px dashed #ddd; margin-top:18px;">
             <h2>Тест изображений</h2>
             <p>Локальные (из папки <strong>assets/icons</strong>) и внешняя заглушка:</p>
-            <img src="assets/icons/wrench.png" alt="wrench" width="80">
-            <img src="assets/icons/bell.png" alt="bell" width="80">
+            <img src="assets/icons/aliens.png" alt="mascot test" width="80">
+            <img src="assets/icons/support.png" alt="support test" width="80">
+            <img src="assets/icons/bell1.png" alt="bell1 test" width="80">
+            <img src="assets/icons/bell2.png" alt="bell2 test" width="80">
             <img src="https://placehold.co/120x80" alt="external test" width="120">
         </section>
 </body>
