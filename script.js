@@ -283,8 +283,9 @@ function renderDevMenuItem(itemNumber) {
                 if (key === 'colors') renderColors();
                 if (key === 'images') await renderImages();
             }));
-            // default to colors
-            setActiveSub('colors');
+            // default to images
+            setActiveSub('images');
+            await renderImages();
         }
 
         const savedTheme = localStorage.getItem('site.theme');
@@ -301,7 +302,7 @@ function renderDevMenuItem(itemNumber) {
     const globalSubtabs = document.getElementById('dev-subtabs');
     if (globalSubtabs) globalSubtabs.classList.add('hidden');
     // Хардкодный fallback для других пунктов — пока плейсхолдер
-    devMenuBody.innerHTML = `<p>тут будет пункт ${itemNumber}</p>`;
+    devMenuBody.innerHTML = `<div style="padding-top: 70px; padding-left: 28px;"><p>тут будет пункт ${itemNumber}</p></div>`;
 }
 
 // Переключение между пунктами меню

@@ -503,11 +503,11 @@ body.dev-active .dev-toggle {
 
 .dev-menu-close {
     position: absolute;
-    top: 20px; /* align vertically with the search input */
+    top: 16px;
     right: 16px;
     background: none;
     border: none;
-    color: #ff69b4;
+    color: #c9d1e8;
     font-size: 28px;
     cursor: pointer;
     padding: 0;
@@ -521,14 +521,15 @@ body.dev-active .dev-toggle {
 }
 
 .dev-menu-close:hover {
-    color: #ff1493;
+    color: #64b4ff;
 }
 
 .dev-menu-body {
     padding: 0;
     position: relative;
     color: #c9d1e8;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex: 1;
     font-size: 18px;
@@ -545,11 +546,12 @@ body.dev-active .dev-toggle {
 .dev-tab { background:transparent; border:1px solid rgba(255,255,255,0.04); padding:6px 10px; border-radius:6px; cursor:pointer; font-size:13px; }
 .dev-tab.active { background:rgba(255,255,255,0.03); box-shadow: inset 0 -2px 0 rgba(255,255,255,0.03); }
 /* Subtabs positioned top-left of the dev-menu-body area */
-.dev-subtabs { position: absolute; top: 18px; left: 28px; display:flex; gap:8px; z-index: 50; }
+.dev-subtabs { position: absolute; top: 16px; left: 28px; display:flex; gap:8px; z-index: 50; }
 .dev-subtabs.hidden { display: none; }
 .dev-subtab { background:transparent; border:1px solid rgba(100,180,255,0.2); padding:6px 12px; border-radius:6px; cursor:pointer; font-size:13px; color:#c9d1e8; transition:all 0.15s ease; }
 .dev-subtab:hover { background:rgba(100,180,255,0.08); border-color:rgba(100,180,255,0.4); color:#64b4ff; }
 .dev-subtab.active { background: rgba(100,180,255,0.15); border-color:rgba(100,180,255,0.5); color:#64b4ff; box-shadow:0 0 12px rgba(100,180,255,0.2); }
+.theme-grid { display:flex; gap:10px; flex-wrap:wrap; padding-top: 70px; padding-left: 28px; padding-right: 28px; }
 .theme-item { width:120px; height:80px; border-radius:8px; overflow:hidden; border:1px solid rgba(0,0,0,0.2); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:6px; background:var(--bg, #0a0015); color:var(--accent, #c79cff); }
 .theme-swatch { width:100%; height:48px; border-radius:6px; }
 .theme-name { margin-top:6px; font-size:12px; }
@@ -557,7 +559,7 @@ body.dev-active .dev-toggle {
 /* Image browser with file explorer layout */
 .dev-image-browser { display:flex; width:100%; height:100%; position:relative; }
 .dev-image-sidebar { flex:0 0 200px; background:linear-gradient(180deg, rgba(15,30,60,0.8) 0%, rgba(10,20,40,0.8) 100%); border-right:1px solid rgba(100,180,255,0.15); overflow-y:auto; padding:12px 0; }
-.dev-image-content { flex:1; overflow-y:auto; padding:60px 28px 20px 28px; }
+.dev-image-content { flex:1; overflow-y:auto; padding:70px 28px 20px 28px; }
 
 .image-tree { list-style:none; padding:0; margin:0; font-size:13px; }
 .image-tree ul { list-style:none; padding-left:0; margin:0; }
@@ -596,8 +598,10 @@ body.dev-active .dev-toggle {
 .dev-settings-container {
     width: 100%;
     max-width: 720px;
-    align-self: flex-start; /* прижать контейнер к левому краю правой панели */
+    align-self: flex-start;
     padding-left: 0;
+    padding-top: 70px;
+    margin-top: 0;
 }
 
 .dev-settings-list {
