@@ -97,3 +97,33 @@ body {
 .hidden {
     display: none;
 }
+/* Кнопка показа сайдбара (появляется, когда панель скрыта) */
+.show-sidebar {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    width: 50px;
+    height: 50px;
+    background: rgba(147, 112, 219, 0.7); /* фиолетовый полупрозрачный */
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(255, 105, 180, 0.5); /* розовая неоновая тень */
+    z-index: 999;
+    transition: background 0.3s, transform 0.2s;
+    display: none; /* изначально скрыта */
+}
+
+.show-sidebar:not(.hidden) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.show-sidebar:hover {
+    background: rgba(147, 112, 219, 0.9);
+    transform: scale(1.1);
+}
