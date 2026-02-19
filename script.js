@@ -263,10 +263,70 @@ async function renderDevMenuItem(itemNumber) {
                 sidebarHtml += '</ul>';
                 sidebarEl.innerHTML = sidebarHtml;
                 let folderRenderToken = 0;
+                let activeFolderEntries = [];
+                let activeFolderName = '';
+                let activeSearchQuery = '';
+
+                const renderFilesList = (folderName, searchQuery = '') => {
+                    if (folderName !== activeFolderName) return;
+                    const filesListEl = contentEl.querySelector('.image-files-list');
+                    if (!filesListEl) return;
+
+                    const normalizedQuery = (searchQuery || '').trim().toLowerCase();
+                    const savedTitles = JSON.parse(localStorage.getItem('iconPreviewTitle') || '{}');
+
+                    const filteredFiles = activeFolderEntries.filter(({ folderName: entryFolder, fileName, filePath }) => {
+                        if (entryFolder !== folderName) return false;
+                        if (!normalizedQuery) return true;
+
+                        const customTitle = savedTitles[fileName] || '';
+                        const description = (getImageMetadata(filePath).description || '');
+
+                        return [fileName, customTitle, description]
+                            .some(value => String(value).toLowerCase().includes(normalizedQuery));
+                    });
+
+                    if (filteredFiles.length === 0) {
+                        filesListEl.innerHTML = '<div class="image-empty">Ничего не найдено</div>';
+                        return;
+                    }
+
+                    let listHtml = '';
+                    filteredFiles.forEach(({ fileName, filePath, meta }) => {
+                        const customTitle = savedTitles[fileName];
+                        const metaLabel = meta
+                            ? `${meta.width}×${meta.height} px • ${meta.sizeText}`
+                            : 'Размер: — • Вес: —';
+
+                        let fileHtml = `<div class="image-file"><img src="${filePath}" class="image-thumb" alt="${fileName}" data-fullsize="${filePath}"/>`;
+                        fileHtml += `<div class="image-info">`;
+                        if (customTitle && customTitle !== 'Без названия') {
+                            fileHtml += `<span class="image-custom-title">${customTitle}</span>`;
+                        }
+                        fileHtml += `<span class="image-name-meta">${fileName} • ${metaLabel}</span>`;
+                        fileHtml += `</div></div>`;
+                        listHtml += fileHtml;
+                    });
+
+                    filesListEl.innerHTML = listHtml;
+
+                    contentEl.querySelectorAll('.image-thumb').forEach(thumb => {
+                        thumb.addEventListener('click', () => {
+                            const imageName = decodeURIComponent(thumb.dataset.fullsize.split('/').pop());
+                            currentImageIndex = currentFolderImages.indexOf(imageName);
+                            openImageViewer(thumb.dataset.fullsize);
+                        });
+                    });
+
+                    updateImageStatusBadges();
+                };
                 
                 // Function to display folder contents
                 const displayFolder = async (folderName, searchQuery = '') => {
                     const renderToken = ++folderRenderToken;
+                    activeFolderName = folderName;
+                    activeSearchQuery = searchQuery;
+                    activeFolderEntries = [];
                     currentFolder = folderName;
                     const items = manifest[folderName] || [];
                     currentFolderImages = items.filter(f => typeof f === 'string' && !f.startsWith('.'));
@@ -274,8 +334,6 @@ async function renderDevMenuItem(itemNumber) {
                     console.log(`Displaying folder: ${folderName}`);
                     console.log(`Items in manifest[${folderName}]:`, items);
                     console.log(`Filtered image files:`, currentFolderImages);
-
-                    const normalizedQuery = (searchQuery || '').trim().toLowerCase();
 
                     contentEl.innerHTML = `
                         <div class="image-content-header">
@@ -286,79 +344,36 @@ async function renderDevMenuItem(itemNumber) {
                     `;
 
                     const searchInput = contentEl.querySelector('#image-folder-search');
-                    const filesListEl = contentEl.querySelector('.image-files-list');
                     if (searchInput) {
-                        searchInput.value = searchQuery;
+                        searchInput.value = activeSearchQuery;
                         searchInput.addEventListener('input', (e) => {
-                            displayFolder(folderName, e.target.value);
+                            if (activeFolderName !== folderName) return;
+                            activeSearchQuery = e.target.value;
+                            renderFilesList(folderName, activeSearchQuery);
                         });
                     }
 
-                    let listHtml = '';
                     if (currentFolderImages.length === 0) {
-                        listHtml += '<div class="image-empty">Тут ничего нет</div>';
+                        const filesListEl = contentEl.querySelector('.image-files-list');
+                        if (filesListEl) filesListEl.innerHTML = '<div class="image-empty">Тут ничего нет</div>';
                     } else {
-                        const savedTitles = JSON.parse(localStorage.getItem('iconPreviewTitle') || '{}');
                         const filesWithMeta = await Promise.all(currentFolderImages.map(async (f) => {
                             const filePath = `assets/${folderName}/${encodeURIComponent(f)}`;
                             const meta = await getImageMeta(filePath);
-                            return { fileName: f, filePath, meta };
+                            return { folderName, fileName: f, filePath, meta };
                         }));
 
                         if (renderToken !== folderRenderToken || currentFolder !== folderName) {
                             return;
                         }
-
-                        const filteredFiles = filesWithMeta.filter(({ fileName, filePath }) => {
-                            if (!normalizedQuery) return true;
-
-                            const customTitle = savedTitles[fileName] || '';
-                            const description = (getImageMetadata(filePath).description || '');
-
-                            return [fileName, customTitle, description]
-                                .some(value => String(value).toLowerCase().includes(normalizedQuery));
-                        });
-
-                        if (filteredFiles.length === 0) {
-                            listHtml += '<div class="image-empty">Ничего не найдено</div>';
-                        }
-
-                        filteredFiles.forEach(({ fileName, filePath, meta }) => {
-                            const f = fileName;
-                            const customTitle = savedTitles[f];
-                            const metaLabel = meta
-                                ? `${meta.width}×${meta.height} px • ${meta.sizeText}`
-                                : 'Размер: — • Вес: —';
-                            
-                            let fileHtml = `<div class="image-file"><img src="${filePath}" class="image-thumb" alt="${f}" data-fullsize="${filePath}"/>`;
-                            fileHtml += `<div class="image-info">`;
-                            if (customTitle && customTitle !== 'Без названия') {
-                                fileHtml += `<span class="image-custom-title">${customTitle}</span>`;
-                            }
-                            fileHtml += `<span class="image-name-meta">${f} • ${metaLabel}</span>`;
-                            fileHtml += `</div></div>`;
-                            listHtml += fileHtml;
-                        });
+                        activeFolderEntries = filesWithMeta;
                     }
 
                     if (renderToken !== folderRenderToken || currentFolder !== folderName) {
                         return;
                     }
 
-                    if (filesListEl) {
-                        filesListEl.innerHTML = listHtml;
-                    }
-                    
-                    // Add click handlers for image preview
-                    contentEl.querySelectorAll('.image-thumb').forEach(thumb => {
-                        thumb.addEventListener('click', () => {
-                            const imageName = decodeURIComponent(thumb.dataset.fullsize.split('/').pop());
-                            currentImageIndex = currentFolderImages.indexOf(imageName);
-                            openImageViewer(thumb.dataset.fullsize);
-                        });
-                    });
-                    
-                    updateImageStatusBadges();
+                    renderFilesList(folderName, activeSearchQuery);
                 };
                 
                 // Add sidebar folder click handlers
