@@ -1114,7 +1114,7 @@ body.dev-active .dev-toggle {
 .image-empty { font-size:16px; color:rgba(255,255,255,0.6); font-style:italic; padding:120px 24px 24px; text-align:center; opacity:0.65; }
 
 .image-content-header { display:flex; flex-direction:column; gap:6px; margin:0 0 16px 0; width:100%; }
-.image-content-header h4 { margin:0; color:var(--mc-text); font-size:16px; font-weight:600; letter-spacing:0.7px; min-width:0; }
+.image-content-header h4 { margin:0; color:var(--mc-text); font-size:16px; font-weight:600; letter-spacing:0.7px; min-width:0; font-family: var(--font-heading); }
 .image-header-controls { display:flex; gap:10px; align-items:center; width:100%; }
 .image-folder-search { flex:1; min-width:0; padding:10px 14px; border-radius:0; border:var(--border-width) solid var(--mc-border); background:var(--mc-bg-medium); color:var(--mc-text); font-size:13.5px; box-sizing:border-box; padding-left: 34px; transition: all 0.1s linear; font-family: var(--font-primary); }
 .image-folder-search:focus { outline:none; border-color:var(--mc-accent); box-shadow:0 0 0 2px rgba(85,255,85,0.2); }
@@ -1136,13 +1136,13 @@ body.dev-active .dev-toggle {
     opacity: 0.85;
 }
 
-.image-refresh-btn { padding:10px; border-radius:0; border:var(--border-width) solid var(--mc-border); background:var(--mc-bg-medium); color:var(--mc-accent); font-size:18px; cursor:pointer; transition:all 0.1s linear; display:flex; align-items:center; justify-content:center; flex-shrink:0; width:42px; height:42px; }
+.image-refresh-btn { padding:10px; border-radius:0; border:var(--border-width) solid var(--mc-border); background:var(--mc-bg-medium); color:var(--mc-accent); font-size:18px; cursor:pointer; transition:all 0.1s linear; display:flex; align-items:center; justify-content:center; flex-shrink:0; width:42px; height:42px; font-family: var(--font-ui); }
 .image-refresh-btn:hover { filter:brightness(1.2); background:rgba(85,255,85,0.15); border-color:var(--mc-accent); }
 .image-refresh-btn:active { transform:translateY(1px); }
 .image-folder-search::placeholder { color:rgba(255,255,255,0.4); }
 .image-files-list { display:block; }
 
-.dev-image-content h4 { margin:0 0 20px 0; color:var(--mc-accent); font-size:16px; font-weight:600; letter-spacing:0.7px; font-family:var(--font-primary); text-shadow:1px 1px 0 var(--mc-border); }
+.dev-image-content h4 { margin:0 0 20px 0; color:var(--mc-accent); font-size:16px; font-weight:600; letter-spacing:0.7px; font-family:var(--font-heading); text-shadow:1px 1px 0 var(--mc-border); }
 
 /* Стили для раздела "Управление" в меню разработчика */
 .dev-search {
@@ -1197,7 +1197,7 @@ body.dev-active .dev-toggle {
     letter-spacing: 1.2px;
     margin: 0 0 calc(var(--spacing-unit) * 2.25) 0;
     text-transform: uppercase;
-    font-family: var(--font-primary);
+    font-family: var(--font-heading);
     text-shadow: 2px 2px 0 var(--mc-border);
     line-height: 1.4;
 }
@@ -1643,7 +1643,7 @@ body.dev-active .dev-toggle {
     margin: 0;
     font-size: 18px;
     color: var(--mc-accent);
-    font-family: var(--font-primary);
+    font-family: var(--font-heading);
     text-shadow: 2px 2px 0 var(--mc-border);
 }
 
@@ -1658,6 +1658,7 @@ body.dev-active .dev-toggle {
     transition: all 0.1s linear;
     display: flex;
     align-items: center;
+    font-family: var(--font-ui);
     justify-content: center;
 }
 
