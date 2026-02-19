@@ -240,6 +240,117 @@ body {
     display: none;
 }
 
+.test-panel {
+    position: fixed;
+    top: 92px;
+    right: 16px;
+    width: 220px;
+    background: rgba(10, 15, 35, 0.95);
+    border: 1px solid rgba(0, 208, 255, 0.35);
+    border-radius: 10px;
+    box-shadow: 0 0 18px rgba(0, 208, 255, 0.2);
+    padding: 12px;
+    z-index: 1200;
+}
+
+.test-panel h3 {
+    margin: 0 0 10px;
+    color: #e5e7ff;
+    font-size: 14px;
+}
+
+.test-panel button {
+    width: 100%;
+    border: 1px solid rgba(0, 208, 255, 0.4);
+    background: rgba(20, 35, 70, 0.8);
+    color: #dbe7ff;
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+}
+
+.test-panel button:hover {
+    box-shadow: 0 0 10px rgba(0, 208, 255, 0.35);
+}
+
+.test-server-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2200;
+}
+
+.test-server-modal-content {
+    width: min(92vw, 420px);
+    background: rgba(15, 22, 44, 0.96);
+    border: 1px solid rgba(0, 208, 255, 0.35);
+    border-radius: 12px;
+    box-shadow: 0 0 22px rgba(0, 208, 255, 0.2);
+    padding: 14px;
+}
+
+.test-server-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.test-server-modal-header h2 {
+    margin: 0;
+    color: #e5e7ff;
+    font-size: 18px;
+}
+
+.test-server-close {
+    border: none;
+    background: transparent;
+    color: #ff69b4;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.test-server-form {
+    display: grid;
+    gap: 8px;
+}
+
+.test-server-form label {
+    color: #d7dcff;
+    font-size: 13px;
+}
+
+.test-server-form input,
+.test-server-form select {
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(0, 208, 255, 0.28);
+    color: #e5e7ff;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.test-server-coords {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.test-server-submit {
+    margin-top: 4px;
+    border: 1px solid rgba(0, 208, 255, 0.4);
+    background: rgba(20, 35, 70, 0.8);
+    color: #dbe7ff;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+}
+
 /* Маскот */
 .mascot {
     position: fixed;

@@ -50,6 +50,54 @@
              data-bell-empty="assets/icons/bell%201.png" data-bell-active="assets/icons/bell%202.png">
     </button>
 
+    <div id="test-panel" class="test-panel hidden" aria-label="Интерфейс тестирования карты">
+        <h3>Map Testing</h3>
+        <button id="add-test-server-btn" type="button">Add Test Server</button>
+    </div>
+
+    <div id="test-server-modal" class="test-server-modal hidden" aria-hidden="true">
+        <div class="test-server-modal-content">
+            <div class="test-server-modal-header">
+                <h2>Add Test Server</h2>
+                <button id="test-server-close" class="test-server-close" aria-label="Закрыть окно">✕</button>
+            </div>
+            <form id="add-test-server-form" class="test-server-form">
+                <label for="test-server-name">Name</label>
+                <input id="test-server-name" name="name" type="text" required>
+
+                <label for="test-server-ip">IP</label>
+                <input id="test-server-ip" name="ip" type="text" required>
+
+                <label for="test-server-version">Version</label>
+                <input id="test-server-version" name="version" type="text" required>
+
+                <label for="test-server-desc">Description</label>
+                <input id="test-server-desc" name="desc" type="text">
+
+                <label for="test-server-icon">Icon</label>
+                <select id="test-server-icon" name="icon">
+                    <option value="">Default marker</option>
+                    <option value="assets/icons/aliens.png">Aliens</option>
+                    <option value="assets/icons/support.png">Support</option>
+                    <option value="assets/icons/view.png">View</option>
+                </select>
+
+                <div class="test-server-coords">
+                    <div>
+                        <label for="test-server-x">Coords X</label>
+                        <input id="test-server-x" name="x" type="number" step="0.01" required>
+                    </div>
+                    <div>
+                        <label for="test-server-y">Coords Y</label>
+                        <input id="test-server-y" name="y" type="number" step="0.01" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="test-server-submit">Add</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Модальное окно настроек -->
     <div id="settings-modal" class="settings-modal hidden">
         <div class="settings-content">
