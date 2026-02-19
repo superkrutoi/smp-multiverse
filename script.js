@@ -341,7 +341,8 @@ const renderDevMenuItem = async (itemNumber) => {
         async function renderImages() {
             tabContent.innerHTML = `<div class="dev-image-browser"><div class="dev-image-sidebar" id="image-sidebar">Загрузка...</div><div class="dev-image-main"><div class="dev-image-scroll" id="image-scroll"><div class="dev-image-content" id="image-content"></div></div></div></div>`;
             try {
-                const res = await fetch('assets/manifest.json');
+                // Cache-busting: добавляем timestamp чтобы браузер не кэшировал
+                const res = await fetch(`assets/manifest.json?v=${Date.now()}`);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 manifest = await res.json();
                 console.log('Manifest loaded:', manifest);
