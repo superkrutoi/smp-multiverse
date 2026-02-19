@@ -1,15 +1,15 @@
-{
-  "icons": [
-    "aliens.png",
-    "bell 1.png",
-    "bell 2.png",
-    "support.png",
-    ".gitkeep"
-  ],
-  "images": [
-    ".gitkeep"
-  ],
-  "ui": [
-    ".gitkeep"
-  ]
+﻿{
+    "images":  ".gitkeep",
+    "ui":  ".gitkeep",
+    "icons":  [
+                  ".gitkeep",
+                  "aliens.png",
+                  "bell 1.png",
+                  "bell 2.png",
+                  "closed_folder.png",
+                  "hide.png",
+                  "open_folder.png",
+                  "support.png",
+                  "view.png"
+              ]
 }
