@@ -389,8 +389,10 @@ async function renderDevMenuItem(itemNumber) {
                     contentEl.innerHTML = `
                         <div class="image-content-header">
                             <h4>${folderName.toUpperCase()}</h4>
-                            <input id="image-folder-search" class="image-folder-search" type="search" placeholder="Поиск файлов..." aria-label="Поиск файлов в папке" />
-                            <button id="image-refresh-btn" class="image-refresh-btn" title="Обновить список файлов из папки assets"><span>🔄</span><span>Обновить</span></button>
+                            <div class="image-header-controls">
+                                <input id="image-folder-search" class="image-folder-search" type="search" placeholder="Поиск файлов..." aria-label="Поиск файлов в папке" />
+                                <button id="image-refresh-btn" class="image-refresh-btn" title="Обновить список файлов из папки assets">🔄</button>
+                            </div>
                         </div>
                         <div class="image-files-list"><div class="image-empty">Загрузка метаданных...</div></div>
                     `;
