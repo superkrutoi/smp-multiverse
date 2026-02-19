@@ -245,20 +245,21 @@ async function renderDevMenuItem(itemNumber) {
                 
                 // Function to display folder contents
                 const displayFolder = (folderName) => {
+                    currentFolder = folderName;
                     const items = manifest[folderName] || [];
-                    const imageFiles = items.filter(f => typeof f === 'string' && !f.startsWith('.'));
+                    currentFolderImages = items.filter(f => typeof f === 'string' && !f.startsWith('.'));
                     
                     console.log(`Displaying folder: ${folderName}`);
                     console.log(`Items in manifest[${folderName}]:`, items);
-                    console.log(`Filtered image files:`, imageFiles);
+                    console.log(`Filtered image files:`, currentFolderImages);
                     
                     let contentHtml = `<h4>${folderName.toUpperCase()}</h4>`;
-                    if (imageFiles.length === 0) {
+                    if (currentFolderImages.length === 0) {
                         contentHtml += '<div class="image-empty">Тут ничего нет</div>';
                     } else {
                         const savedTitles = JSON.parse(localStorage.getItem('iconPreviewTitle') || '{}');
                         
-                        imageFiles.forEach(f => {
+                        currentFolderImages.forEach(f => {
                             const filePath = `assets/${folderName}/${encodeURIComponent(f)}`;
                             const customTitle = savedTitles[f];
                             
@@ -277,6 +278,8 @@ async function renderDevMenuItem(itemNumber) {
                     // Add click handlers for image preview
                     contentEl.querySelectorAll('.image-thumb').forEach(thumb => {
                         thumb.addEventListener('click', () => {
+                            const imageName = decodeURIComponent(thumb.dataset.fullsize.split('/').pop());
+                            currentImageIndex = currentFolderImages.indexOf(imageName);
                             openImageViewer(thumb.dataset.fullsize);
                         });
                     });
@@ -407,6 +410,9 @@ const STATUS_MAP = {
 };
 
 let currentImagePath = '';
+let currentFolder = '';
+let currentFolderImages = [];
+let currentImageIndex = -1;
 
 function openImageViewer(imageSrc) {
     currentImagePath = imageSrc;
@@ -732,6 +738,26 @@ openImageViewer = function(imageSrc) {
         initPreviewTitle(imageSrc);
     }, 10);
 };
+
+// Navigation buttons
+const navPrevBtn = document.getElementById('image-nav-prev');
+const navNextBtn = document.getElementById('image-nav-next');
+
+navPrevBtn.addEventListener('click', () => {
+    if (currentFolderImages.length === 0) return;
+    currentImageIndex = (currentImageIndex - 1 + currentFolderImages.length) % currentFolderImages.length;
+    const nextImage = currentFolderImages[currentImageIndex];
+    const imageSrc = `assets/${currentFolder}/${encodeURIComponent(nextImage)}`;
+    openImageViewer(imageSrc);
+});
+
+navNextBtn.addEventListener('click', () => {
+    if (currentFolderImages.length === 0) return;
+    currentImageIndex = (currentImageIndex + 1) % currentFolderImages.length;
+    const nextImage = currentFolderImages[currentImageIndex];
+    const imageSrc = `assets/${currentFolder}/${encodeURIComponent(nextImage)}`;
+    openImageViewer(imageSrc);
+});
 
 // Close by clicking outside the content
 imageViewerModal.addEventListener('click', (e) => {
