@@ -40,7 +40,7 @@ body {
 /* Firefox scrollbar */
 * {
     scrollbar-width: thin;
-    scrollbar-color: #00d4ff rgba(10, 10, 31, 0.4);
+    scrollbar-color: var(--mc-accent) var(--mc-bg-medium);
 }
 
 /* Webkit browsers (Chrome, Safari, Edge, Opera) */
@@ -63,42 +63,28 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-    background: rgba(10, 10, 31, 0.4);
-    border-radius: 10px;
+    background: var(--mc-bg-medium);
+    border-radius: 0;  /* Блочный стиль */
 }
 
 ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #00d4ff 0%, #00a8cc 100%);
-    border-radius: 6px;
-    border: 1px solid rgba(0, 212, 255, 0.3);
-    box-shadow: 
-        0 0 8px rgba(0, 212, 255, 0.5),
-        inset 0 0 10px rgba(100, 220, 255, 0.3);
-    transition: all 0.3s ease;
+    background: var(--mc-accent);
+    border-radius: 0;  /* Блочный стиль */
+    border: 1px solid var(--mc-border);
+    transition: all 0.1s linear;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #40f0ff 0%, #00d4ff 100%);
-    box-shadow: 
-        0 0 16px rgba(0, 212, 255, 0.8),
-        0 0 24px rgba(0, 212, 255, 0.4),
-        inset 0 0 12px rgba(150, 240, 255, 0.5);
-    border-color: rgba(64, 240, 255, 0.6);
-    width: 14px;
-    transform: scaleX(1.2);
+    filter: brightness(1.2);
 }
 
 ::-webkit-scrollbar-thumb:active {
-    background: linear-gradient(180deg, #00eaff 0%, #00b8e6 100%);
-    box-shadow: 
-        0 0 20px rgba(0, 234, 255, 1),
-        0 0 30px rgba(0, 212, 255, 0.6),
-        inset 0 0 14px rgba(180, 255, 255, 0.6);
+    filter: brightness(0.8);
 }
 
 /* Scrollbar corner (where horizontal and vertical scrollbars meet) */
 ::-webkit-scrollbar-corner {
-    background: rgba(10, 10, 31, 0.6);
+    background: var(--mc-bg-medium);
 }
 
 /* Apply to specific scrollable containers */
@@ -108,14 +94,14 @@ body {
 .dev-image-content,
 .map-area {
     scrollbar-width: thin;
-    scrollbar-color: #00d4ff rgba(10, 10, 31, 0.4);
+    scrollbar-color: var(--mc-accent) var(--mc-bg-medium);
 }
 
 .hidden {
     display: none;
 }
 
-/* Сайдбар (sliding эффект) */
+/* Сайдбар (sliding эффект) — MC стиль */
 .sidebar {
     height: 100%;
     width: 280px;  /* ← ширина по умолчанию — виден сразу */
@@ -123,9 +109,10 @@ body {
     z-index: 1001;
     top: 0;
     left: 0;
-    background: rgba(30, 10, 60, 0.85);
+    background: var(--mc-bg-dark);
+    border-right: var(--border-width) solid var(--mc-border);
     overflow-x: hidden;
-    transition: width 0.5s ease, opacity 0.5s ease, transform 0.5s ease;
+    transition: width 0.1s linear, opacity 0.1s linear, transform 0.1s linear;
     padding-top: 60px;
     padding-left: 24px;  /* Минимальный комфортный отступ от левого краю */
     opacity: 1;
@@ -144,19 +131,23 @@ body {
 
 .sidebar li {
     padding: 12px 16px 12px 0;  /* Отступ убран слева (потому что ul уже имеет padding-left) */
-    color: #e0d0ff;
+    color: var(--mc-text);
     cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.1s linear;
 }
 
 .sidebar li:hover {
-    background: rgba(147, 112, 219, 0.3);
+    background: rgba(85, 255, 85, 0.15);
+    filter: brightness(1.2);
 }
 
 .sidebar h2,
 .sidebar h3 {
     margin-left: 0;  /* Убираем дефолтный margin */
-    color: #e0d0ff;
+    color: var(--mc-text);
+    font-family: var(--font-primary);
+    font-size: var(--font-size-large);
+    text-shadow: 2px 2px 0 var(--mc-border);
 }
 
 .sidebar #server-info {
@@ -172,9 +163,9 @@ body {
     padding: 8px 16px;
     text-decoration: none;
     font-size: 16px;
-    color: #e0d0ff;
+    color: var(--mc-text);
     display: block;
-    transition: 0.3s;
+    transition: all 0.1s linear;
     background: none;
     border: none;
     cursor: pointer;
@@ -182,48 +173,54 @@ body {
     text-align: left;
 }
 
+.sidebar button:hover {
+    filter: brightness(1.2);
+    color: var(--mc-accent);
+}
+
 .sidebar #hide-sidebar {
     position: fixed;
     top: 16px;
     left: 16px;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
+    width: var(--slot-size);
+    height: var(--slot-size);
+    border-radius: 0;  /* Блочный стиль */
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
-    background: rgba(147, 112, 219, 0.7);
-    color: #ff69b4;
+    font-size: 20px;
+    background: var(--mc-bg-medium);
+    border: var(--border-width) solid var(--mc-border);
+    color: var(--mc-red);
     cursor: pointer;
     padding: 0;
-    border: none;
-    transition: background 0.3s ease, color 0.3s ease;
+    transition: all 0.1s linear;
     z-index: 1002;
 }
 
 .sidebar #hide-sidebar:hover {
-    background: rgba(147, 112, 219, 0.9);
-    color: #ff1493;
+    filter: brightness(1.2);
+    background: var(--mc-red);
+    color: var(--mc-text);
 }
 
 #show-sidebar {
     position: fixed;
     top: 16px;
     left: 16px;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
+    width: var(--slot-size);
+    height: var(--slot-size);
+    border-radius: 0;  /* Блочный стиль */
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 20px;
     cursor: pointer;
-    color: #ff69b4;
-    background: rgba(147, 112, 219, 0.7);
-    border: none;
+    color: var(--mc-text);
+    background: var(--mc-bg-medium);
+    border: var(--border-width) solid var(--mc-border);
     padding: 0;
-    transition: opacity 0.3s ease, background 0.3s ease, color 0.3s ease;
+    transition: all 0.1s linear;
     opacity: 0;
     pointer-events: none;
     z-index: 1000;
@@ -235,13 +232,14 @@ body {
 }
 
 #show-sidebar:hover {
-    background: rgba(147, 112, 219, 0.9);
-    color: #ff1493;
+    filter: brightness(1.2);
+    background: var(--mc-accent);
+    color: var(--mc-bg-dark);
 }
 
 .map-area {
     margin-left: 280px;
-    transition: margin-left 0.5s ease;
+    transition: margin-left 0.1s linear;
     padding: 16px;
     height: 100vh;
     background: linear-gradient(to bottom, #0a001f, #1a003f);
