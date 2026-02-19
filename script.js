@@ -636,8 +636,19 @@ const renderDevMenuItem = async (itemNumber) => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const text = await res.text();
                 
+                // Парсим metadata из HTML комментария в начале
+                let metadata = { updated: '', last_added: '' };
+                const metadataMatch = text.match(/<!--metadata\s*\n\s*updated:\s*(.+?)\s*\n\s*last_added:\s*(.+?)\s*\n\s*-->/);
+                if (metadataMatch) {
+                    metadata.updated = metadataMatch[1];
+                    metadata.last_added = metadataMatch[2];
+                }
+                
+                // Удаляем metadata из текста перед рендерингом
+                let cleanedText = text.replace(/<!--metadata[\s\S]*?-->\s*/, '');
+                
                 // Простой рендер markdown (без библиотеки)
-                const html = text
+                const html = cleanedText
                     .replace(/^# (.*?)$/gm, '<h1>$1</h1>')
                     .replace(/^## (.*?)$/gm, '<h2>$1</h2>')
                     .replace(/^### (.*?)$/gm, '<h3>$1</h3>')
@@ -647,9 +658,18 @@ const renderDevMenuItem = async (itemNumber) => {
                     .replace(/\n\n/g, '</p><p>')
                     .replace(/\n/g, '<br>');
                 
+                // Формируем HTML с metadata в правом верхнем углу
+                const metadataHtml = metadata.updated ? `
+                    <div style="position: absolute; top: 12px; right: 12px; font-size: 10px; color: var(--mc-text-dark); opacity: 0.7; text-align: right; font-family: var(--font-primary);">
+                        <div>Обновлено: ${metadata.updated}</div>
+                        <div style="margin-top: 4px; font-size: 9px;">Последнее: ${metadata.last_added}</div>
+                    </div>
+                ` : '';
+                
                 reportContent.innerHTML = `
-                    <div class="report-wrapper">
+                    <div class="report-wrapper" style="position: relative;">
                         <h2>${report.title}</h2>
+                        ${metadataHtml}
                         <div class="report-body">
                             <p>${html}</p>
                         </div>

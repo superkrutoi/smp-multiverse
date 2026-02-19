@@ -1,3 +1,8 @@
+<!--metadata
+updated: 2026-02-19 19:45
+last_added: Обновление информации о HUD Sonic X1, исправлена ссылка на Contra Phobotech
+-->
+
 # DESIGN-GUIDELINES.md — Руководство по дизайну SMP Multiverse
 
 Версия: 1.0 (февраль 2026)  
@@ -192,7 +197,7 @@ text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
 5. Шрифт Minecraftia обязателен для заголовков, названий серверов, подписей на карте.
 
 ## Полезные ресурсы
-- Русскоязычные пиксельные шрифты: Glasstown NBP, Mintsoda, Starseed Pro (локально в assets/fonts/)
+- Пиксельные шрифты (локально в assets/fonts/): Glasstown NBP (основной), Contra Phobotech Regular (жирный), Mintsoda (курсив), HUD Sonic X1 (полужирный)
 - Lucid Icons: assets/Lucid_V1.2_icons/ (Leo Red, CC0 — пиксельные иконки для UI)
 - Текстуры Minecraft GUI: можно взять из официальных текстур-паков (public domain) или перерисовать в пиксель-арте
 - Xaero's World Map референс: скриншоты интерфейса, waypoints, мини-карта
