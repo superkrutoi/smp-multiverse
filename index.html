@@ -13,26 +13,51 @@
 
     <aside id="sidebar" class="sidebar" aria-label="Боковая панель">
         <button id="hide-sidebar" class="sidebar-close" aria-label="Скрыть боковую панель">×</button>
-        <h2>Меню</h2>
-        <ul>
-            <li>Поиск серверов</li>
-            <li>Мои серверы</li>
-            <li>Профиль</li>
+        <h2 class="sidebar-title">Меню</h2>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item active">Поиск серверов</li>
+            <li class="sidebar-item">Мои серверы</li>
+            <li class="sidebar-item">Профиль</li>
         </ul>
-        <div id="server-info">
-            <h3>Космическая погода</h3>
-            <p>Звёздный шторм 🌌</p>
+        <div id="server-info" class="space-block">
+            <h3 class="sidebar-section-title">Космическая погода</h3>
+            <p class="sidebar-item">Звёздный шторм 🌌</p>
         </div>
     </aside>
 
-    <!-- Центральная область (пока заглушка карты) -->
+    <!-- Центральная область: процедурная космическая сцена -->
     <div id="map-area" class="map-area">
-        <div id="map"></div>
+        <canvas id="stars" class="scene-layer scene-stars" aria-hidden="true"></canvas>
+        <canvas id="universe" class="scene-layer scene-universe" aria-hidden="true"></canvas>
+
+        <div class="map-zoom-controls" aria-label="Управление масштабом">
+            <button id="map-zoom-in" class="map-zoom-btn" aria-label="Приблизить" title="Приблизить">
+                <img src="assets/Lucid_V1.2_icons/PNG/Flat/32/Magnifying-Glass-Add.png" alt="" class="map-zoom-icon" width="20" height="20">
+            </button>
+            <button id="map-zoom-out" class="map-zoom-btn" aria-label="Отдалить" title="Отдалить">
+                <img src="assets/Lucid_V1.2_icons/PNG/Flat/32/Magnifying-Glass-Reduce.png" alt="" class="map-zoom-icon" width="20" height="20">
+            </button>
+            <button id="map-center-view" class="map-zoom-btn map-center-btn" aria-label="Центрировать карту" title="Центрировать карту" data-tooltip="центрировать">
+                <img src="assets/Lucid_V1.2_icons/PNG/Flat/32/Star.png" alt="" class="map-zoom-icon" width="20" height="20">
+            </button>
+        </div>
+
+        <div class="scene-overlay" aria-live="polite">
+            <div class="scene-overlay-card">
+                <h3 class="scene-overlay-title">Космический реестр</h3>
+                <p id="scene-server-count" class="scene-overlay-line">Серверов: 0</p>
+                <p id="scene-scale" class="scene-overlay-line">Масштаб: 1.00x</p>
+                <p id="scene-focus" class="scene-overlay-line">Фокус: —</p>
+                <p id="scene-coords" class="scene-overlay-line">Координаты: —</p>
+            </div>
+        </div>
+
+        <div id="map" class="map-fallback hidden" aria-hidden="true"></div>
     </div>
 
     <!-- Маскот справа сверху -->
     <div id="mascot" class="mascot">
-        <img src="assets/Lucid_V1.2_icons/PNG/Flat/160/Game-Controller.png" alt="Mascot" class="mascot-img" width="80" height="80">
+        <img src="assets/Lucid_V1.2_icons/PNG/Flat/160/Person.png" alt="Mascot" class="mascot-img" width="80" height="80">
         <div id="mascot-menu" class="mascot-menu hidden">
             <button>Профиль</button>
             <button>Мои серверы</button>
@@ -199,7 +224,7 @@
         <section id="image-test" style="padding:12px; border-top:1px dashed #ddd; margin-top:18px;">
             <h2>Тест изображений</h2>
             <p>Локальные (из папки <strong>assets/icons</strong>) и внешняя заглушка:</p>
-            <img src="assets/Lucid_V1.2_icons/PNG/Flat/160/Game-Controller.png" alt="mascot test" width="80">
+            <img src="assets/Lucid_V1.2_icons/PNG/Flat/160/Person.png" alt="mascot test" width="80">
             <img src="assets/Lucid_V1.2_icons/PNG/Flat/32/Gear.png" alt="support test" width="80">
             <img src="assets/Lucid_V1.2_icons/PNG/Flat/32/Message-Three-Dots.png" alt="bell1 test" width="80">
             <img src="assets/Lucid_V1.2_icons/PNG/Flat/32/Message-Exclamation.png" alt="bell2 test" width="80">

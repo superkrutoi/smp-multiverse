@@ -8,18 +8,55 @@ const showBtn = document.getElementById('show-sidebar');
 sidebar.classList.remove('hidden');
 showBtn.classList.add('hidden');
 
-// Скрытие панели
-hideBtn.addEventListener('click', () => {
+function openSidebar() {
+    sidebar.classList.remove('hidden');
+    mapArea.classList.remove('expanded');
+    showBtn.classList.add('hidden');
+}
+
+function closeSidebar() {
     sidebar.classList.add('hidden');
     mapArea.classList.add('expanded');
     showBtn.classList.remove('hidden');
+}
+
+function toggleSidebar() {
+    if (sidebar.classList.contains('hidden')) {
+        openSidebar();
+    } else {
+        closeSidebar();
+    }
+}
+
+// Скрытие панели
+hideBtn.addEventListener('click', () => {
+    closeSidebar();
 });
 
 // Показ панели обратно
 showBtn.addEventListener('click', () => {
-    sidebar.classList.remove('hidden');
-    mapArea.classList.remove('expanded');
-    showBtn.classList.add('hidden');
+    openSidebar();
+});
+
+// Toggle sidebar with Tab when on the map page
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab') return;
+
+    const target = e.target;
+    const isEditable = target && target.closest('input, textarea, select, button, [contenteditable="true"]');
+    if (isEditable) return;
+
+    const devModal = document.getElementById('dev-menu-modal');
+    const settingsModal = document.getElementById('settings-modal');
+    const imageModal = document.getElementById('image-viewer-modal');
+    const hasOpenModal =
+        (devModal && !devModal.classList.contains('hidden')) ||
+        (settingsModal && !settingsModal.classList.contains('hidden')) ||
+        (imageModal && !imageModal.classList.contains('hidden'));
+    if (hasOpenModal) return;
+
+    e.preventDefault();
+    toggleSidebar();
 });
 
 // Меню маскота — открыть/скрыть по клику на маскота (кнопки в меню не закрывают)
@@ -153,6 +190,17 @@ let mapToolsUI = null;
 
 const renderDevMenuItem = async (itemNumber) => {
     devMenuBody.classList.toggle('dev-menu-body--images', String(itemNumber) === '2');
+
+    const headerSubtabs = document.getElementById('dev-subtabs');
+    const headerReportsTabs = document.getElementById('dev-reports-tabs');
+    if (headerSubtabs) {
+        headerSubtabs.classList.add('hidden');
+        headerSubtabs.setAttribute('aria-hidden', 'true');
+    }
+    if (headerReportsTabs) {
+        headerReportsTabs.classList.add('hidden');
+        headerReportsTabs.setAttribute('aria-hidden', 'true');
+    }
 
     if (String(itemNumber) === '1') {
         // Настройки — поисковая строка сверху + список настроек (восстановленный)
@@ -569,6 +617,7 @@ const renderDevMenuItem = async (itemNumber) => {
         const devSubtabs = document.getElementById('dev-subtabs');
         if (devSubtabs) {
             devSubtabs.classList.remove('hidden');
+            devSubtabs.setAttribute('aria-hidden', 'false');
             const subButtons = devSubtabs.querySelectorAll('.dev-subtab');
             function setActiveSub(key) {
                 subButtons.forEach(b => b.classList.toggle('active', b.dataset.sub === key));
@@ -599,7 +648,10 @@ const renderDevMenuItem = async (itemNumber) => {
         const devReportsTabs = document.getElementById('dev-reports-tabs');
         const devSubtabs = document.getElementById('dev-subtabs');
         if (devSubtabs) devSubtabs.classList.add('hidden');
-        if (devReportsTabs) devReportsTabs.classList.remove('hidden');
+        if (devReportsTabs) {
+            devReportsTabs.classList.remove('hidden');
+            devReportsTabs.setAttribute('aria-hidden', 'false');
+        }
         
         clearHeaderSearch();
         devMenuBody.innerHTML = `
@@ -1264,6 +1316,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.multiverseMap = map;
 
+    const zoomInBtn = document.getElementById('map-zoom-in');
+    const zoomOutBtn = document.getElementById('map-zoom-out');
+    if (zoomInBtn) {
+        zoomInBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            map.zoomIn();
+        });
+    }
+    if (zoomOutBtn) {
+        zoomOutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            map.zoomOut();
+        });
+    }
+
     const mapBounds = [[-100, -100], [100, 100]];
     L.imageOverlay('assets/images/maxresdefault.jpg', mapBounds).addTo(map);
 
@@ -1308,4 +1375,537 @@ document.addEventListener('DOMContentLoaded', () => {
         wrappedGenerateTestServers.__leafletHooked = true;
         window.generateTestServers = wrappedGenerateTestServers;
     }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const starsCanvas = document.getElementById('stars');
+    const universeCanvas = document.getElementById('universe');
+
+    if (!starsCanvas || !universeCanvas) {
+        return;
+    }
+
+    const starsCtx = starsCanvas.getContext('2d');
+    const universeCtx = universeCanvas.getContext('2d');
+
+    if (!starsCtx || !universeCtx) {
+        return;
+    }
+
+    const overlayCount = document.getElementById('scene-server-count');
+    const overlayScale = document.getElementById('scene-scale');
+    const overlayFocus = document.getElementById('scene-focus');
+    const overlayCoords = document.getElementById('scene-coords');
+
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+    function seededRandom(initialSeed) {
+        let seed = initialSeed % 2147483647;
+        if (seed <= 0) {
+            seed += 2147483646;
+        }
+
+        return function next() {
+            seed = (seed * 16807) % 2147483647;
+            return (seed - 1) / 2147483646;
+        };
+    }
+
+    function hashString(value) {
+        let hash = 0;
+        for (let i = 0; i < value.length; i += 1) {
+            hash = ((hash << 5) - hash) + value.charCodeAt(i);
+            hash |= 0;
+        }
+        return Math.abs(hash) + 1;
+    }
+
+    function deriveServerSeed(server) {
+        if (Number.isFinite(Number(server.seed))) {
+            return Number(server.seed) || 1;
+        }
+
+        const source = `${server.name || ''}|${server.ip || ''}|${server.version || ''}`;
+        return hashString(source);
+    }
+
+    function buildServerList() {
+        const fallback = [
+            { name: 'Alpha', players: 120, maxPlayers: 300, atmosphere: 0.8, activity: 0.6, seed: 12345, type: 'creative' },
+            { name: 'Crimson PvP', players: 260, maxPlayers: 300, atmosphere: 0.25, activity: 0.95, seed: 45512, type: 'pvp' },
+            { name: 'Roleplay Orion', players: 80, maxPlayers: 220, atmosphere: 0.55, activity: 0.45, seed: 87501, type: 'rp' },
+            { name: 'Builder Nova', players: 56, maxPlayers: 160, atmosphere: 0.9, activity: 0.3, seed: 93474, type: 'creative' }
+        ];
+
+        const source = Array.isArray(window.servers) && window.servers.length > 0
+            ? window.servers
+            : fallback;
+
+        return source.map((server, index) => {
+            const maxPlayers = Math.max(1, Number(server.maxPlayers) || 300);
+            const players = clamp(Number(server.players) || Math.floor(maxPlayers * 0.35), 0, maxPlayers);
+            const atmosphere = clamp(Number(server.atmosphere) || 0.5, 0, 1);
+            const activity = clamp(Number(server.activity) || 0.5, 0, 1);
+            const seed = deriveServerSeed(server) + index * 97;
+            const type = String(server.type || (server.mode || 'generic')).toLowerCase();
+
+            return {
+                name: server.name || `Server ${index + 1}`,
+                players,
+                maxPlayers,
+                atmosphere,
+                activity,
+                seed,
+                type
+            };
+        });
+    }
+
+    function serverColor(server) {
+        const hue = Math.round(clamp(server.atmosphere, 0, 1) * 120);
+        return {
+            base: `hsl(${hue}, 70%, 50%)`,
+            atmosphere: `hsla(${hue}, 80%, 60%, ${0.25 + server.activity * 0.45})`
+        };
+    }
+
+    function buildPlanetTexture(server, radius) {
+        const texture = document.createElement('canvas');
+        const size = radius * 2;
+        texture.width = size;
+        texture.height = size;
+
+        const textureCtx = texture.getContext('2d');
+        if (!textureCtx) {
+            return texture;
+        }
+
+        const rand = seededRandom(server.seed);
+        const color = serverColor(server).base;
+        const toxicity = clamp(1 - server.atmosphere, 0, 1);
+
+        for (let y = -radius; y < radius; y += 1) {
+            for (let x = -radius; x < radius; x += 1) {
+                if ((x * x) + (y * y) > radius * radius) {
+                    continue;
+                }
+
+                const noise = rand();
+                const shade = rand();
+
+                if (noise > (0.78 - toxicity * 0.28)) {
+                    textureCtx.fillStyle = `rgba(28, 22, 34, ${0.55 + toxicity * 0.35})`;
+                } else {
+                    const lightnessShift = Math.round((shade - 0.5) * 14);
+                    const hue = Math.round(server.atmosphere * 120);
+                    textureCtx.fillStyle = `hsl(${hue}, 68%, ${clamp(50 + lightnessShift, 34, 68)}%)`;
+                }
+
+                textureCtx.fillRect(x + radius, y + radius, 1, 1);
+            }
+        }
+
+        return texture;
+    }
+
+    let width = 0;
+    let height = 0;
+    let stars = [];
+    let comets = [];
+    let planets = [];
+    let frame = 0;
+    let nextCometFrame = 240;
+    let hoveredPlanetName = '';
+    let cameraZoom = 1;
+    let cameraPanX = 0;
+    let cameraPanY = 0;
+    const minZoom = 0.55;
+    const maxZoom = 2.4;
+
+    const pointer = { x: 0, y: 0, active: false };
+    const dragState = {
+        active: false,
+        pointerId: null,
+        lastX: 0,
+        lastY: 0
+    };
+    const serverList = buildServerList();
+    const cometRand = seededRandom(serverList.reduce((sum, server) => sum + server.seed, 73));
+
+    if (overlayCount) {
+        overlayCount.textContent = `Серверов: ${serverList.length}`;
+    }
+
+    function setCanvasSize() {
+        const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+        width = window.innerWidth;
+        height = window.innerHeight;
+
+        [starsCanvas, universeCanvas].forEach((canvas) => {
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+        });
+
+        starsCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        universeCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        starsCtx.imageSmoothingEnabled = false;
+        universeCtx.imageSmoothingEnabled = false;
+
+        createStars();
+        createPlanets();
+    }
+
+    function createStars() {
+        const density = 0.00042;
+        const count = Math.max(450, Math.floor(width * height * density));
+        const seed = hashString(`${width}x${height}:${serverList.length}`);
+        const rand = seededRandom(seed);
+        stars = [];
+
+        for (let i = 0; i < count; i += 1) {
+            stars.push({
+                x: Math.floor(rand() * width),
+                y: Math.floor(rand() * height),
+                size: rand() > 0.92 ? 2 : 1,
+                brightness: 0.35 + rand() * 0.65,
+                twinkleOffset: rand() * Math.PI * 2,
+                twinkleSpeed: 0.004 + rand() * 0.02
+            });
+        }
+    }
+
+    function createPlanets() {
+        const minSide = Math.max(320, Math.min(width, height));
+        const orbitStep = minSide / (serverList.length + 1);
+
+        planets = serverList.map((server, index) => {
+            const ratio = clamp(server.players / server.maxPlayers, 0, 1);
+            const baseRadius = Math.round(20 + ratio * 40);
+            const rand = seededRandom(server.seed);
+            const orbitRadius = Math.round(orbitStep * (index + 1) + rand() * 24);
+            const angle = rand() * Math.PI * 2;
+            const texture = buildPlanetTexture(server, baseRadius);
+
+            return {
+                ...server,
+                ratio,
+                radius: baseRadius,
+                orbitRadius,
+                angle,
+                x: 0,
+                y: 0,
+                texture,
+                color: serverColor(server)
+            };
+        });
+    }
+
+    function setZoom(nextZoom) {
+        cameraZoom = clamp(nextZoom, minZoom, maxZoom);
+    }
+
+    function spawnComet() {
+        const horizontalStart = cometRand() > 0.5;
+        const startX = horizontalStart ? -30 : Math.floor(cometRand() * width);
+        const startY = horizontalStart ? Math.floor(cometRand() * (height * 0.55)) : -30;
+        const speedBase = 1.4 + cometRand() * 1.8;
+
+        comets.push({
+            x: startX,
+            y: startY,
+            vx: speedBase * (0.9 + cometRand() * 0.9),
+            vy: speedBase * (0.7 + cometRand() * 0.9),
+            maxLife: 140 + Math.floor(cometRand() * 90),
+            life: 0
+        });
+    }
+
+    function updateStars() {
+        stars.forEach((star) => {
+            const twinkle = Math.sin((frame * star.twinkleSpeed) + star.twinkleOffset) * 0.24;
+            star.brightness = clamp(star.brightness + twinkle * 0.02, 0.3, 1);
+        });
+    }
+
+    function updateComets() {
+        if (frame >= nextCometFrame && comets.length < 4) {
+            spawnComet();
+            nextCometFrame = frame + 180 + Math.floor(cometRand() * 340);
+        }
+
+        comets = comets.filter((comet) => {
+            comet.x += comet.vx;
+            comet.y += comet.vy;
+            comet.life += 1;
+
+            return comet.life < comet.maxLife && comet.x < width + 50 && comet.y < height + 50;
+        });
+    }
+
+    function updatePlanets() {
+        planets.forEach((planet) => {
+            planet.angle += 0.001 + (0.0035 * planet.activity);
+            planet.x = Math.cos(planet.angle) * planet.orbitRadius;
+            planet.y = Math.sin(planet.angle) * planet.orbitRadius;
+        });
+    }
+
+    function drawStars() {
+        starsCtx.globalAlpha = 1;
+        starsCtx.fillStyle = '#000814';
+        starsCtx.fillRect(0, 0, width, height);
+
+        stars.forEach((star) => {
+            starsCtx.globalAlpha = star.brightness;
+            starsCtx.fillStyle = '#ffffff';
+            starsCtx.fillRect(star.x, star.y, star.size, star.size);
+        });
+
+        starsCtx.globalAlpha = 1;
+    }
+
+    function drawComets() {
+        starsCtx.fillStyle = '#d9f1ff';
+
+        comets.forEach((comet) => {
+            starsCtx.globalAlpha = 1;
+            starsCtx.fillRect(comet.x, comet.y, 3, 3);
+
+            for (let i = 1; i <= 12; i += 1) {
+                starsCtx.globalAlpha = Math.max(0.03, 1 - i * 0.08);
+                starsCtx.fillRect(comet.x - i * 2, comet.y - i * 2, 2, 2);
+            }
+        });
+
+        starsCtx.globalAlpha = 1;
+    }
+
+    function drawPlanetDecor(planet) {
+        const ctx = universeCtx;
+
+        if (planet.type.includes('pvp')) {
+            ctx.strokeStyle = 'rgba(255, 90, 90, 0.7)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(planet.x, planet.y, planet.radius + 8, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        if (planet.type.includes('rp')) {
+            ctx.strokeStyle = 'rgba(181, 111, 255, 0.68)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(planet.x, planet.y, planet.radius + 5, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        if (planet.type.includes('creative')) {
+            ctx.strokeStyle = 'rgba(110, 219, 255, 0.7)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(planet.x, planet.y, planet.radius + 6, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+    }
+
+    function drawPlanets() {
+        universeCtx.clearRect(0, 0, width, height);
+        const centerX = (width / 2) + cameraPanX;
+        const centerY = (height / 2) + cameraPanY;
+
+        const pointerWorldX = centerX + (pointer.x - centerX) / cameraZoom;
+        const pointerWorldY = centerY + (pointer.y - centerY) / cameraZoom;
+
+        universeCtx.strokeStyle = 'rgba(150, 170, 255, 0.08)';
+        universeCtx.lineWidth = 1;
+
+        planets.forEach((planet) => {
+            universeCtx.beginPath();
+            universeCtx.arc(centerX, centerY, planet.orbitRadius * cameraZoom, 0, Math.PI * 2);
+            universeCtx.stroke();
+        });
+
+        hoveredPlanetName = '';
+
+        planets.forEach((planet) => {
+            const screenX = centerX + (planet.x * cameraZoom);
+            const screenY = centerY + (planet.y * cameraZoom);
+            const drawRadius = planet.radius * cameraZoom;
+
+            universeCtx.globalAlpha = 1;
+            universeCtx.drawImage(
+                planet.texture,
+                Math.floor(screenX - drawRadius),
+                Math.floor(screenY - drawRadius),
+                Math.ceil(drawRadius * 2),
+                Math.ceil(drawRadius * 2)
+            );
+
+            universeCtx.strokeStyle = planet.color.atmosphere;
+            universeCtx.lineWidth = 2;
+            universeCtx.beginPath();
+            universeCtx.arc(screenX, screenY, drawRadius + 4, 0, Math.PI * 2);
+            universeCtx.stroke();
+
+            const decoratedPlanet = {
+                ...planet,
+                x: screenX,
+                y: screenY,
+                radius: drawRadius
+            };
+            drawPlanetDecor(decoratedPlanet);
+
+            if (pointer.active) {
+                const dx = pointerWorldX - (centerX + planet.x);
+                const dy = pointerWorldY - (centerY + planet.y);
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance <= planet.radius + 10 && !hoveredPlanetName) {
+                    hoveredPlanetName = `${planet.name} (${planet.players}/${planet.maxPlayers})`;
+
+                    universeCtx.strokeStyle = 'rgba(255, 255, 255, 0.92)';
+                    universeCtx.lineWidth = 1;
+                    universeCtx.beginPath();
+                    universeCtx.arc(screenX, screenY, drawRadius + 10, 0, Math.PI * 2);
+                    universeCtx.stroke();
+                }
+            }
+        });
+    }
+
+    function updateOverlay() {
+        if (overlayScale) {
+            overlayScale.textContent = `Масштаб: ${cameraZoom.toFixed(2)}x`;
+        }
+
+        if (overlayFocus) {
+            overlayFocus.textContent = `Фокус: ${hoveredPlanetName || '—'}`;
+        }
+
+        if (overlayCoords) {
+            if (pointer.active) {
+                const centerX = (width / 2) + cameraPanX;
+                const centerY = (height / 2) + cameraPanY;
+                const worldX = Math.round((pointer.x - centerX) / cameraZoom);
+                const worldY = Math.round((pointer.y - centerY) / cameraZoom);
+                overlayCoords.textContent = `Координаты: x ${worldX}, y ${worldY}`;
+            } else {
+                overlayCoords.textContent = 'Координаты: —';
+            }
+        }
+    }
+
+    function tick() {
+        frame += 1;
+
+        updateStars();
+        updateComets();
+        updatePlanets();
+
+        drawStars();
+        drawComets();
+        drawPlanets();
+        updateOverlay();
+
+        requestAnimationFrame(tick);
+    }
+
+    universeCanvas.addEventListener('pointermove', (event) => {
+        const rect = universeCanvas.getBoundingClientRect();
+        const nextX = event.clientX - rect.left;
+        const nextY = event.clientY - rect.top;
+
+        if (dragState.active && dragState.pointerId === event.pointerId) {
+            cameraPanX += nextX - dragState.lastX;
+            cameraPanY += nextY - dragState.lastY;
+            dragState.lastX = nextX;
+            dragState.lastY = nextY;
+        }
+
+        pointer.x = nextX;
+        pointer.y = nextY;
+        pointer.active = true;
+    });
+
+    universeCanvas.addEventListener('pointerdown', (event) => {
+        const rect = universeCanvas.getBoundingClientRect();
+        dragState.active = true;
+        dragState.pointerId = event.pointerId;
+        dragState.lastX = event.clientX - rect.left;
+        dragState.lastY = event.clientY - rect.top;
+        universeCanvas.setPointerCapture(event.pointerId);
+        universeCanvas.style.cursor = 'grabbing';
+    });
+
+    universeCanvas.addEventListener('pointerup', (event) => {
+        if (dragState.pointerId !== event.pointerId) {
+            return;
+        }
+
+        dragState.active = false;
+        dragState.pointerId = null;
+        universeCanvas.style.cursor = 'grab';
+        if (universeCanvas.hasPointerCapture(event.pointerId)) {
+            universeCanvas.releasePointerCapture(event.pointerId);
+        }
+    });
+
+    universeCanvas.addEventListener('pointercancel', (event) => {
+        if (dragState.pointerId !== event.pointerId) {
+            return;
+        }
+
+        dragState.active = false;
+        dragState.pointerId = null;
+        universeCanvas.style.cursor = 'grab';
+    });
+
+    universeCanvas.addEventListener('pointerleave', () => {
+        if (!dragState.active) {
+            pointer.active = false;
+        }
+        hoveredPlanetName = '';
+    });
+
+    const zoomInBtn = document.getElementById('map-zoom-in');
+    const zoomOutBtn = document.getElementById('map-zoom-out');
+    const centerViewBtn = document.getElementById('map-center-view');
+
+    if (zoomInBtn) {
+        zoomInBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            setZoom(cameraZoom * 1.12);
+        });
+    }
+
+    if (zoomOutBtn) {
+        zoomOutBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            setZoom(cameraZoom / 1.12);
+        });
+    }
+
+    if (centerViewBtn) {
+        centerViewBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            cameraPanX = 0;
+            cameraPanY = 0;
+        });
+    }
+
+    universeCanvas.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        const zoomFactor = event.deltaY < 0 ? 1.08 : (1 / 1.08);
+        setZoom(cameraZoom * zoomFactor);
+    }, { passive: false });
+
+    universeCanvas.style.cursor = 'grab';
+
+    window.addEventListener('resize', () => {
+        setCanvasSize();
+    });
+
+    setCanvasSize();
+    tick();
 });
