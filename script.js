@@ -241,12 +241,63 @@ async function renderDevMenuItem(itemNumber) {
             });
         }
 
+        // Переменная для хранения manifest в памяти
+        let manifest = null;
+
+        // Функция для сканирования папки assets через File System Access API
+        const scanAndUpdateManifest = async () => {
+            if (!('showDirectoryPicker' in window)) {
+                alert('Ваш браузер не поддерживает File System Access API. Используйте Chrome/Edge 86+ или запустите скрипт generate-manifest.ps1.');
+                return;
+            }
+
+            try {
+                const dirHandle = await window.showDirectoryPicker({ mode: 'read' });
+                const allowedExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.bmp'];
+                const newManifest = { icons: [], images: [], ui: [] };
+
+                // Сканируем подпапки icons, images, ui
+                const folderNames = ['icons', 'images', 'ui'];
+                for (const folderName of folderNames) {
+                    try {
+                        const folderHandle = await dirHandle.getDirectoryHandle(folderName);
+                        const files = [];
+                        
+                        for await (const entry of folderHandle.values()) {
+                            if (entry.kind === 'file') {
+                                const fileName = entry.name;
+                                const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+                                if (allowedExtensions.includes(ext)) {
+                                    files.push(fileName);
+                                }
+                            }
+                        }
+                        
+                        newManifest[folderName] = files.sort();
+                        console.log(`Scanned ${folderName}: ${files.length} files`);
+                    } catch (err) {
+                        console.warn(`Folder ${folderName} not found or inaccessible:`, err);
+                    }
+                }
+
+                // Обновляем manifest в памяти
+                Object.assign(manifest, newManifest);
+                console.log('Manifest updated:', manifest);
+                alert(`Список файлов обновлён!\n\nicons: ${manifest.icons.length}\nimages: ${manifest.images.length}\nui: ${manifest.ui.length}`);
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('Scan error:', err);
+                    alert('Ошибка при сканировании папки. Убедитесь, что выбрали папку assets.');
+                }
+            }
+        };
+
         async function renderImages() {
             tabContent.innerHTML = `<div class="dev-image-browser"><div class="dev-image-sidebar" id="image-sidebar">Загрузка...</div><div class="dev-image-main"><div class="dev-image-scroll" id="image-scroll"><div class="dev-image-content" id="image-content"></div></div></div></div>`;
             try {
                 const res = await fetch('assets/manifest.json');
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const manifest = await res.json();
+                manifest = await res.json();
                 console.log('Manifest loaded:', manifest);
                 
                 const sidebarEl = document.getElementById('image-sidebar');
@@ -339,6 +390,7 @@ async function renderDevMenuItem(itemNumber) {
                         <div class="image-content-header">
                             <h4>${folderName.toUpperCase()}</h4>
                             <input id="image-folder-search" class="image-folder-search" type="search" placeholder="Поиск файлов..." aria-label="Поиск файлов в папке" />
+                            <button id="image-refresh-btn" class="image-refresh-btn" title="Обновить список файлов из папки assets"><span>🔄</span><span>Обновить</span></button>
                         </div>
                         <div class="image-files-list"><div class="image-empty">Загрузка метаданных...</div></div>
                     `;
@@ -350,6 +402,14 @@ async function renderDevMenuItem(itemNumber) {
                             if (activeFolderName !== folderName) return;
                             activeSearchQuery = e.target.value;
                             renderFilesList(folderName, activeSearchQuery);
+                        });
+                    }
+
+                    const refreshBtn = contentEl.querySelector('#image-refresh-btn');
+                    if (refreshBtn) {
+                        refreshBtn.addEventListener('click', async () => {
+                            await scanAndUpdateManifest();
+                            displayFolder(folderName, activeSearchQuery);
                         });
                     }
 
