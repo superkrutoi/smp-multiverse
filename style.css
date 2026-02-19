@@ -29,17 +29,54 @@
     font-display: swap;
 }
 
+/* UI элементы (кнопки, навигация) - полужирный */
+@font-face {
+    font-family: 'HUDSonic';
+    src: url('assets/fonts/HUD Sonic X1 Regular.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Starseed Pro - УСТАРЕЛ ❌ (заменен на Contra Phobotech) */
+@font-face {
+    font-family: 'StarseedProLegacy';
+    src: url('assets/fonts/StarseedPro.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Dungeonmode - зарезервирован для ретро-эффектов */
+@font-face {
+    font-family: 'Dungeonmode';
+    src: url('assets/fonts/Dungeonmode.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Dungeonmode Inverted - зарезервирован для ретро-эффектов */
+@font-face {
+    font-family: 'DungeonmodeInverted';
+    src: url('assets/fonts/Dungeonmode Inverted.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* ===== MC DESIGN SYSTEM VARIABLES (from DESIGN-GUIDELINES.md) ===== */
 :root {
     /* Шрифты */
     --font-primary: 'Glasstown', monospace, sans-serif;      /* Основной текст (не жирный, читабельный) */
     --font-heading: 'ContraPhobotech', 'Glasstown', monospace; /* Заголовки (жирный пиксельный) */
     --font-accent: 'Mintsoda', monospace;                     /* Курсив для акцентов */
+    --font-ui: 'HUDSonic', 'ContraPhobotech', monospace;      /* UI (кнопки, tabs, navigation) */
     --font-size-base: 16px;
     --font-size-small: 12px;
     --font-size-large: 20px;
 
-    /* Цвета (Minecraft GUI палитра) */
+    /* Цвета (Minecraft GUI палитра + Xaero + Cosmos theme) */
     --mc-bg-dark:    #3f3f3f;    /* Основной фон панелей, инвентаря */
     --mc-bg-medium:  #2b2b2b;    /* Тёмные слоты, акценты */
     --mc-bg-light:   #c6c6c6;    /* Светлые выделения, текст на тёмном */
@@ -51,11 +88,30 @@
     --mc-red:        #ff5555;    /* Красный для ошибок, close-кнопки */
     --mc-yellow:     #ffff55;    /* Жёлтый для предупреждений */
 
+    /* Цвета Xaero + Cosmos theme (для современных элементов) */
+    --xaero-bg-dark: #0f1117;    /* Очень тёмный фон (как в VS Code) */
+    --xaero-bg-card: #1a1d26;    /* Панели и карточки */
+    --xaero-bg-hover:#12141c;    /* Hover состояние */
+    --xaero-border:  #2a2f3d;    /* Бордеры (мягкие) */
+    --xaero-border-alt: #3b4252; /* Альтернативные бордеры */
+    --xaero-text:    #cfd8ff;    /* Основной текст (бледно-голубой) */
+    --xaero-text-light: #e6e9ff; /* Светлый текст */
+    --xaero-accent:  #7aa2ff;    /* Основной акцент (голубой) */
+    --xaero-accent-bright: #8fbcff; /* Яркий акцент */
+    --xaero-warning: #ff7070;    /* Предупреждение (красный) */
+
     /* Отступы и размеры (8×8 сетка Minecraft) */
     --spacing-unit:  8px;        /* Базовый шаг сетки */
     --border-width:  2px;        /* Толщина блочных рамок */
     --slot-size:     32px;       /* Размер инвентарных слотов/иконок */
     --panel-padding: calc(var(--spacing-unit) * 2);
+}
+
+html {
+    /* Пиксельный стиль - отключаем сглаживание шрифтов */
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: grayscale;
+    font-smooth: never;
 }
 
 body {
@@ -65,6 +121,10 @@ body {
     color: #e0d0ff;
     height: 100vh;
     overflow: hidden;
+    /* Пиксельный стиль - отключаем интерполяцию изображений */
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
 }
 
 /* ===== GLOBAL SCROLLBAR STYLES (Sci-Fi Neon Glow) ===== */
@@ -826,7 +886,7 @@ body.dev-active .dev-toggle {
     padding: 12px;
     overflow-x: auto;
     margin: 10px 0;
-    font-family: monospace;
+    font-family: var(--font-primary);
     font-size: 12px;
 }
 

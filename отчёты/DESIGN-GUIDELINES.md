@@ -1,6 +1,6 @@
 <!--metadata
-updated: 2026-02-19 20:15
-last_added: Полный список всех шрифтов с детальным описанием (Starseed Pro отмечен как устарел)
+updated: 2026-02-19 20:30
+last_added: Полная типографическая система (Minecraft + Xaero UI + Космос)
 -->
 
 # DESIGN-GUIDELINES.md — Руководство по дизайну SMP Multiverse
@@ -199,7 +199,7 @@ text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
 4. Обнови :root переменные (если нужно)
 5. Обнови этот раздел + протестируй на мобильном и Telegram Mini App
 
-## Анимации
+## Миграция со старого sci-fi стиля
 - Переходы: all 0.1s linear; (быстрые, без плавности — как в Minecraft)  
 - Hover: brightness + лёгкий scale(1.05)  
 - Breathing (для выбранных элементов): scale(1.0 → 1.05) с keyframes, duration 1.5s infinite
