@@ -831,7 +831,6 @@ body.dev-active .dev-toggle {
     box-shadow: 0 0 60px rgba(100, 180, 255, 0.3);
     overflow: hidden;
     animation: modalZoomIn 0.3s ease;
-    position: relative;
 }
 
 @keyframes modalZoomIn {
@@ -859,37 +858,36 @@ body.dev-active .dev-toggle {
 
 /* Navigation Arrows */
 .image-nav-arrow {
-    position: absolute;
+    position: fixed;
     top: 50%;
     transform: translateY(-50%);
     width: 48px;
     height: 48px;
-    background: rgba(100, 180, 255, 0.15);
-    border: 2px solid rgba(100, 180, 255, 0.3);
-    border-radius: 8px;
+    background: transparent;
+    border: none;
     color: #00d4ff;
-    font-size: 24px;
+    font-size: 32px;
     cursor: pointer;
     transition: all 0.25s ease;
-    z-index: 100;
+    z-index: 10001;
     display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 0.6;
 }
 
 .image-nav-arrow:hover {
-    background: rgba(100, 180, 255, 0.3);
-    border-color: #00d4ff;
-    box-shadow: 0 0 16px rgba(0, 212, 255, 0.4);
-    transform: translateY(-50%) scale(1.1);
+    opacity: 1;
+    transform: translateY(-50%) scale(1.2);
+    text-shadow: 0 0 16px rgba(0, 212, 255, 0.8);
 }
 
 .image-nav-prev {
-    left: 16px;
+    left: 24px;
 }
 
 .image-nav-next {
-    right: 16px;
+    right: 24px;
 }
 
 /* Preview Controls (label + toggle) */
