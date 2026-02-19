@@ -210,6 +210,7 @@ body {
     padding-top: 60px;
     padding-left: 24px;  /* Минимальный комфортный отступ от левого краю */
     opacity: 1;
+    font-family: var(--font-primary);
 }
 
 .sidebar.hidden {
@@ -228,6 +229,8 @@ body {
     color: var(--mc-text);
     cursor: pointer;
     transition: all 0.1s linear;
+    font-family: var(--font-primary);
+    font-size: 16px;
 }
 
 .sidebar li:hover {
@@ -251,6 +254,8 @@ body {
 
 .sidebar p {
     margin-left: 0;  /* Убираем дефолтный margin */
+    font-family: var(--font-primary);
+    font-size: 14px;
 }
 
 .sidebar button {
@@ -265,6 +270,7 @@ body {
     cursor: pointer;
     width: 100%;
     text-align: left;
+    font-family: var(--font-ui);
 }
 
 .sidebar button:hover {
@@ -291,7 +297,7 @@ body {
     transition: all 0.1s linear;
     z-index: 1002;
     font-weight: 900;
-    font-family: var(--font-primary);
+    font-family: var(--font-ui);
     line-height: 1;
     text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
 }
