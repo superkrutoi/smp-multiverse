@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SMP Multiverse — Карта миров</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 <body>
     <button id="show-sidebar" class="show-sidebar" aria-label="Открыть боковую панель" title="Открыть панель">☰</button>
@@ -25,8 +27,7 @@
 
     <!-- Центральная область (пока заглушка карты) -->
     <div id="map-area" class="map-area">
-        <h1>SMP Multiverse</h1>
-        <p>Здесь будет карта миров... (пока заглушка)</p>
+        <div id="map"></div>
     </div>
 
     <!-- Маскот справа сверху -->

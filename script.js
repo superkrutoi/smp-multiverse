@@ -1000,3 +1000,83 @@ document.addEventListener('keydown', (e) => {
         openImageViewer(imageSrc);
     }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof window.L === 'undefined') {
+        console.warn('Leaflet is not available: map initialization skipped.');
+        return;
+    }
+
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) {
+        return;
+    }
+
+    window.servers = Array.isArray(window.servers) ? window.servers : [];
+    const servers = window.servers;
+
+    if (servers.length === 0) {
+        servers.push(
+            {
+                name: 'Test SMP Alpha',
+                ip: 'play.alpha.local',
+                version: '1.20.4',
+                coords: [0, 0]
+            },
+            {
+                name: 'Test SMP Beta',
+                ip: 'play.beta.local',
+                version: '1.21',
+                coords: [30, -25]
+            }
+        );
+    }
+
+    const map = L.map('map', {
+        center: [0, 0],
+        zoom: 2,
+        minZoom: 1,
+        maxZoom: 10,
+        maxBounds: [[-100, -100], [100, 100]],
+        maxBoundsViscosity: 1.0
+    });
+
+    window.multiverseMap = map;
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        noWrap: true
+    }).addTo(map);
+
+    const markerLayer = L.layerGroup().addTo(map);
+
+    window.updateMapMarkers = function updateMapMarkers() {
+        markerLayer.clearLayers();
+
+        servers.forEach((server) => {
+            if (!Array.isArray(server.coords) || server.coords.length !== 2) {
+                return;
+            }
+
+            L.marker(server.coords)
+                .bindPopup(`<b>${server.name || 'Unknown Server'}</b><br>IP: ${server.ip || '—'}<br>Version: ${server.version || '—'}`)
+                .addTo(markerLayer);
+        });
+    };
+
+    window.updateMapMarkers();
+
+    if (typeof window.generateTestServers === 'function' && !window.generateTestServers.__leafletHooked) {
+        const originalGenerateTestServers = window.generateTestServers;
+        const wrappedGenerateTestServers = function wrappedGenerateTestServers(...args) {
+            const result = originalGenerateTestServers.apply(this, args);
+            if (typeof window.updateMapMarkers === 'function') {
+                window.updateMapMarkers();
+            }
+            return result;
+        };
+
+        wrappedGenerateTestServers.__leafletHooked = true;
+        window.generateTestServers = wrappedGenerateTestServers;
+    }
+});
