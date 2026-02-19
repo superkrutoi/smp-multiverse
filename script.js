@@ -252,10 +252,17 @@ async function renderDevMenuItem(itemNumber) {
                         } else {
                             imageFiles.forEach(f => {
                                 const filePath = `assets/${folder}/${encodeURIComponent(f)}`;
-                                contentHtml += `<div class="image-file"><a href="${filePath}" target="_blank"><img src="${filePath}" class="image-thumb" alt="${f}"/></a><span class="image-name">${f}</span></div>`;
+                                contentHtml += `<div class="image-file"><img src="${filePath}" class="image-thumb" alt="${f}" data-fullsize="${filePath}"/><span class="image-name">${f}</span></div>`;
                             });
                         }
                         contentEl.innerHTML = contentHtml;
+                        
+                        // Add click handlers for image preview
+                        contentEl.querySelectorAll('.image-thumb').forEach(thumb => {
+                            thumb.addEventListener('click', () => {
+                                openImageViewer(thumb.dataset.fullsize);
+                            });
+                        });
                     });
                 });
                 
@@ -318,3 +325,35 @@ const activeItem = document.querySelector('.dev-menu-item.active');
 if (activeItem) {
     renderDevMenuItem(activeItem.getAttribute('data-item'));
 }
+
+// Image Viewer Modal Logic
+const imageViewerModal = document.getElementById('image-viewer-modal');
+const imageViewerImg = document.getElementById('image-viewer-img');
+const imageViewerClose = document.querySelector('.image-viewer-close');
+
+function openImageViewer(imageSrc) {
+    imageViewerImg.src = imageSrc;
+    imageViewerModal.classList.remove('hidden');
+}
+
+function closeImageViewer() {
+    imageViewerModal.classList.add('hidden');
+    imageViewerImg.src = '';
+}
+
+// Close by clicking the close button
+imageViewerClose.addEventListener('click', closeImageViewer);
+
+// Close by clicking outside the image
+imageViewerModal.addEventListener('click', (e) => {
+    if (e.target === imageViewerModal) {
+        closeImageViewer();
+    }
+});
+
+// Close by pressing ESC key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !imageViewerModal.classList.contains('hidden')) {
+        closeImageViewer();
+    }
+});
