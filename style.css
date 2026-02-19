@@ -519,7 +519,7 @@ body {
     padding: 0;
     font-size: 24px;
     color: var(--mc-text);
-    font-family: var(--font-primary);
+    font-family: var(--font-ui);
     box-shadow: 0 0 0 2px var(--mc-bg-dark);
 }
 
@@ -755,6 +755,7 @@ body.dev-active .dev-toggle {
     font-size: 14px;
     font-weight: 500;
     letter-spacing: 0.5px;
+    font-family: var(--font-ui);
 }
 
 .dev-menu-item:hover {
@@ -767,7 +768,7 @@ body.dev-active .dev-toggle {
     color: var(--mc-accent);
     border-left: 3px solid var(--mc-accent);
     padding-left: 17px;
-    font-family: var(--font-primary);
+    font-family: var(--font-ui);
     text-shadow: 1px 1px 0 var(--mc-border);
 }
 
@@ -813,7 +814,7 @@ body.dev-active .dev-toggle {
     margin-left: auto;
     flex-shrink: 0;
     font-weight: 900;
-    font-family: var(--font-primary);
+    font-family: var(--font-ui);
     text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
 }
 
@@ -898,7 +899,7 @@ body.dev-active .dev-toggle {
 }
 
 .dev-menu-body .dev-tabs { display:flex; gap:8px; position: absolute; top: 16px; left: 24px; z-index: 3; }
-.dev-tab { background:transparent; border:var(--border-width) solid var(--mc-border); padding:6px 10px; border-radius:0; cursor:pointer; font-size:13px; color:var(--mc-text); transition: all 0.1s linear; }
+.dev-tab { background:transparent; border:var(--border-width) solid var(--mc-border); padding:6px 10px; border-radius:0; cursor:pointer; font-size:13px; color:var(--mc-text); transition: all 0.1s linear; font-family: var(--font-ui); }
 .dev-tab:hover { filter: brightness(1.2); background: rgba(85,255,85,0.1); }
 .dev-tab.active { background:rgba(85,255,85,0.2); color:var(--mc-accent); border-color:var(--mc-accent); }
 
