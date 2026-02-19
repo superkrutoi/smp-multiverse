@@ -485,15 +485,15 @@ body.dev-active .dev-toggle {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 2000;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.1s linear;
 }
 
 .settings-modal:not(.hidden) {
@@ -502,23 +502,23 @@ body.dev-active .dev-toggle {
 }
 
 .settings-content {
-    background: rgba(20, 10, 40, 0.95);
-    border: 2px solid rgba(255, 105, 180, 0.5);
-    border-radius: 12px;
+    background: var(--mc-bg-dark);
+    border: var(--border-width) solid var(--mc-border);
+    border-radius: 0;  /* Блочный стиль */
     width: 90%;
     max-width: 400px;
     padding: 0;
-    box-shadow: 0 0 30px rgba(255, 105, 180, 0.3);
-    animation: slideIn 0.3s ease;
+    box-shadow: 0 0 0 4px var(--mc-bg-medium);
+    animation: mcSlideIn 0.1s linear;
 }
 
-@keyframes slideIn {
+@keyframes mcSlideIn {
     from {
-        transform: scale(0.9) translateY(-20px);
+        transform: scale(0.95);
         opacity: 0;
     }
     to {
-        transform: scale(1) translateY(0);
+        transform: scale(1);
         opacity: 1;
     }
 }
@@ -527,34 +527,37 @@ body.dev-active .dev-toggle {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid rgba(255, 105, 180, 0.3);
+    padding: calc(var(--spacing-unit) * 2);
+    border-bottom: var(--border-width) solid var(--mc-border);
+    background: var(--mc-bg-medium);
 }
 
 .settings-header h2 {
     margin: 0;
-    color: #e0d0ff;
-    font-size: 18px;
-    font-weight: 600;
+    color: var(--mc-text);
+    font-family: var(--font-primary);
+    font-size: var(--font-size-large);
+    text-shadow: 2px 2px 0 var(--mc-border);
 }
 
 .settings-close {
     background: none;
     border: none;
-    color: #ff69b4;
+    color: var(--mc-red);
     font-size: 24px;
     cursor: pointer;
     padding: 0;
-    transition: color 0.3s ease;
+    transition: all 0.1s linear;
 }
 
 .settings-close:hover {
-    color: #ff1493;
+    filter: brightness(1.2);
+    transform: scale(1.1);
 }
 
 .settings-body {
-    padding: 20px 24px;
-    color: #e0d0ff;
+    padding: calc(var(--spacing-unit) * 2);
+    color: var(--mc-text);
     max-height: 400px;
     overflow-y: auto;
 }
@@ -1091,14 +1094,14 @@ body.dev-active .dev-toggle {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.95);
+    background: rgba(0, 0, 0, 0.85);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 10000;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.1s linear;
 }
 
 .image-viewer-modal:not(.hidden) {
@@ -1111,17 +1114,17 @@ body.dev-active .dev-toggle {
     width: 90%;
     max-width: 1200px;
     height: 80vh;
-    background: linear-gradient(135deg, rgba(15,30,60,0.95) 0%, rgba(10,20,40,0.95) 100%);
-    border-radius: 16px;
-    border: 2px solid rgba(100, 180, 255, 0.3);
-    box-shadow: 0 0 60px rgba(100, 180, 255, 0.3);
+    background: var(--mc-bg-dark);
+    border-radius: 0;  /* Блочный стиль */
+    border: var(--border-width) solid var(--mc-border);
+    box-shadow: 0 0 0 4px var(--mc-bg-medium);
     overflow: hidden;
-    animation: modalZoomIn 0.3s ease;
+    animation: mcZoomIn 0.1s linear;
 }
 
-@keyframes modalZoomIn {
+@keyframes mcZoomIn {
     from {
-        transform: scale(0.9);
+        transform: scale(0.95);
         opacity: 0;
     }
     to {
@@ -1141,8 +1144,8 @@ body.dev-active .dev-toggle {
     justify-content: center;
     padding: 24px;
     gap: 16px;
-    background: rgba(0, 0, 0, 0.3);
-    border-right: 1px solid rgba(100, 180, 255, 0.2);
+    background: var(--mc-bg-medium);
+    border-right: var(--border-width) solid var(--mc-border);
 }
 
 /* Navigation Arrows */
@@ -1153,12 +1156,12 @@ body.dev-active .dev-toggle {
     transform: translateX(-50%);
     width: 48px;
     height: 48px;
-    background: transparent;
-    border: none;
-    color: #00d4ff;
+    background: var(--mc-bg-medium);
+    border: var(--border-width) solid var(--mc-border);
+    color: var(--mc-accent);
     font-size: 32px;
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.1s linear;
     z-index: 10001;
     display: flex;
     align-items: center;
@@ -1168,8 +1171,8 @@ body.dev-active .dev-toggle {
 
 .image-nav-arrow:hover {
     opacity: 1;
-    transform: translateX(-50%) scale(1.2);
-    text-shadow: 0 0 16px rgba(0, 212, 255, 0.8);
+    filter: brightness(1.2);
+    transform: translateX(-50%) scale(1.1);
 }
 
 .image-nav-prev {
@@ -1188,9 +1191,9 @@ body.dev-active .dev-toggle {
     width: 100%;
     max-width: 300px;
     padding: 8px 12px;
-    background: rgba(10, 20, 40, 0.6);
-    border-radius: 8px;
-    border: 1px solid rgba(100, 180, 255, 0.15);
+    background: var(--mc-bg-dark);
+    border-radius: 0;
+    border: var(--border-width) solid var(--mc-border);
 }
 
 /* Color Button Selectors */
@@ -1204,28 +1207,25 @@ body.dev-active .dev-toggle {
 .bg-btn {
     width: 34px;
     height: 34px;
-    border-radius: 50%;
-    border: 2px solid rgba(100, 180, 255, 0.2);
+    border-radius: 0;  /* Блочный стиль */
+    border: var(--border-width) solid var(--mc-border);
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.1s linear;
     position: relative;
     padding: 0;
     overflow: hidden;
 }
 
 .bg-btn:hover {
-    transform: scale(1.1);
-    border-color: rgba(100, 180, 255, 0.5);
+    filter: brightness(1.2);
 }
 
 /* Active state */
 .bg-btn.active {
     border-width: 3px;
-    border-color: #00d4ff;
-    box-shadow: 
-        0 0 12px rgba(0, 212, 255, 0.6),
-        0 0 20px rgba(0, 212, 255, 0.3);
-    transform: scale(1.15);
+    border-color: var(--mc-accent);
+    box-shadow: 0 0 0 2px var(--mc-bg-dark);
+    transform: scale(1.1);
 }
 
 /* Checkerboard button icon */
@@ -1255,10 +1255,10 @@ body.dev-active .dev-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
-    border: 2px solid rgba(100, 180, 255, 0.3);
+    border-radius: 0;  /* Блочный стиль */
+    border: var(--border-width) solid var(--mc-border);
     overflow: hidden;
-    transition: background 0.3s ease;
+    transition: background 0.1s linear;
     position: relative;
 }
 
@@ -1404,7 +1404,7 @@ body.dev-active .dev-toggle {
     gap: 20px;
     padding: 30px;
     overflow-y: auto;
-    background: linear-gradient(180deg, rgba(20,40,80,0.5) 0%, rgba(10,20,40,0.5) 100%);
+    background: var(--mc-bg-dark);
 }
 
 .image-info-section {
@@ -1423,28 +1423,29 @@ body.dev-active .dev-toggle {
 .section-header h3 {
     margin: 0;
     font-size: 18px;
-    color: #64b4ff;
-    font-weight: 600;
+    color: var(--mc-accent);
+    font-family: var(--font-primary);
+    text-shadow: 2px 2px 0 var(--mc-border);
 }
 
 .edit-btn {
-    background: rgba(100, 180, 255, 0.1);
-    border: 1px solid rgba(100, 180, 255, 0.3);
-    color: #c9d1e8;
+    background: var(--mc-bg-medium);
+    border: var(--border-width) solid var(--mc-border);
+    color: var(--mc-text);
     font-size: 16px;
     cursor: pointer;
     padding: 4px 8px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    border-radius: 0;  /* Блочный стиль */
+    transition: all 0.1s linear;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .edit-btn:hover {
-    background: rgba(100, 180, 255, 0.2);
-    border-color: rgba(100, 180, 255, 0.5);
-    transform: scale(1.1);
+    filter: brightness(1.2);
+    background: var(--mc-accent);
+    color: var(--mc-bg-dark);
 }
 
 .section-content {
@@ -1453,13 +1454,13 @@ body.dev-active .dev-toggle {
 
 .editable-text {
     margin: 0;
-    color: #c9d1e8;
+    color: var(--mc-text);
     font-size: 14px;
     line-height: 1.6;
     padding: 12px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    border: 1px solid rgba(100, 180, 255, 0.1);
+    background: var(--mc-bg-medium);
+    border-radius: 0;  /* Блочный стиль */
+    border: var(--border-width) solid var(--mc-border);
     min-height: 60px;
 }
 
@@ -1467,10 +1468,10 @@ body.dev-active .dev-toggle {
     width: 100%;
     min-height: 80px;
     padding: 12px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(100, 180, 255, 0.3);
-    border-radius: 8px;
-    color: #c9d1e8;
+    background: var(--mc-bg-medium);
+    border: var(--border-width) solid var(--mc-border);
+    border-radius: 0;  /* Блочный стиль */
+    color: var(--mc-text);
     font-size: 14px;
     font-family: inherit;
     resize: vertical;
@@ -1478,8 +1479,8 @@ body.dev-active .dev-toggle {
 
 .edit-textarea:focus {
     outline: none;
-    border-color: rgba(100, 180, 255, 0.6);
-    box-shadow: 0 0 10px rgba(100, 180, 255, 0.2);
+    border-color: var(--mc-accent);
+    box-shadow: 0 0 0 2px var(--mc-bg-dark);
 }
 
 /* Status Selector */
@@ -1489,14 +1490,14 @@ body.dev-active .dev-toggle {
 }
 
 .status-btn {
-    background: rgba(100, 180, 255, 0.1);
-    border: 1px solid rgba(100, 180, 255, 0.3);
-    color: #c9d1e8;
+    background: var(--mc-bg-medium);
+    border: var(--border-width) solid var(--mc-border);
+    color: var(--mc-text);
     font-size: 20px;
     cursor: pointer;
     padding: 6px 12px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    border-radius: 0;  /* Блочный стиль */
+    transition: all 0.1s linear;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1504,9 +1505,7 @@ body.dev-active .dev-toggle {
 }
 
 .status-btn:hover {
-    background: rgba(100, 180, 255, 0.2);
-    border-color: rgba(100, 180, 255, 0.5);
-    transform: scale(1.05);
+    filter: brightness(1.2);
 }
 
 .status-dropdown {
@@ -1514,13 +1513,13 @@ body.dev-active .dev-toggle {
     top: 100%;
     right: 0;
     margin-top: 8px;
-    background: rgba(15, 30, 60, 0.98);
-    border: 1px solid rgba(100, 180, 255, 0.3);
-    border-radius: 8px;
+    background: var(--mc-bg-dark);
+    border: var(--border-width) solid var(--mc-border);
+    border-radius: 0;  /* Блочный стиль */
     overflow: hidden;
     z-index: 1000;
     min-width: 220px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 0 4px var(--mc-bg-medium);
 }
 
 .status-dropdown.hidden {
@@ -1534,16 +1533,17 @@ body.dev-active .dev-toggle {
     padding: 12px 16px;
     background: transparent;
     border: none;
-    color: #c9d1e8;
+    color: var(--mc-text);
     font-size: 14px;
     cursor: pointer;
     width: 100%;
     text-align: left;
-    transition: all 0.2s ease;
+    transition: all 0.1s linear;
 }
 
 .status-option:hover {
-    background: rgba(100, 180, 255, 0.15);
+    background: rgba(85, 255, 85, 0.15);
+    filter: brightness(1.2);
 }
 
 .status-emoji {
@@ -1560,16 +1560,16 @@ body.dev-active .dev-toggle {
     list-style: none;
     padding: 0;
     margin: 0;
-    color: #c9d1e8;
+    color: var(--mc-text);
     font-size: 14px;
 }
 
 .usage-list li {
     padding: 8px 12px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 6px;
+    background: var(--mc-bg-medium);
+    border-radius: 0;  /* Блочный стиль */
     margin-bottom: 6px;
-    border: 1px solid rgba(100, 180, 255, 0.1);
+    border: var(--border-width) solid var(--mc-border);
 }
 
 /* Image Status Badge in List */
@@ -1578,12 +1578,12 @@ body.dev-active .dev-toggle {
     top: 4px;
     left: 4px;
     font-size: 16px;
-    background: rgba(0, 0, 0, 0.7);
+    background: var(--mc-bg-dark);
     padding: 4px;
-    border-radius: 4px;
+    border-radius: 0;  /* Блочный стиль */
     cursor: help;
     z-index: 10;
-    border: 1px solid rgba(100, 180, 255, 0.2);
+    border: var(--border-width) solid var(--mc-border);
 }
 
 .image-file {
