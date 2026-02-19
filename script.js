@@ -351,10 +351,11 @@ const renderDevMenuItem = async (itemNumber) => {
                 
                 // Build sidebar tree
                 let sidebarHtml = '<ul class="image-tree">';
-                const folderOrder = ['icons', 'images', 'ui'];
+                const folderOrder = ['fonts', 'lucid-icons', 'icons', 'images', 'ui'];
                 for (const key of folderOrder) {
                     if (manifest[key] !== undefined) {
-                        sidebarHtml += `<li class="image-node" data-folder="${key}"><button class="image-folder-btn"><span class="folder-icon">📁</span><span class="folder-name">${key}</span></button></li>`;
+                        const displayName = key === 'lucid-icons' ? 'Lucid Icons (32px)' : key;
+                        sidebarHtml += `<li class="image-node" data-folder="${key}"><button class="image-folder-btn"><span class="folder-icon">📁</span><span class="folder-name">${displayName}</span></button></li>`;
                     }
                 }
                 sidebarHtml += '</ul>';
@@ -372,12 +373,12 @@ const renderDevMenuItem = async (itemNumber) => {
                     const normalizedQuery = (searchQuery || '').trim().toLowerCase();
                     const savedTitles = JSON.parse(localStorage.getItem('iconPreviewTitle') || '{}');
 
-                    const filteredFiles = activeFolderEntries.filter(({ folderName: entryFolder, fileName, filePath }) => {
+                    const filteredFiles = activeFolderEntries.filter(({ folderName: entryFolder, fileName, filePath, fontType }) => {
                         if (entryFolder !== folderName) return false;
                         if (!normalizedQuery) return true;
 
                         const customTitle = savedTitles[fileName] || '';
-                        const description = (getImageMetadata(filePath).description || '');
+                        const description = fontType || (getImageMetadata(filePath).description || '');
 
                         return [fileName, customTitle, description]
                             .some(value => String(value).toLowerCase().includes(normalizedQuery));
@@ -389,20 +390,37 @@ const renderDevMenuItem = async (itemNumber) => {
                     }
 
                     let listHtml = '';
-                    filteredFiles.forEach(({ fileName, filePath, meta }) => {
+                    filteredFiles.forEach(({ fileName, filePath, meta, fontType }) => {
                         const customTitle = savedTitles[fileName];
-                        const metaLabel = meta
-                            ? `${meta.width}×${meta.height} px • ${meta.sizeText}`
-                            : 'Размер: — • Вес: —';
+                        
+                        // Рендер шрифтов
+                        if (folderName === 'fonts' && fontType) {
+                            const sizeKB = meta && meta.size ? (meta.size / 1024).toFixed(1) : '?';
+                            const metaLabel = `${sizeKB} KB`;
+                            
+                            let fileHtml = `<div class="image-file font-file">`;
+                            fileHtml += `<div class="font-preview" data-font="${fileName}" title="Предпросмотр шрифта"><span class="font-preview-text">Aа</span></div>`;
+                            fileHtml += `<div class="image-info">`;
+                            fileHtml += `<span class="image-custom-title">${fontType}</span>`;
+                            fileHtml += `<span class="image-name-meta">${fileName} • ${metaLabel}</span>`;
+                            fileHtml += `</div></div>`;
+                            listHtml += fileHtml;
+                        } 
+                        // Рендер изображений
+                        else {
+                            const metaLabel = meta
+                                ? `${meta.width}×${meta.height} px • ${meta.sizeText}`
+                                : 'Размер: — • Вес: —';
 
-                        let fileHtml = `<div class="image-file"><img src="${filePath}" class="image-thumb" alt="${fileName}" data-fullsize="${filePath}"/><img src="${filePath}" class="image-zoom" alt=""/>`;
-                        fileHtml += `<div class="image-info">`;
-                        if (customTitle && customTitle !== 'Без названия') {
-                            fileHtml += `<span class="image-custom-title">${customTitle}</span>`;
+                            let fileHtml = `<div class="image-file"><img src="${filePath}" class="image-thumb" alt="${fileName}" data-fullsize="${filePath}"/><img src="${filePath}" class="image-zoom" alt=""/>`;
+                            fileHtml += `<div class="image-info">`;
+                            if (customTitle && customTitle !== 'Без названия') {
+                                fileHtml += `<span class="image-custom-title">${customTitle}</span>`;
+                            }
+                            fileHtml += `<span class="image-name-meta">${fileName} • ${metaLabel}</span>`;
+                            fileHtml += `</div></div>`;
+                            listHtml += fileHtml;
                         }
-                        fileHtml += `<span class="image-name-meta">${fileName} • ${metaLabel}</span>`;
-                        fileHtml += `</div></div>`;
-                        listHtml += fileHtml;
                     });
 
                     filesListEl.innerHTML = listHtml;
@@ -426,11 +444,14 @@ const renderDevMenuItem = async (itemNumber) => {
                     activeFolderEntries = [];
                     currentFolder = folderName;
                     const items = manifest[folderName] || [];
-                    currentFolderImages = items.filter(f => typeof f === 'string' && !f.startsWith('.'));
+                    
+                    // Разная обработка для fonts (массив объектов) и изображений (массив строк)
+                    const isFonts = folderName === 'fonts';
+                    currentFolderImages = isFonts ? [] : items.filter(f => typeof f === 'string' && !f.startsWith('.'));
                     
                     console.log(`Displaying folder: ${folderName}`);
                     console.log(`Items in manifest[${folderName}]:`, items);
-                    console.log(`Filtered image files:`, currentFolderImages);
+                    if (!isFonts) console.log(`Filtered image files:`, currentFolderImages);
 
                     contentEl.innerHTML = `
                         <div class="image-content-header">
@@ -461,20 +482,41 @@ const renderDevMenuItem = async (itemNumber) => {
                         });
                     }
 
-                    if (currentFolderImages.length === 0) {
-                        const filesListEl = contentEl.querySelector('.image-files-list');
-                        if (filesListEl) filesListEl.innerHTML = '<div class="image-empty">Тут ничего нет</div>';
-                    } else {
-                        const filesWithMeta = await Promise.all(currentFolderImages.map(async (f) => {
-                            const filePath = `assets/${folderName}/${encodeURIComponent(f)}`;
-                            const meta = await getImageMeta(filePath);
-                            return { folderName, fileName: f, filePath, meta };
-                        }));
-
-                        if (renderToken !== folderRenderToken || currentFolder !== folderName) {
-                            return;
+                    // Обработка шрифтов
+                    if (isFonts) {
+                        if (!items || items.length === 0) {
+                            const filesListEl = contentEl.querySelector('.image-files-list');
+                            if (filesListEl) filesListEl.innerHTML = '<div class="image-empty">Тут ничего нет</div>';
+                        } else {
+                            activeFolderEntries = items.map(fontObj => ({
+                                folderName,
+                                fileName: fontObj.file,
+                                filePath: `assets/${folderName}/${fontObj.file}`,
+                                fontType: fontObj.type,
+                                meta: { size: fontObj.size }
+                            }));
                         }
-                        activeFolderEntries = filesWithMeta;
+                    } 
+                    // Обработка изображений
+                    else {
+                        if (currentFolderImages.length === 0) {
+                            const filesListEl = contentEl.querySelector('.image-files-list');
+                            if (filesListEl) filesListEl.innerHTML = '<div class="image-empty">Тут ничего нет</div>';
+                        } else {
+                            const filesWithMeta = await Promise.all(currentFolderImages.map(async (f) => {
+                                // Специальный путь для Lucid Icons
+                                const filePath = folderName === 'lucid-icons' 
+                                    ? `assets/Lucid_V1.2_icons/PNG/Flat/32/${encodeURIComponent(f)}`
+                                    : `assets/${folderName}/${encodeURIComponent(f)}`;
+                                const meta = await getImageMeta(filePath);
+                                return { folderName, fileName: f, filePath, meta };
+                            }));
+
+                            if (renderToken !== folderRenderToken || currentFolder !== folderName) {
+                                return;
+                            }
+                            activeFolderEntries = filesWithMeta;
+                        }
                     }
 
                     if (renderToken !== folderRenderToken || currentFolder !== folderName) {

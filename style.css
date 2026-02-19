@@ -1,7 +1,40 @@
+/* ==========================================================================
+   Typography → Custom Fonts
+   ========================================================================== */
+
+/* Основной пиксельный шрифт (поддержка кириллицы) */
+@font-face {
+    font-family: 'Glasstown';
+    src: url('assets/fonts/GlasstownNbpRegular-RyMM.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Альтернативный пиксельный шрифт */
+@font-face {
+    font-family: 'Mintsoda';
+    src: url('assets/fonts/MintsodaLimeGreen13X16Regular-KVvzA.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Дополнительный шрифт для акцентов */
+@font-face {
+    font-family: 'Starseed';
+    src: url('assets/fonts/StarseedPro.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* ===== MC DESIGN SYSTEM VARIABLES (from DESIGN-GUIDELINES.md) ===== */
 :root {
     /* Шрифты */
-    --font-primary: 'Minecraftia', monospace;
+    --font-primary: 'Glasstown', monospace, sans-serif;      /* Основной текст (не жирный, читабельный) */
+    --font-heading: 'Starseed', 'Glasstown', monospace;       /* Заголовки (жирный пиксельный) */
+    --font-accent: 'Mintsoda', monospace;                     /* Курсив для акцентов */
     --font-size-base: 16px;
     --font-size-small: 12px;
     --font-size-large: 20px;
@@ -27,7 +60,7 @@
 
 body {
     margin: 0;
-    font-family: 'Inter', 'Arial', sans-serif;
+    font-family: var(--font-primary);
     background: #0a001f; /* тёмно-космический фон */
     color: #e0d0ff;
     height: 100vh;
@@ -110,7 +143,8 @@ body {
     top: 0;
     left: 0;
     background: var(--mc-bg-dark);
-    border-right: var(--border-width) solid var(--mc-border);
+    border: var(--border-width) solid var(--mc-border);
+    box-shadow: 0 0 0 4px var(--mc-bg-medium);
     overflow-x: hidden;
     transition: width 0.1s linear, opacity 0.1s linear, transform 0.1s linear;
     padding-top: 60px;
@@ -145,7 +179,7 @@ body {
 .sidebar h3 {
     margin-left: 0;  /* Убираем дефолтный margin */
     color: var(--mc-text);
-    font-family: var(--font-primary);
+    font-family: var(--font-heading);
     font-size: var(--font-size-large);
     text-shadow: 2px 2px 0 var(--mc-border);
 }
@@ -197,7 +231,7 @@ body {
     transition: all 0.1s linear;
     z-index: 1002;
     font-weight: 900;
-    font-family: monospace;
+    font-family: var(--font-primary);
     line-height: 1;
     text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
 }
@@ -277,8 +311,8 @@ body {
 /* Маскот */
 .mascot {
     position: fixed;
-    top: 16px;         /* перемещено в верхний угол */
-    right: 16px;       /* самый правый */
+    top: 22px;         /* выравнивание по центру с кнопками */
+    right: 30px;       /* увеличенное расстояние от кнопок */
     z-index: 900;
     cursor: pointer;
 }
@@ -286,13 +320,14 @@ body {
 .mascot-icon {
     width: 80px;       /* увеличено с 64px */
     height: 80px;      /* увеличено с 64px */
-    background: #9370db;
-    border-radius: 50%;
+    background: var(--mc-bg-medium);
+    border-radius: 0;
+    border: var(--border-width) solid var(--mc-border);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 48px;   /* увеличено с 40px */
-    box-shadow: 0 0 15px #ff69b4;
+    box-shadow: 0 0 0 2px var(--mc-bg-dark);
     animation: float 4s ease-in-out infinite;
 }
 
@@ -300,8 +335,8 @@ body {
 .mascot-img {
     width: 64px;
     height: 64px;
-    border-radius: 50%;
-    box-shadow: 0 0 12px #ff69b4;
+    border-radius: 0;
+    box-shadow: 0 0 0 2px var(--mc-bg-dark);
     object-fit: cover;
     display: block;
     position: relative;
@@ -316,9 +351,10 @@ body {
     right: 0;
     width: 64px;
     height: 64px;
-    background: #9370db;
-    border-radius: 50%;
-    box-shadow: 0 0 12px #ff69b4;
+    background: var(--mc-bg-medium);
+    border-radius: 0;
+    border: var(--border-width) solid var(--mc-border);
+    box-shadow: 0 0 0 2px var(--mc-bg-dark);
     z-index: 0;
     /* статичная подложка под маскотом */
     animation: none;
@@ -404,20 +440,20 @@ body {
     top: 32px;
     width: 44px;
     height: 44px;
-    border-radius: 50%;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(147, 112, 219, 0.7);
-    border: 2px solid rgba(255, 105, 180, 0.5);
-    backdrop-filter: blur(8px);
+    background: var(--mc-bg-medium);
+    border: var(--border-width) solid var(--mc-border);
     cursor: pointer;
     z-index: 1001;
-    transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    transition: all 0.1s linear;
     padding: 0;
     font-size: 24px;
-    color: white;
-    font-family: Arial, sans-serif;
+    color: var(--mc-text);
+    font-family: var(--font-primary);
+    box-shadow: 0 0 0 2px var(--mc-bg-dark);
 }
 
 /* Tooltip стиль */
@@ -428,17 +464,17 @@ body {
     bottom: -40px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.85);
-    color: #e0d0ff;
+    background: var(--mc-bg-medium);
+    color: var(--mc-text);
     padding: 6px 10px;
-    border-radius: 4px;
+    border-radius: 0;
     font-size: 11px;
     white-space: nowrap;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.1s linear;
     z-index: 1002;
-    border: 1px solid rgba(255, 105, 180, 0.4);
+    border: var(--border-width) solid var(--mc-border);
 }
 
 .dev-toggle:hover::after,
@@ -456,15 +492,15 @@ body {
 
 .dev-toggle:hover,
 .notification-bell:hover {
-    background: rgba(147, 112, 219, 0.9);
-    transform: scale(1.1);
-    box-shadow: 0 0 20px rgba(255, 105, 180, 0.6);
-    border-color: rgba(255, 105, 180, 0.8);
+    background: var(--mc-accent);
+    color: var(--mc-bg-dark);
+    filter: brightness(1.1);
+    box-shadow: 0 0 0 2px var(--mc-bg-dark);
 }
 
 .dev-toggle:active,
 .notification-bell:active {
-    transform: scale(0.96);
+    transform: translateY(1px);
 }
 
 /* Иконки внутри кнопок — корректное масштабирование и центрирование */
@@ -474,6 +510,7 @@ body {
     height: 24px;
     display: block;
     object-fit: contain;
+    image-rendering: pixelated;
 }
 
 /* Dev Mode active state */
@@ -482,9 +519,10 @@ body.dev-active {
 }
 
 body.dev-active .dev-toggle {
-    background: rgba(255, 105, 180, 0.9);
-    box-shadow: 0 0 25px rgba(255, 105, 180, 0.9);
-    border-color: #ff69b4;
+    background: var(--mc-accent);
+    color: var(--mc-bg-dark);
+    box-shadow: 0 0 0 2px var(--mc-bg-dark);
+    border-color: var(--mc-border);
 }
 
 /* Settings Modal */
@@ -558,7 +596,7 @@ body.dev-active .dev-toggle {
     padding: 0;
     transition: all 0.1s linear;
     font-weight: 900;
-    font-family: monospace;
+    font-family: var(--font-primary);
     line-height: 1;
     text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
 }
@@ -708,7 +746,7 @@ body.dev-active .dev-toggle {
     margin-left: auto;
     flex-shrink: 0;
     font-weight: 900;
-    font-family: monospace;
+    font-family: var(--font-primary);
     text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
 }
 
@@ -922,8 +960,39 @@ body.dev-active .dev-toggle {
 .image-thumb { width:56px; height:56px; object-fit:cover; border-radius:0; border:var(--border-width) solid var(--mc-border); flex-shrink:0; transition:all 0.1s linear; cursor:pointer; }
 .image-file:hover .image-thumb { filter:brightness(1.2); border-color:var(--mc-accent); box-shadow:0 0 0 2px var(--mc-bg-dark); transform:scale(1.05); }
 
+/* Стили для отображения шрифтов */
+.font-file { display:flex; align-items:center; gap:11px; margin:3px 0; padding:8px 0; border-radius:0; transition:all 0.1s linear; min-height:44px; }
+.font-file:hover { background:rgba(85,255,85,0.1); }
+
+.font-preview { 
+    width: 56px; 
+    height: 56px; 
+    border-radius: 0; 
+    border: var(--border-width) solid var(--mc-border); 
+    flex-shrink: 0; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    background: var(--mc-bg-medium);
+    transition: all 0.1s linear;
+    cursor: default;
+}
+
+.font-file:hover .font-preview { 
+    filter: brightness(1.2); 
+    border-color: var(--mc-accent); 
+    box-shadow: 0 0 0 2px var(--mc-bg-dark); 
+}
+
+.font-preview-text { 
+    font-size: 24px; 
+    color: var(--mc-text); 
+    font-weight: bold;
+    user-select: none;
+}
+
 .image-info { display:flex; flex-direction:column; gap:3px; flex:1; overflow:hidden; }
-.image-custom-title { font-size:14.5px; color:var(--mc-accent); font-weight:600; line-height:1.3; letter-spacing:0.7px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.image-custom-title { font-family: var(--font-heading); font-size:14.5px; color:var(--mc-accent); font-weight:600; line-height:1.3; letter-spacing:0.7px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .image-name { font-size:13.5px; color:rgba(255,255,255,0.6); line-height:1.3; letter-spacing:0.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .image-meta { font-size:12px; color:rgba(255,255,255,0.5); line-height:1.25; letter-spacing:0.35px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .image-name-meta { font-size:13px; color:rgba(255,255,255,0.7); line-height:1.3; letter-spacing:0.45px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -1083,7 +1152,7 @@ body.dev-active .dev-toggle {
     font-size: 16px;
     line-height: 1;
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
-    font-family: monospace;
+    font-family: var(--font-primary);
 }
 
 .dev-settings-empty {

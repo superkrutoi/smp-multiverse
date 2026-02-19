@@ -287,10 +287,10 @@ class MapToolsUI {
       el.style.left = comment.x + 'px';
       el.style.top = comment.y + 'px';
 
-      const avatar = comment.user?.avatar || '/assets/icons/support.png';
+      const avatar = comment.user?.avatar || '/assets/Lucid_V1.2_icons/PNG/Flat/32/Person.png';
       el.innerHTML = `
         <img src="${avatar}" class="comment-avatar" alt="avatar">
-        <img src="/assets/icons/bell%201.png" class="comment-icon" alt="msg">
+        <img src="/assets/Lucid_V1.2_icons/PNG/Flat/32/Message-Three-Dots.png" class="comment-icon" alt="msg">
       `;
 
       el.title = `${comment.user?.name || 'Unknown'}: ${comment.text}`;
@@ -312,7 +312,7 @@ class MapToolsUI {
     popover.className = 'comment-popover';
     popover.innerHTML = `
       <div class="comment-popover-header">
-        <img src="${comment.user?.avatar || '/assets/icons/support.png'}" class="popover-avatar" alt="">
+        <img src="${comment.user?.avatar || '/assets/Lucid_V1.2_icons/PNG/Flat/32/Person.png'}" class="popover-avatar" alt="">
         <div>
           <div class="popover-username">${comment.user?.name || 'Unknown'}</div>
           <div class="popover-time">${new Date(comment.created_at).toLocaleString('ru-RU')}</div>

@@ -11,15 +11,16 @@
 - Старые sci-fi стили (cyan glow #00ffcc и т.п.) постепенно мигрируются на Minecraft-стиль.
 
 ## Шрифты
-- Основной: **Minecraftia** (пиксельный шрифт Minecraft)  
-  Подключение в index.html:
-  ```html
-  <link href="https://fonts.cdnfonts.com/css/minecraftia" rel="stylesheet">
-  ```
-- Запасной: monospace
+- Основной текст: **Glasstown NBP** (пиксельный шрифт с полной поддержкой кириллицы, не жирный, читабельный)
+- Заголовки и акценты: **Starseed Pro** (пиксельный жирный)
+- Курсив для специальных элементов: **Mintsoda** (пиксельный курсив)
+- Запасные: monospace, sans-serif
+- Расположение: `assets/fonts/` (все шрифты локальные, формат .woff2)
 - Переменные:
   ```css
-  --font-primary: 'Minecraftia', monospace;
+  --font-primary: 'Glasstown', monospace, sans-serif;      /* Основной текст (не жирный, читабельный) */
+  --font-heading: 'Starseed', 'Glasstown', monospace;       /* Заголовки (жирный пиксельный) */
+  --font-accent: 'Mintsoda', monospace;                     /* Курсив для акцентов */
   --font-size-base: 16px;
   --font-size-small: 12px;
   --font-size-large: 20px;
@@ -77,6 +78,107 @@
   Floating справа, блочный стиль, как HUD в игре  
   Кнопки — маленькие слоты с emoji или иконками 24×24 px
 
+## Icons & Asset Sizing
+- Основной пак: **Lucid Icons (Leo Red, CC0)**. Можно использовать без атрибуции, включая коммерцию.
+- Расположение: assets/Lucid_V1.2_icons/PNG/Flat/32/ (основной), 16/ — только для мелких статусов, 160/ и 256/ — для крупных декоративных элементов.
+- Базовый размер — **32×32**. Отображение масштабируем через CSS, избегаем множества копий одного ассета.
+- Не смешивать разные исходные размеры в одном компоненте.
+- Для пиксель-арта всегда использовать `image-rendering: pixelated;`.
+- Touch-target: минимум 44×44 px (desktop, mobile, Telegram Mini App).
+
+**Рекомендация по иконкам SMP Multiverse**
+- Dev tools: `Gear.png`
+- Уведомления: `Message-Three-Dots.png` (empty), `Message-Exclamation.png` (active)
+- Пользователь/аватар: `Person.png`
+
+## Typography (Типографика)
+
+### Русскоязычные пиксельные шрифты
+Все шрифты — **локальные**, лежат в `assets/fonts/`. Никаких внешних CDN (для оффлайн-доступа и Telegram Mini App).
+
+**Доступные шрифты:**
+1. **Glasstown NBP** (`GlasstownNbpRegular-RyMM.woff2`)
+   - Основной шрифт для всего текста (body, p, li, описания)
+   - Полная поддержка кириллицы
+   - Не жирный, читабельный
+   - Лучшая читаемость на мобильных
+   - Используется через `var(--font-primary)`
+
+2. **Starseed Pro** (`StarseedPro.woff2`)
+   - Шрифт для заголовков и акцентов
+   - Пиксельный жирный
+   - Применение: h1, h2, h3, названия серверов, логотипы
+   - Используется через `var(--font-heading)`
+
+3. **Mintsoda Lime Green** (`MintsodaLimeGreen13X16Regular-KVvzA.woff2`)
+   - Пиксельный курсив
+   - Применение: специальные акценты, цитаты, лор-тексты
+   - Используется через `var(--font-accent)`
+   - Не используется в основной типографике
+
+### @font-face правила (в style.css)
+Все шрифты подключены через @font-face в начале style.css:
+```css
+@font-face {
+    font-family: 'Glasstown';
+    src: url('assets/fonts/GlasstownNbpRegular-RyMM.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;  /* критически важно! → текст не исчезает при загрузке */
+}
+```
+
+- Используй **font-display: swap;** для всех шрифтов (FOUT вместо FOIT — лучший UX)
+- Формат **.woff2** — стандарт 2026 года (максимальное сжатие, поддержка всех браузеров)
+- Fallback-иерархия: Glasstown (основной) → monospace → sans-serif
+- Mintsoda не в fallback-цепочке — используется только для специальных акцентов
+
+### Применение в CSS
+```css
+/* Базовый текст (основной читабельный) */
+body, p, li, .server-description {
+    font-family: var(--font-primary);  /* 'Glasstown', monospace, sans-serif */
+}
+
+/* Заголовки (жирный пиксельный) */
+h1, h2, h3, .sidebar h2, .image-custom-title {
+    font-family: var(--font-heading);  /* 'Starseed', 'Glasstown', monospace */
+    text-shadow: 2px 2px 0 #000,     /* классический MC-эффект тени */
+                 -2px -2px 0 #000,
+                 2px -2px 0 #000,
+                 -2px 2px 0 #000;
+}
+
+/* Курсивные акценты (цитаты, лор-тексты) */
+.quote, .lore-text, .special-accent {
+    font-family: var(--font-accent);   /* 'Mintsoda', monospace */
+}
+```
+
+### Рекомендации по размерам
+- UI-текст (кнопки, labels): **не меньше 14–16 px** (читаемость на мобильных и Telegram Mini App)
+- Основной текст (body): **16–18 px** (var(--font-size-base))
+- Заголовки: **20–24 px** (var(--font-size-large))
+- Адаптив: на мобильных уменьшай font-size на 10–20%, но не ниже 14 px
+
+### Тени и эффекты
+Используй **text-shadow** в 2–3 px чёрного для аутентичного MC-вида:
+```css
+text-shadow: 2px 2px 0 #000;
+```
+Для подписей на карте (белый текст с чёрной обводкой):
+```css
+text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+```
+
+### Добавление новых шрифтов
+Если добавляешь новый шрифт:
+1. Конвертируй в .woff2 (если есть только .ttf/.otf) — transfonter.org или font squirrel
+2. Положи в `assets/fonts/`
+3. Добавь @font-face в начало style.css
+4. Обнови :root переменные (если нужно)
+5. Обнови этот раздел + протестируй на мобильном и Telegram Mini App
+
 ## Анимации
 - Переходы: all 0.1s linear; (быстрые, без плавности — как в Minecraft)  
 - Hover: brightness + лёгкий scale(1.05)  
@@ -90,15 +192,16 @@
 5. Шрифт Minecraftia обязателен для заголовков, названий серверов, подписей на карте.
 
 ## Полезные ресурсы
-- Шрифт Minecraftia: https://fonts.cdnfonts.com/css/minecraftia
+- Русскоязычные пиксельные шрифты: Glasstown NBP, Mintsoda, Starseed Pro (локально в assets/fonts/)
+- Lucid Icons: assets/Lucid_V1.2_icons/ (Leo Red, CC0 — пиксельные иконки для UI)
 - Текстуры Minecraft GUI: можно взять из официальных текстур-паков (public domain) или перерисовать в пиксель-арте
 - Xaero's World Map референс: скриншоты интерфейса, waypoints, мини-карта
 
 ## Миграция со старого sci-fi стиля
 Постепенная замена существующих элементов:
-1. **Фаза 1 (текущая)**: Добавление переменных --mc-* в :root, подключение шрифта Minecraftia
-2. **Фаза 2**: Замена body, #map, sidebar на новые переменные
-3. **Фаза 3**: Переделка модалок (dev menu, settings) в MC-стиль
+1. **Фаза 1 (завершена)**: Добавление переменных --mc-* в :root, подключение локальных пиксельных шрифтов
+2. **Фаза 2 (завершена)**: Замена body, #map, sidebar на новые переменные
+3. **Фаза 3 (завершена)**: Переделка модалок (dev menu, settings) в MC-стиль, замена иконок на Lucid pack
 4. **Фаза 4**: Редизайн кнопок toolbar и map-tools в блочный стиль
 5. **Фаза 5**: Замена всех старых cyan-glow эффектов на зелёные MC-акценты
 
