@@ -594,9 +594,97 @@ const renderDevMenuItem = async (itemNumber) => {
         return;
     }
 
+    if (String(itemNumber) === '3') {
+        // "Отчёты" — переключение между отчётами через subtabs
+        const devReportsTabs = document.getElementById('dev-reports-tabs');
+        const devSubtabs = document.getElementById('dev-subtabs');
+        if (devSubtabs) devSubtabs.classList.add('hidden');
+        if (devReportsTabs) devReportsTabs.classList.remove('hidden');
+        
+        clearHeaderSearch();
+        devMenuBody.innerHTML = `
+            <div class="dev-reports-browser">
+                <div class="dev-report-content" id="dev-report-content">
+                    Загрузка отчёта...
+                </div>
+            </div>
+        `;
+
+        const reports = {
+            main: { 
+                title: 'Основной отчёт',
+                file: 'отчёты/основной_отчет.md'
+            },
+            design: { 
+                title: 'Дизайн-гайды',
+                file: 'отчёты/DESIGN-GUIDELINES.md'
+            },
+            ui: { 
+                title: 'Отчёт об интерфейсе',
+                file: 'отчёты/отчет_интерфейс.md'
+            }
+        };
+
+        const reportContent = document.getElementById('dev-report-content');
+
+        async function renderReport(reportKey) {
+            if (!reports[reportKey]) return;
+            const report = reports[reportKey];
+            
+            try {
+                const res = await fetch(report.file);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const text = await res.text();
+                
+                // Простой рендер markdown (без библиотеки)
+                const html = text
+                    .replace(/^# (.*?)$/gm, '<h1>$1</h1>')
+                    .replace(/^## (.*?)$/gm, '<h2>$1</h2>')
+                    .replace(/^### (.*?)$/gm, '<h3>$1</h3>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/```(.*?)```/gs, '<pre><code>$1</code></pre>')
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/\n/g, '<br>');
+                
+                reportContent.innerHTML = `
+                    <div class="report-wrapper">
+                        <h2>${report.title}</h2>
+                        <div class="report-body">
+                            <p>${html}</p>
+                        </div>
+                    </div>
+                `;
+                reportContent.scrollTop = 0;
+            } catch (err) {
+                reportContent.innerHTML = `<div style="padding: 20px; color: var(--mc-red);">Ошибка загрузки отчёта: ${err.message}</div>`;
+            }
+        }
+
+        // Обработка нажатий на кнопки отчётов
+        const reportTabs = devReportsTabs.querySelectorAll('.dev-subtab');
+        function setActiveReport(key) {
+            reportTabs.forEach(b => b.classList.toggle('active', b.dataset.sub === key));
+        }
+        
+        reportTabs.forEach(b => b.addEventListener('click', async () => {
+            const key = b.dataset.sub;
+            setActiveReport(key);
+            await renderReport(key);
+        }));
+
+        // По умолчанию показываем основной отчёт
+        setActiveReport('main');
+        await renderReport('main');
+
+        return;
+    }
+
     // для других пунктов — скрываем глобальные subtabs и показываем плейсхолдер
     const globalSubtabs = document.getElementById('dev-subtabs');
+    const globalReports = document.getElementById('dev-reports-tabs');
     if (globalSubtabs) globalSubtabs.classList.add('hidden');
+    if (globalReports) globalReports.classList.add('hidden');
     clearHeaderSearch();
     // Хардкодный fallback для других пунктов — пока плейсхолдер
     devMenuBody.innerHTML = `<div style="padding-top: 70px; padding-left: 28px;"><p>тут будет пункт ${itemNumber}</p></div>`;
