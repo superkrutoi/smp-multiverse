@@ -1,3 +1,30 @@
+/* ===== MC DESIGN SYSTEM VARIABLES (from DESIGN-GUIDELINES.md) ===== */
+:root {
+    /* Шрифты */
+    --font-primary: 'Minecraftia', monospace;
+    --font-size-base: 16px;
+    --font-size-small: 12px;
+    --font-size-large: 20px;
+
+    /* Цвета (Minecraft GUI палитра) */
+    --mc-bg-dark:    #3f3f3f;    /* Основной фон панелей, инвентаря */
+    --mc-bg-medium:  #2b2b2b;    /* Тёмные слоты, акценты */
+    --mc-bg-light:   #c6c6c6;    /* Светлые выделения, текст на тёмном */
+    --mc-border:     #000000;    /* Чёрные рамки, блочный стиль */
+    --mc-text:       #ffffff;    /* Основной белый текст */
+    --mc-text-dark:  #aaaaaa;    /* Вторичный серый текст */
+    --mc-accent:     #55ff55;    /* Зелёный акцент (hover, активные элементы) */
+    --mc-accent-dark:#2ecc71;    /* Тёмно-зелёный для pressed/hover deep */
+    --mc-red:        #ff5555;    /* Красный для ошибок, close-кнопки */
+    --mc-yellow:     #ffff55;    /* Жёлтый для предупреждений */
+
+    /* Отступы и размеры (8×8 сетка Minecraft) */
+    --spacing-unit:  8px;        /* Базовый шаг сетки */
+    --border-width:  2px;        /* Толщина блочных рамок */
+    --slot-size:     32px;       /* Размер инвентарных слотов/иконок */
+    --panel-padding: calc(var(--spacing-unit) * 2);
+}
+
 body {
     margin: 0;
     font-family: 'Inter', 'Arial', sans-serif;
