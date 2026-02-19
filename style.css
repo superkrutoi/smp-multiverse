@@ -125,6 +125,8 @@ body {
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
+    font-size: 14px;
+    line-height: 1.2;
 }
 
 /* ===== GLOBAL SCROLLBAR STYLES (Sci-Fi Neon Glow) ===== */
@@ -225,12 +227,12 @@ body {
 }
 
 .sidebar li {
-    padding: 12px 16px 12px 0;  /* Отступ убран слева (потому что ul уже имеет padding-left) */
+    padding: 8px 12px 8px 0;  /* Уменьшили с 12px до 8px */
     color: var(--mc-text);
     cursor: pointer;
     transition: all 0.1s linear;
     font-family: var(--font-primary);
-    font-size: 16px;
+    font-size: 13px;
 }
 
 .sidebar li:hover {
@@ -243,8 +245,9 @@ body {
     margin-left: 0;  /* Убираем дефолтный margin */
     color: var(--mc-text);
     font-family: var(--font-heading);
-    font-size: var(--font-size-large);
+    font-size: 18px;  /* Уменьшили с 20px до 18px */
     text-shadow: 2px 2px 0 var(--mc-border);
+    line-height: 1.2;
 }
 
 .sidebar #server-info {
@@ -255,13 +258,15 @@ body {
 .sidebar p {
     margin-left: 0;  /* Убираем дефолтный margin */
     font-family: var(--font-primary);
-    font-size: 14px;
+    font-size: 12px;
+    margin-top: 4px;
+    margin-bottom: 4px;
 }
 
 .sidebar button {
-    padding: 8px 16px;
+    padding: 8px 12px;
     text-decoration: none;
-    font-size: 16px;
+    font-size: 13px;
     color: var(--mc-text);
     display: block;
     transition: all 0.1s linear;
@@ -745,7 +750,7 @@ body.dev-active .dev-toggle {
 }
 
 .dev-menu-item {
-    padding: 14px 20px;
+    padding: 10px 16px;
     background: none;
     border: none;
     color: var(--mc-text);
@@ -753,7 +758,7 @@ body.dev-active .dev-toggle {
     text-align: left;
     transition: all 0.1s linear;
     white-space: nowrap;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     letter-spacing: 0.5px;
     font-family: var(--font-ui);
