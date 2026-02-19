@@ -11,19 +11,19 @@
     font-display: swap;
 }
 
-/* Альтернативный пиксельный шрифт */
+/* Жирный пиксельный шрифт */
 @font-face {
-    font-family: 'Mintsoda';
-    src: url('assets/fonts/MintsodaLimeGreen13X16Regular-KVvzA.woff2') format('woff2');
+    font-family: 'ContraPhobotech';
+    src: url('assets/fonts/Contra Phobotech Regular.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
 }
 
-/* Дополнительный шрифт для акцентов */
+/* Курсив для акцентов */
 @font-face {
-    font-family: 'Starseed';
-    src: url('assets/fonts/StarseedPro.woff2') format('woff2');
+    font-family: 'Mintsoda';
+    src: url('assets/fonts/MintsodaLimeGreen13X16Regular-KVvzA.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -33,7 +33,7 @@
 :root {
     /* Шрифты */
     --font-primary: 'Glasstown', monospace, sans-serif;      /* Основной текст (не жирный, читабельный) */
-    --font-heading: 'Starseed', 'Glasstown', monospace;       /* Заголовки (жирный пиксельный) */
+    --font-heading: 'ContraPhobotech', 'Glasstown', monospace; /* Заголовки (жирный пиксельный) */
     --font-accent: 'Mintsoda', monospace;                     /* Курсив для акцентов */
     --font-size-base: 16px;
     --font-size-small: 12px;

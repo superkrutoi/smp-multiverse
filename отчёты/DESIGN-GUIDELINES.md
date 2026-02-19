@@ -104,9 +104,9 @@
    - Лучшая читаемость на мобильных
    - Используется через `var(--font-primary)`
 
-2. **Starseed Pro** (`StarseedPro.woff2`)
+2. **Contra Phobotech Regular** (`Contra Phobotech Regular.woff2`)
    - Шрифт для заголовков и акцентов
-   - Пиксельный жирный
+   - Пиксельный жирный с хорошей читаемостью
    - Применение: h1, h2, h3, названия серверов, логотипы
    - Используется через `var(--font-heading)`
 
@@ -142,7 +142,7 @@ body, p, li, .server-description {
 
 /* Заголовки (жирный пиксельный) */
 h1, h2, h3, .sidebar h2, .image-custom-title {
-    font-family: var(--font-heading);  /* 'Starseed', 'Glasstown', monospace */
+    font-family: var(--font-heading);  /* 'ContraPhobotech', 'Glasstown', monospace */
     text-shadow: 2px 2px 0 #000,     /* классический MC-эффект тени */
                  -2px -2px 0 #000,
                  2px -2px 0 #000,
