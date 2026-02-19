@@ -232,8 +232,11 @@ async function renderDevMenuItem(itemNumber) {
                 // Build sidebar tree
                 let sidebarHtml = '<ul class="image-tree">';
                 for (const key of Object.keys(manifest)) {
-                    const items = manifest[key];
-                    const imageFiles = items.filter(f => !f.startsWith('.'));
+                    let items = manifest[key];
+                    // PowerShell ConvertTo-Json converts single-item arrays to strings
+                    if (typeof items === 'string') items = [items];
+                    if (!Array.isArray(items)) items = [];
+                    
                     sidebarHtml += `<li class="image-node" data-folder="${key}"><button class="image-folder-btn"><span class="folder-icon">📁</span>${key}</button></li>`;
                 }
                 sidebarHtml += '</ul>';
@@ -243,7 +246,11 @@ async function renderDevMenuItem(itemNumber) {
                 document.querySelectorAll('.dev-image-sidebar .image-folder-btn').forEach(btn => {
                     btn.addEventListener('click', () => {
                         const folder = btn.closest('.image-node').dataset.folder;
-                        const items = manifest[folder] || [];
+                        let items = manifest[folder] || [];
+                        // PowerShell ConvertTo-Json converts single-item arrays to strings
+                        if (typeof items === 'string') items = [items];
+                        if (!Array.isArray(items)) items = [];
+                        
                         const imageFiles = items.filter(f => !f.startsWith('.') && f.toLowerCase().match(/\.(png|jpg|jpeg|gif)$/));
                         
                         let contentHtml = `<h4>${folder}</h4>`;

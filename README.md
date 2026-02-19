@@ -15,9 +15,14 @@
 
 При добавлении новых изображений в папки `assets/icons`, `assets/images` или `assets/ui`, нужно обновить файл `manifest.json`:
 
-**Windows PowerShell:**
+**Windows PowerShell (короткая команда):**
 ```powershell
-$manifest = @{}; foreach ($folder in @("icons", "images", "ui")) { $folderPath = "assets\$folder"; if (Test-Path $folderPath) { $files = Get-ChildItem -Path $folderPath -File | Select-Object -ExpandProperty Name; $manifest[$folder] = $files } else { $manifest[$folder] = @() } }; $json = $manifest | ConvertTo-Json -Depth 10; Set-Content -Path "assets\manifest.json" -Value $json -Encoding UTF8; Write-Host "manifest.json updated"
+$m=@{}; @("icons","images","ui")|%{$p="assets\$_"; $m[$_]=if(Test-Path $p){@(Get-ChildItem $p -File|Select -Expand Name)}else{@()}}; $j="{`n"+($m.Keys|%{"  `"$_`": [`n"+(($m[$_]|%{"    `"$_`""})-join",`n")+"`n  ]"}|%{$i++;$_+$(if($i-lt$m.Count){","}else{""})})-join"`n"+"`n}"; $j|Set-Content "assets\manifest.json" -Encoding UTF8; "manifest.json updated"
+```
+
+**Windows PowerShell (используя скрипт):**
+```powershell
+powershell -ExecutionPolicy Bypass -File generate-manifest.ps1
 ```
 
 **Linux/Mac (Node.js):**

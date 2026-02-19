@@ -13,16 +13,31 @@ foreach ($folder in $folders) {
     $folderPath = Join-Path $assetsDir $folder
     
     if (Test-Path $folderPath) {
-        $files = Get-ChildItem -Path $folderPath -File | Select-Object -ExpandProperty Name
+        $files = @(Get-ChildItem -Path $folderPath -File | Select-Object -ExpandProperty Name)
         $manifest[$folder] = $files
     } else {
         $manifest[$folder] = @()
     }
 }
 
-# Записываем manifest.json
-$json = $manifest | ConvertTo-Json -Depth 10
-Set-Content -Path $manifestPath -Value $json -Encoding UTF8
+# Записываем manifest.json с правильным форматированием массивов
+$jsonSettings = New-Object System.Collections.Generic.List[string]
+$jsonSettings.Add('{')
+foreach ($key in $manifest.Keys) {
+    $jsonSettings.Add("  `"$key`": [")
+    $items = $manifest[$key]
+    for ($i = 0; $i -lt $items.Count; $i++) {
+        $comma = if ($i -lt $items.Count - 1) { "," } else { "" }
+        $jsonSettings.Add("    `"$($items[$i])`"$comma")
+    }
+    $isLast = ($key -eq ($manifest.Keys | Select-Object -Last 1))
+    $comma = if (-not $isLast) { "," } else { "" }
+    $jsonSettings.Add("  ]$comma")
+}
+$jsonSettings.Add('}')
+
+$jsonContent = $jsonSettings -join "`n"
+Set-Content -Path $manifestPath -Value $jsonContent -Encoding UTF8
 
 Write-Host "✅ manifest.json успешно создан!" -ForegroundColor Green
 Write-Host "📁 Найдено файлов:" -ForegroundColor Cyan
