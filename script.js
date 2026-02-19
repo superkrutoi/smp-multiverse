@@ -382,7 +382,7 @@ async function renderDevMenuItem(itemNumber) {
                             ? `${meta.width}×${meta.height} px • ${meta.sizeText}`
                             : 'Размер: — • Вес: —';
 
-                        let fileHtml = `<div class="image-file"><img src="${filePath}" class="image-thumb" alt="${fileName}" data-fullsize="${filePath}"/>`;
+                        let fileHtml = `<div class="image-file"><img src="${filePath}" class="image-thumb" alt="${fileName}" data-fullsize="${filePath}"/><img src="${filePath}" class="image-zoom" alt=""/>`;
                         fileHtml += `<div class="image-info">`;
                         if (customTitle && customTitle !== 'Без названия') {
                             fileHtml += `<span class="image-custom-title">${customTitle}</span>`;
@@ -399,49 +399,6 @@ async function renderDevMenuItem(itemNumber) {
                             const imageName = decodeURIComponent(thumb.dataset.fullsize.split('/').pop());
                             currentImageIndex = currentFolderImages.indexOf(imageName);
                             openImageViewer(thumb.dataset.fullsize);
-                        });
-
-                        thumb.addEventListener('mouseover', (e) => {
-                            const preview = document.createElement('div');
-                            preview.className = 'image-preview-tooltip';
-                            preview.innerHTML = `<img src="${thumb.dataset.fullsize}" alt="preview"/>`;
-                            document.body.appendChild(preview);
-                            thumb.dataset.preview = true;
-
-                            const updatePosition = (evt) => {
-                                const offsetX = 15;
-                                const offsetY = 15;
-                                let x = evt.clientX + offsetX;
-                                let y = evt.clientY + offsetY;
-
-                                if (x + preview.offsetWidth > window.innerWidth) {
-                                    x = evt.clientX - preview.offsetWidth - offsetX;
-                                }
-                                if (y + preview.offsetHeight > window.innerHeight) {
-                                    y = evt.clientY - preview.offsetHeight - offsetY;
-                                }
-
-                                preview.style.left = x + 'px';
-                                preview.style.top = y + 'px';
-                            };
-
-                            updatePosition(e);
-                            thumb.dataset.previewEl = preview;
-                            thumb.dataset.positionMove = (evt) => updatePosition(evt);
-                            document.addEventListener('mousemove', thumb.dataset.positionMove);
-                        });
-
-                        thumb.addEventListener('mouseleave', () => {
-                            if (thumb.dataset.previewEl) {
-                                const el = thumb.dataset.previewEl;
-                                el.remove();
-                                if (thumb.dataset.positionMove) {
-                                    document.removeEventListener('mousemove', thumb.dataset.positionMove);
-                                }
-                                delete thumb.dataset.previewEl;
-                                delete thumb.dataset.positionMove;
-                                delete thumb.dataset.preview;
-                            }
                         });
                     });
 
