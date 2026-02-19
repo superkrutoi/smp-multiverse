@@ -182,24 +182,29 @@ async function renderDevMenuItem(itemNumber) {
             const miscSettings = filtered.filter(s => s.id !== 'map-testing-interface');
 
             const renderSettingsItems = (items) => items.map(s => `
-                <label class="dev-setting-item" data-name="${s.name}">
-                    <span>${s.name}</span>
+                <label class="setting-item">
+                    <span class="setting-label">${s.name}</span>
                     <input type="${s.type}" id="${s.id}" ${s.checked ? 'checked' : ''} />
+                    <span class="checkmark"></span>
                 </label>
             `).join('');
 
             let html = '';
             if (mainSettings.length > 0) {
                 html += `
-                    <div class="dev-settings-group-title">Основные</div>
-                    ${renderSettingsItems(mainSettings)}
+                    <div class="settings-section">
+                        <h2>ОСНОВНЫЕ</h2>
+                        ${renderSettingsItems(mainSettings)}
+                    </div>
                 `;
             }
 
             if (miscSettings.length > 0) {
                 html += `
-                    <div class="dev-settings-group-title">Всякая фигня</div>
-                    ${renderSettingsItems(miscSettings)}
+                    <div class="settings-section">
+                        <h2>ВСЯКАЯ ФИГНЯ</h2>
+                        ${renderSettingsItems(miscSettings)}
+                    </div>
                 `;
             }
 

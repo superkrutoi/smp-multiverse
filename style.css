@@ -1052,7 +1052,7 @@ body.dev-active .dev-toggle {
     min-width: 320px;
     max-width: 720px;
     align-self: flex-start;
-    padding: 20px;
+    padding: 40px 20px;
     box-sizing: border-box;
     margin-top: 0;
 }
@@ -1060,67 +1060,91 @@ body.dev-active .dev-toggle {
 .dev-settings-list {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 0;
     padding-left: 0;
 }
 
-.dev-settings-group-title {
-    margin-top: 8px;
-    margin-bottom: 4px;
-    color: #8ad8ff;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+.settings-section {
+    margin-bottom: 40px;
+}
+
+.settings-section h2 {
+    color: #7fd3ff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    margin: 0 0 20px 0;
     text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(127, 211, 255, 0.3);
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    cursor: pointer;
+    font-size: 14px;
+    color: #c9d1e8;
+    border-bottom: 1px solid rgba(127, 211, 255, 0.1);
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.setting-item:hover {
+    color: #ffffff;
+    padding-left: 6px;
+    border-bottom-color: rgba(127, 211, 255, 0.3);
+}
+
+.setting-label {
+    flex: 1;
+    min-width: 0;
+}
+
+.setting-item input[type="checkbox"] {
+    display: none;
+}
+
+.checkmark {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    border: 2px solid #5a7d99;
+    background: rgba(10, 20, 40, 0.6);
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 12px;
+}
+
+.setting-item:hover .checkmark {
+    border-color: #7fd3ff;
+    box-shadow: 0 0 6px rgba(127, 211, 255, 0.2);
+    transform: scale(1.08);
+}
+
+.setting-item input:checked + .checkmark {
+    background: linear-gradient(135deg, #ffc400 0%, #ffb000 100%);
+    border-color: #ffc400;
+    box-shadow: 0 0 10px rgba(255, 196, 0, 0.4);
+}
+
+.setting-item input:checked + .checkmark::after {
+    content: "✓";
+    color: #1a2b40;
+    font-weight: bold;
+    font-size: 12px;
 }
 
 .dev-settings-empty {
     color: rgba(224, 208, 255, 0.7);
     font-size: 14px;
-    padding: 10px 4px;
-}
-
-.dev-setting-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 6px;
-    border-radius: 0; /* убрать рамку/скругления */
-    background: transparent; /* убрать фон */
-    justify-content: flex-start;
-    text-align: left;
-    width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-    font-size: 14px;
-}
-
-.dev-setting-item span {
-    flex: 1;
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 14px;
-}
-
-.dev-setting-item input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    min-width: 20px;
-    margin-left: auto;
-    flex-shrink: 0;
-    order: 2;
-}
-
-/* Hover: показываем лёгкую подложку/рамку при наведении */
-.dev-setting-item {
-    transition: background 0.15s ease, box-shadow 0.15s ease;
-}
-.dev-setting-item:hover {
-    background: rgba(255,105,180,0.06);
-    box-shadow: 0 0 0 1px rgba(255,105,180,0.08) inset;
-    border-radius: 6px;
+    padding: 20px 4px;
+    text-align: center;
 }
 
 .dev-menu-body p {
