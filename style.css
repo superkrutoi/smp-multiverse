@@ -235,6 +235,11 @@ body {
     background-color: var(--bg-color-dark, #000);
 }
 
+.leaflet-control-attribution,
+.leaflet-control-zoom {
+    display: none;
+}
+
 /* Маскот */
 .mascot {
     position: fixed;

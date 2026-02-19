@@ -1033,6 +1033,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const map = L.map('map', {
+        attributionControl: false,
+        zoomControl: false,
         center: [0, 0],
         zoom: 2,
         minZoom: 1,
@@ -1043,10 +1045,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.multiverseMap = map;
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        noWrap: true
-    }).addTo(map);
+    const mapBounds = [[-100, -100], [100, 100]];
+    L.imageOverlay('assets/images/maxresdefault.jpg', mapBounds).addTo(map);
 
     const markerLayer = L.layerGroup().addTo(map);
 
