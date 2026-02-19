@@ -293,7 +293,6 @@ async function renderDevMenuItem(itemNumber) {
             if (theme) Object.entries(theme.vars).forEach(([k, v]) => document.documentElement.style.setProperty(k, v));
         }
 
-        renderColors();
         return;
     }
 
