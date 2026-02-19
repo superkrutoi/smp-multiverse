@@ -225,51 +225,88 @@ async function renderDevMenuItem(itemNumber) {
             tabContent.innerHTML = `<div class="dev-image-browser"><div class="dev-image-sidebar" id="image-sidebar">Загрузка...</div><div class="dev-image-content" id="image-content"></div></div>`;
             try {
                 const res = await fetch('assets/manifest.json');
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const manifest = await res.json();
+                console.log('Manifest loaded:', manifest);
+                
                 const sidebarEl = document.getElementById('image-sidebar');
                 const contentEl = document.getElementById('image-content');
                 
                 // Build sidebar tree
                 let sidebarHtml = '<ul class="image-tree">';
                 for (const key of Object.keys(manifest)) {
-                    let items = manifest[key];
-                    // PowerShell ConvertTo-Json converts single-item arrays to strings
-                    if (typeof items === 'string') items = [items];
-                    if (!Array.isArray(items)) items = [];
-                    
-                    sidebarHtml += `<li class="image-node" data-folder="${key}"><button class="image-folder-btn"><span class="folder-icon">📁</span>${key}</button></li>`;
+                    sidebarHtml += `<li class="image-node" data-folder="${key}"><button class="image-folder-btn"><span class="folder-icon">📁</span><span class="folder-name">${key}</span></button></li>`;
                 }
                 sidebarHtml += '</ul>';
                 sidebarEl.innerHTML = sidebarHtml;
                 
+                // Function to display folder contents
+                const displayFolder = (folderName) => {
+                    const items = manifest[folderName] || [];
+                    const imageFiles = items.filter(f => typeof f === 'string' && !f.startsWith('.'));
+                    
+                    console.log(`Displaying folder: ${folderName}`);
+                    console.log(`Items in manifest[${folderName}]:`, items);
+                    console.log(`Filtered image files:`, imageFiles);
+                    
+                    let contentHtml = `<h4>${folderName.toUpperCase()}</h4>`;
+                    if (imageFiles.length === 0) {
+                        contentHtml += '<div class="image-empty">Тут ничего нет</div>';
+                    } else {
+                        const savedTitles = JSON.parse(localStorage.getItem('iconPreviewTitle') || '{}');
+                        
+                        imageFiles.forEach(f => {
+                            const filePath = `assets/${folderName}/${encodeURIComponent(f)}`;
+                            const customTitle = savedTitles[f];
+                            
+                            let fileHtml = `<div class="image-file"><img src="${filePath}" class="image-thumb" alt="${f}" data-fullsize="${filePath}"/>`;
+                            fileHtml += `<div class="image-info">`;
+                            if (customTitle && customTitle !== 'Без названия') {
+                                fileHtml += `<span class="image-custom-title">${customTitle}</span>`;
+                            }
+                            fileHtml += `<span class="image-name">${f}</span>`;
+                            fileHtml += `</div></div>`;
+                            contentHtml += fileHtml;
+                        });
+                    }
+                    contentEl.innerHTML = contentHtml;
+                    
+                    // Add click handlers for image preview
+                    contentEl.querySelectorAll('.image-thumb').forEach(thumb => {
+                        thumb.addEventListener('click', () => {
+                            openImageViewer(thumb.dataset.fullsize);
+                        });
+                    });
+                    
+                    updateImageStatusBadges();
+                };
+                
                 // Add sidebar folder click handlers
                 document.querySelectorAll('.dev-image-sidebar .image-folder-btn').forEach(btn => {
                     btn.addEventListener('click', () => {
-                        const folder = btn.closest('.image-node').dataset.folder;
-                        let items = manifest[folder] || [];
-                        // PowerShell ConvertTo-Json converts single-item arrays to strings
-                        if (typeof items === 'string') items = [items];
-                        if (!Array.isArray(items)) items = [];
+                        const node = btn.closest('.image-node');
+                        const folderIcon = btn.querySelector('.folder-icon');
+                        const folder = node.dataset.folder;
                         
-                        const imageFiles = items.filter(f => !f.startsWith('.') && f.toLowerCase().match(/\.(png|jpg|jpeg|gif)$/));
-                        
-                        let contentHtml = `<h4>${folder}</h4>`;
-                        if (imageFiles.length === 0) {
-                            contentHtml += '<div class="image-empty">Изображений нет</div>';
-                        } else {
-                            imageFiles.forEach(f => {
-                                const filePath = `assets/${folder}/${encodeURIComponent(f)}`;
-                                contentHtml += `<div class="image-file"><img src="${filePath}" class="image-thumb" alt="${f}" data-fullsize="${filePath}"/><span class="image-name">${f}</span></div>`;
-                            });
-                        }
-                        contentEl.innerHTML = contentHtml;
-                        
-                        // Add click handlers for image preview
-                        contentEl.querySelectorAll('.image-thumb').forEach(thumb => {
-                            thumb.addEventListener('click', () => {
-                                openImageViewer(thumb.dataset.fullsize);
-                            });
+                        // Close all other folders
+                        document.querySelectorAll('.image-node.open').forEach(openNode => {
+                            if (openNode !== node) {
+                                openNode.classList.remove('open');
+                                const icon = openNode.querySelector('.folder-icon');
+                                if (icon) icon.textContent = '📁';
+                            }
                         });
+                        
+                        // Open current folder
+                        node.classList.add('open');
+                        if (folderIcon) folderIcon.textContent = '📂';
+                        
+                        // Mark as active
+                        document.querySelectorAll('.image-folder-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        
+                        // Display folder contents
+                        displayFolder(folder);
                     });
                 });
                 
@@ -277,7 +314,8 @@ async function renderDevMenuItem(itemNumber) {
                 const firstBtn = sidebarEl.querySelector('.image-folder-btn');
                 if (firstBtn) firstBtn.click();
             } catch (err) {
-                tabContent.innerHTML = `<div class="error">Не удалось загрузить manifest.json: ${err}</div>`;
+                console.error('Error:', err);
+                tabContent.innerHTML = `<div class="error">Ошибка загрузки: ${err}</div>`;
             }
         }
 
@@ -333,48 +371,368 @@ if (activeItem) {
     renderDevMenuItem(activeItem.getAttribute('data-item'));
 }
 
-// Image Viewer Modal Logic
+// Image Viewer Modal Logic with metadata
 const imageViewerModal = document.getElementById('image-viewer-modal');
 const imageViewerImg = document.getElementById('image-viewer-img');
-const imageViewerBgBlur = document.getElementById('image-viewer-bg-blur');
-const imageViewerClose = document.querySelector('.image-viewer-close');
-const toggleShadowBtn = document.getElementById('toggle-shadow-btn');
 
-let shadowEnabled = true;
+// Store image metadata (description, status, status-text) in localStorage
+const IMAGE_METADATA_KEY = 'imageMetadata';
+
+function getImageMetadata(imagePath) {
+    const allMetadata = JSON.parse(localStorage.getItem(IMAGE_METADATA_KEY) || '{}');
+    return allMetadata[imagePath] || {
+        description: 'Нет описания',
+        status: 'none',
+        statusEmoji: '',
+        statusText: 'Нет информации'
+    };
+}
+
+function saveImageMetadata(imagePath, metadata) {
+    const allMetadata = JSON.parse(localStorage.getItem(IMAGE_METADATA_KEY) || '{}');
+    allMetadata[imagePath] = metadata;
+    localStorage.setItem(IMAGE_METADATA_KEY, JSON.stringify(allMetadata));
+}
+
+// Status mapping
+const STATUS_MAP = {
+    'replace': { emoji: '🚩', label: 'требует замены' },
+    'edit': { emoji: '✏️', label: 'требует редактирования' },
+    'error': { emoji: '❓', label: 'ошибка отображения' },
+    'issue': { emoji: '📑', label: 'Проблема' },
+    'none': { emoji: '', label: 'Без статуса' }
+};
+
+let currentImagePath = '';
 
 function openImageViewer(imageSrc) {
+    currentImagePath = imageSrc;
     imageViewerImg.src = imageSrc;
-    // Set blurred background to the same image
-    imageViewerBgBlur.style.backgroundImage = `url(${imageSrc})`;
+    
+    // Load metadata
+    const metadata = getImageMetadata(imageSrc);
+    
+    // Update description
+    document.getElementById('image-description').textContent = metadata.description;
+    document.getElementById('image-description-edit').value = metadata.description;
+    
+    // Update status text
+    document.getElementById('image-status-text').textContent = metadata.statusText;
+    document.getElementById('image-status-text-edit').value = metadata.statusText;
+    
+    // Update status button
+    const statusEmoji = document.getElementById('current-status-emoji');
+    statusEmoji.textContent = metadata.statusEmoji || '○';
+    
+    // Find usage of this image
+    findImageUsage(imageSrc);
+    
     imageViewerModal.classList.remove('hidden');
 }
 
 function closeImageViewer() {
     imageViewerModal.classList.add('hidden');
     imageViewerImg.src = '';
-    imageViewerBgBlur.style.backgroundImage = '';
+    currentImagePath = '';
+    
+    // Refresh image list if dev menu is open and on images tab
+    const devMenuModal = document.querySelector('.dev-menu-modal');
+    const devSubtabs = document.getElementById('dev-subtabs');
+    const activeSubtab = devSubtabs?.querySelector('.dev-subtab.active');
+    
+    if (devMenuModal && !devMenuModal.classList.contains('hidden') && activeSubtab?.dataset.sub === 'images') {
+        // Re-trigger the last clicked folder button to refresh the list
+        const lastActiveFolder = document.querySelector('.image-folder-btn.active');
+        if (lastActiveFolder) {
+            lastActiveFolder.click();
+        }
+    }
 }
 
-// Toggle shadow
-toggleShadowBtn.addEventListener('click', () => {
-    shadowEnabled = !shadowEnabled;
-    if (shadowEnabled) {
-        imageViewerImg.classList.remove('no-shadow');
-        toggleShadowBtn.title = 'Скрыть тень';
-        toggleShadowBtn.querySelector('img').src = 'assets/icons/view.png';
+// Find where the image is used
+function findImageUsage(imagePath) {
+    const usageList = document.getElementById('image-usage-list');
+    const usages = [];
+    
+    // Search in HTML files (simplified - searches in current document)
+    const allImages = document.querySelectorAll('img');
+    allImages.forEach(img => {
+        if (img.src && img.src.includes(imagePath.split('/').pop())) {
+            const context = img.alt || img.parentElement.textContent.trim().substring(0, 50);
+            usages.push(`Изображение: ${context || 'без описания'}`);
+        }
+    });
+    
+    // Search in CSS (check inline styles)
+    const allElements = document.querySelectorAll('*');
+    allElements.forEach(el => {
+        const bgImage = window.getComputedStyle(el).backgroundImage;
+        if (bgImage && bgImage.includes(imagePath.split('/').pop())) {
+            usages.push(`Фоновое изображение: ${el.tagName.toLowerCase()}`);
+        }
+    });
+    
+    if (usages.length === 0) {
+        usageList.innerHTML = '<li>Нигде не используется</li>';
     } else {
-        imageViewerImg.classList.add('no-shadow');
-        toggleShadowBtn.title = 'Показать тень';
-        toggleShadowBtn.querySelector('img').src = 'assets/icons/hide.png';
+        usageList.innerHTML = usages.map(u => `<li>${u}</li>`).join('');
+    }
+}
+
+// Edit buttons handlers
+document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const field = btn.dataset.field;
+        const textEl = document.getElementById(`image-${field}`);
+        const editEl = document.getElementById(`image-${field}-edit`);
+        
+        if (textEl.classList.contains('hidden')) {
+            // Save mode
+            const newValue = editEl.value.trim() || (field === 'description' ? 'Нет описания' : 'Нет информации');
+            textEl.textContent = newValue;
+            
+            // Save to metadata
+            const metadata = getImageMetadata(currentImagePath);
+            if (field === 'description') {
+                metadata.description = newValue;
+            } else if (field === 'status-text') {
+                metadata.statusText = newValue;
+            }
+            saveImageMetadata(currentImagePath, metadata);
+            
+            // Switch back to view mode
+            textEl.classList.remove('hidden');
+            editEl.classList.add('hidden');
+            btn.textContent = '✏️';
+        } else {
+            // Edit mode
+            textEl.classList.add('hidden');
+            editEl.classList.remove('hidden');
+            editEl.focus();
+            btn.textContent = '💾';
+        }
+    });
+});
+
+// Status selector
+const statusBtn = document.getElementById('current-status-btn');
+const statusDropdown = document.getElementById('status-dropdown');
+
+statusBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    statusDropdown.classList.toggle('hidden');
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+    if (!statusBtn.contains(e.target) && !statusDropdown.contains(e.target)) {
+        statusDropdown.classList.add('hidden');
     }
 });
 
-// Close by clicking the close button
-imageViewerClose.addEventListener('click', closeImageViewer);
+// Status option selection
+document.querySelectorAll('.status-option').forEach(option => {
+    option.addEventListener('click', () => {
+        const status = option.dataset.status;
+        const emoji = option.dataset.emoji;
+        
+        // Update button
+        document.getElementById('current-status-emoji').textContent = emoji || '○';
+        
+        // Save to metadata
+        const metadata = getImageMetadata(currentImagePath);
+        metadata.status = status;
+        metadata.statusEmoji = emoji;
+        saveImageMetadata(currentImagePath, metadata);
+        
+        // Close dropdown
+        statusDropdown.classList.add('hidden');
+        
+        // Update status badge in image list if visible
+        updateImageStatusBadges();
+    });
+});
 
-// Close by clicking outside the image
+// Update status badges in image list
+function updateImageStatusBadges() {
+    document.querySelectorAll('.image-thumb').forEach(thumb => {
+        const imagePath = thumb.dataset.fullsize;
+        const metadata = getImageMetadata(imagePath);
+        
+        // Remove existing badge
+        const existingBadge = thumb.parentElement.querySelector('.image-status-badge');
+        if (existingBadge) {
+            existingBadge.remove();
+        }
+        
+        // Add new badge if status exists
+        if (metadata.statusEmoji) {
+            const badge = document.createElement('span');
+            badge.className = 'image-status-badge';
+            badge.textContent = metadata.statusEmoji;
+            badge.title = STATUS_MAP[metadata.status]?.label || '';
+            thumb.parentElement.style.position = 'relative';
+            thumb.parentElement.insertBefore(badge, thumb);
+        }
+    });
+}
+
+// ===== PREVIEW BACKGROUND CONTROL =====
+// Background types for image preview (6 options)
+const BG_TYPES = {
+    checker: { class: 'preview-bg-checker', label: 'Фон: Шахматная доска' },
+    white: { class: 'preview-bg-white', label: 'Фон: Белый' },
+    black: { class: 'preview-bg-black', label: 'Фон: Чёрный' },
+    dark: { class: 'preview-bg-dark', label: 'Фон: Тёмно-серый' },
+    green: { class: 'preview-bg-green', label: 'Фон: Неон-зелёный' },
+    blue: { class: 'preview-bg-blue', label: 'Фон: Неон-голубой' },
+    red: { class: 'preview-bg-red', label: 'Фон: Красный' }
+};
+
+const PREVIEW_BG_KEY = 'iconPreviewBg';
+const PREVIEW_TITLE_KEY = 'iconPreviewTitle';
+
+// Get DOM elements
+const previewArea = document.getElementById('preview-area');
+const bgButtons = document.querySelectorAll('.bg-btn');
+const previewTitle = document.getElementById('preview-title');
+const previewTitleInput = document.getElementById('preview-title-input');
+const editTitleBtn = document.getElementById('edit-title-btn');
+const previewFilename = document.getElementById('preview-filename');
+
+// Initialize preview background from localStorage
+function initPreviewBackground() {
+    const savedBg = localStorage.getItem(PREVIEW_BG_KEY) || 'checker';
+    applyBackground(savedBg);
+}
+
+// Apply background to preview area
+function applyBackground(bgKey) {
+    if (!previewArea) return;
+    
+    // Remove all background classes
+    Object.values(BG_TYPES).forEach(bg => {
+        previewArea.classList.remove(bg.class);
+    });
+    
+    // Apply selected background
+    const selectedBg = BG_TYPES[bgKey];
+    if (selectedBg) {
+        previewArea.classList.add(selectedBg.class);
+    }
+    
+    // Update button states
+    bgButtons.forEach(btn => {
+        if (btn.dataset.bg === bgKey) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Save to localStorage
+    localStorage.setItem(PREVIEW_BG_KEY, bgKey);
+}
+
+// Event listeners for background buttons
+bgButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const bgKey = btn.dataset.bg;
+        applyBackground(bgKey);
+    });
+});
+
+// ===== PREVIEW TITLE EDITING =====
+let currentImageTitle = 'Без названия';
+
+// Initialize title from localStorage or metadata
+function initPreviewTitle(imageSrc) {
+    // Try to get saved title for this image
+    const savedTitles = JSON.parse(localStorage.getItem(PREVIEW_TITLE_KEY) || '{}');
+    const imageKey = imageSrc.split('/').pop(); // Use filename as key
+    
+    currentImageTitle = savedTitles[imageKey] || 'Без названия';
+    
+    if (previewTitle) {
+        previewTitle.textContent = currentImageTitle;
+    }
+    
+    if (previewFilename) {
+        previewFilename.textContent = imageKey;
+    }
+}
+
+// Save title to localStorage
+function savePreviewTitle(imageSrc, title) {
+    const savedTitles = JSON.parse(localStorage.getItem(PREVIEW_TITLE_KEY) || '{}');
+    const imageKey = imageSrc.split('/').pop();
+    savedTitles[imageKey] = title;
+    localStorage.setItem(PREVIEW_TITLE_KEY, JSON.stringify(savedTitles));
+}
+
+// Edit title button handler
+if (editTitleBtn) {
+    editTitleBtn.addEventListener('click', () => {
+        if (previewTitle && previewTitleInput) {
+            // Switch to edit mode
+            previewTitle.classList.add('hidden');
+            previewTitleInput.classList.remove('hidden');
+            previewTitleInput.value = previewTitle.textContent;
+            previewTitleInput.focus();
+            previewTitleInput.select();
+        }
+    });
+}
+
+// Save on Enter or blur
+if (previewTitleInput) {
+    const saveTitle = () => {
+        const newTitle = previewTitleInput.value.trim() || 'Без названия';
+        currentImageTitle = newTitle;
+        
+        if (previewTitle) {
+            previewTitle.textContent = newTitle;
+            previewTitle.classList.remove('hidden');
+        }
+        
+        previewTitleInput.classList.add('hidden');
+        
+        // Save to localStorage
+        if (currentImagePath) {
+            savePreviewTitle(currentImagePath, newTitle);
+        }
+    };
+    
+    previewTitleInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            saveTitle();
+        } else if (e.key === 'Escape') {
+            // Cancel editing
+            previewTitleInput.classList.add('hidden');
+            if (previewTitle) {
+                previewTitle.classList.remove('hidden');
+            }
+        }
+    });
+    
+    previewTitleInput.addEventListener('blur', saveTitle);
+}
+
+// Update openImageViewer to initialize title
+const originalOpenImageViewer = openImageViewer;
+openImageViewer = function(imageSrc) {
+    originalOpenImageViewer(imageSrc);
+    // Initialize background and title
+    setTimeout(() => {
+        initPreviewBackground();
+        initPreviewTitle(imageSrc);
+    }, 10);
+};
+
+// Close by clicking outside the content
 imageViewerModal.addEventListener('click', (e) => {
-    if (e.target === imageViewerModal || e.target.classList.contains('image-viewer-wrapper')) {
+    if (e.target === imageViewerModal) {
         closeImageViewer();
     }
 });

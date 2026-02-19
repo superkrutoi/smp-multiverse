@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SMP Multiverse — Карта миров</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css">
 </head>
 <body>
     <button id="show-sidebar" class="show-sidebar" aria-label="Открыть боковую панель" title="Открыть панель">☰</button>
@@ -82,11 +81,14 @@
             </div>
             <!-- Контентная область -->
             <div class="dev-menu-content">
-                <div id="dev-subtabs" class="dev-subtabs hidden" aria-hidden="true">
-                    <button class="dev-subtab" data-sub="images">🖼️ Картинки</button>
-                    <button class="dev-subtab" data-sub="colors">🎨 Цвета</button>
+                <!-- Полоса-заголовок -->
+                <div class="dev-menu-header">
+                    <div id="dev-subtabs" class="dev-subtabs hidden" aria-hidden="true">
+                        <button class="dev-subtab" data-sub="images">Ассеты</button>
+                        <button class="dev-subtab" data-sub="colors">Цвета</button>
+                    </div>
+                    <button class="dev-menu-close" aria-label="Закрыть меню разработчика">✕</button>
                 </div>
-                <button class="dev-menu-close" aria-label="Закрыть меню разработчика">✕</button>
                 <div class="dev-menu-body" id="dev-menu-body">
                     <p>тут будет пункт 1</p>
                 </div>
@@ -96,22 +98,95 @@
 
     <!-- Модальное окно для просмотра изображений -->
     <div id="image-viewer-modal" class="image-viewer-modal hidden">
-        <div class="image-viewer-bg-blur" id="image-viewer-bg-blur"></div>
-        <button class="image-viewer-close" aria-label="Закрыть просмотр изображения">✕</button>
-        
-        <!-- Контролы просмотра -->
-        <div class="image-viewer-controls">
-            <button id="toggle-shadow-btn" class="control-btn" title="Скрыть тень">
-                <img src="assets/icons/view.png" alt="Toggle shadow" width="20" height="20">
-            </button>
-        </div>
-        
-        <div class="image-viewer-wrapper">
-            <img id="image-viewer-img" src="" alt="Просмотр изображения" class="image-viewer-img">
+        <div class="image-viewer-content">
+            <div class="image-viewer-left">
+                <div class="preview-controls">
+                    <div class="preview-bg-buttons">
+                        <button class="bg-btn active" data-bg="checker" title="Шахматная доска" aria-label="Шахматная доска">
+                            <span class="bg-checker-icon"></span>
+                        </button>
+                        <button class="bg-btn" data-bg="white" title="Белый" aria-label="Белый" style="background: #ffffff;"></button>
+                        <button class="bg-btn" data-bg="black" title="Чёрный" aria-label="Чёрный" style="background: #000000;"></button>
+                        <button class="bg-btn" data-bg="dark" title="Тёмно-серый" aria-label="Тёмно-серый" style="background: #1a1a2e;"></button>
+                        <button class="bg-btn" data-bg="green" title="Неон-зелёный" aria-label="Неон-зелёный" style="background: #00ff9d;"></button>
+                        <button class="bg-btn" data-bg="blue" title="Неон-голубой" aria-label="Неон-голубой" style="background: #40c4ff;"></button>
+                        <button class="bg-btn" data-bg="red" title="Красный" aria-label="Красный" style="background: #ff4d4d;"></button>
+                    </div>
+                </div>
+                <div class="preview-area" id="preview-area">
+                    <img id="image-viewer-img" src="" alt="Просмотр изображения" class="image-viewer-img">
+                </div>
+                <div class="preview-title-wrapper">
+                    <div class="preview-title-row">
+                        <span class="preview-title" id="preview-title">Без названия</span>
+                        <input type="text" class="preview-title-input hidden" id="preview-title-input" placeholder="Введите название">
+                        <button class="edit-title-btn" id="edit-title-btn" title="Редактировать название">✏️</button>
+                    </div>
+                    <div class="preview-filename" id="preview-filename">image.png</div>
+                </div>
+            </div>
+            <div class="image-viewer-right">
+                <div class="image-info-section">
+                    <div class="section-header">
+                        <h3>Описание:</h3>
+                        <button class="edit-btn" data-field="description" aria-label="Редактировать описание">✏️</button>
+                    </div>
+                    <div class="section-content">
+                        <p id="image-description" class="editable-text">Нет описания</p>
+                        <textarea id="image-description-edit" class="edit-textarea hidden"></textarea>
+                    </div>
+                </div>
+                <div class="image-info-section">
+                    <div class="section-header">
+                        <h3>Статус:</h3>
+                        <button class="edit-btn" data-field="status-text" aria-label="Редактировать статус">✏️</button>
+                        <div class="status-selector">
+                            <button class="status-btn" id="current-status-btn" aria-label="Выбрать статус">
+                                <span id="current-status-emoji"></span>
+                            </button>
+                            <div class="status-dropdown hidden" id="status-dropdown">
+                                <button class="status-option" data-status="replace" data-emoji="🚩">
+                                    <span class="status-emoji">🚩</span>
+                                    <span class="status-label">требует замены</span>
+                                </button>
+                                <button class="status-option" data-status="edit" data-emoji="✏️">
+                                    <span class="status-emoji">✏️</span>
+                                    <span class="status-label">требует редактирования</span>
+                                </button>
+                                <button class="status-option" data-status="error" data-emoji="❓">
+                                    <span class="status-emoji">❓</span>
+                                    <span class="status-label">ошибка отображения</span>
+                                </button>
+                                <button class="status-option" data-status="issue" data-emoji="📑">
+                                    <span class="status-emoji">📑</span>
+                                    <span class="status-label">Проблема</span>
+                                </button>
+                                <button class="status-option" data-status="none" data-emoji="">
+                                    <span class="status-emoji">✓</span>
+                                    <span class="status-label">Без статуса</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <p id="image-status-text" class="editable-text">Нет информации</p>
+                        <textarea id="image-status-text-edit" class="edit-textarea hidden"></textarea>
+                    </div>
+                </div>
+                <div class="image-info-section">
+                    <div class="section-header">
+                        <h3>Используется:</h3>
+                    </div>
+                    <div class="section-content">
+                        <ul id="image-usage-list" class="usage-list">
+                            <li>Нигде не используется</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
     <script src="script.js"></script>
 
         <!-- Проверка отображения изображений -->
