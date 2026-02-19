@@ -234,8 +234,11 @@ async function renderDevMenuItem(itemNumber) {
                 
                 // Build sidebar tree
                 let sidebarHtml = '<ul class="image-tree">';
-                for (const key of Object.keys(manifest)) {
-                    sidebarHtml += `<li class="image-node" data-folder="${key}"><button class="image-folder-btn"><span class="folder-icon">📁</span><span class="folder-name">${key}</span></button></li>`;
+                const folderOrder = ['icons', 'images', 'ui'];
+                for (const key of folderOrder) {
+                    if (manifest[key] !== undefined) {
+                        sidebarHtml += `<li class="image-node" data-folder="${key}"><button class="image-folder-btn"><span class="folder-icon">📁</span><span class="folder-name">${key}</span></button></li>`;
+                    }
                 }
                 sidebarHtml += '</ul>';
                 sidebarEl.innerHTML = sidebarHtml;
