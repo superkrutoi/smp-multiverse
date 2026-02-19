@@ -110,6 +110,25 @@ const devMenuModal = document.getElementById('dev-menu-modal');
 const devMenuClose = document.querySelector('.dev-menu-close');
 const devMenuItems = document.querySelectorAll('.dev-menu-item');
 const devMenuBody = document.getElementById('dev-menu-body');
+const devHeaderSearchSlot = document.getElementById('dev-header-search-slot');
+
+function renderHeaderSearch(onInput) {
+    if (!devHeaderSearchSlot) return;
+    devHeaderSearchSlot.innerHTML = '<input id="dev-search" class="dev-header-search" type="search" placeholder="Поиск настроек..." aria-label="Поиск настроек" />';
+    devHeaderSearchSlot.classList.remove('hidden');
+    devHeaderSearchSlot.setAttribute('aria-hidden', 'false');
+
+    const searchInput = document.getElementById('dev-search');
+    if (!searchInput) return;
+    searchInput.addEventListener('input', (e) => onInput(e.target.value));
+}
+
+function clearHeaderSearch() {
+    if (!devHeaderSearchSlot) return;
+    devHeaderSearchSlot.innerHTML = '';
+    devHeaderSearchSlot.classList.add('hidden');
+    devHeaderSearchSlot.setAttribute('aria-hidden', 'true');
+}
 
 // Открыть меню разработчика
 document.querySelector('.dev-toggle').addEventListener('click', () => {
@@ -129,14 +148,16 @@ devMenuModal.addEventListener('click', (e) => {
 });
 // Рендер содержимого для пунктов меню разработчика
 async function renderDevMenuItem(itemNumber) {
+    devMenuBody.classList.toggle('dev-menu-body--images', String(itemNumber) === '2');
+
     if (String(itemNumber) === '1') {
         // Настройки — поисковая строка сверху + список настроек (восстановленный)
         const devSubtabs = document.getElementById('dev-subtabs');
         if (devSubtabs) devSubtabs.classList.add('hidden');
+        clearHeaderSearch();
 
         devMenuBody.innerHTML = `
             <div class="dev-settings-container">
-                <input id="dev-search" class="dev-search" type="search" placeholder="Поиск настроек..." aria-label="Поиск настроек" />
                 <div id="dev-settings-list" class="dev-settings-list">
                     <!-- элементы списка будут вставлены JS -->
                 </div>
@@ -165,9 +186,7 @@ async function renderDevMenuItem(itemNumber) {
         }
 
         renderList();
-
-        const searchInput = document.getElementById('dev-search');
-        searchInput.addEventListener('input', (e) => renderList(e.target.value));
+        renderHeaderSearch((value) => renderList(value));
 
         // Обработчики для переключения (демо): сохраняем в localStorage
         listEl.addEventListener('change', (e) => {
@@ -181,6 +200,7 @@ async function renderDevMenuItem(itemNumber) {
 
     if (String(itemNumber) === '2') {
         // "Вид сайта" — header + content; subtabs live in the top-left of the main modal
+        clearHeaderSearch();
         devMenuBody.innerHTML = `
             <div class="dev-viewsite">
                 <div class="dev-tab-content" id="dev-tab-content">
@@ -222,7 +242,7 @@ async function renderDevMenuItem(itemNumber) {
         }
 
         async function renderImages() {
-            tabContent.innerHTML = `<div class="dev-image-browser"><div class="dev-image-sidebar" id="image-sidebar">Загрузка...</div><div class="dev-image-content" id="image-content"></div></div>`;
+            tabContent.innerHTML = `<div class="dev-image-browser"><div class="dev-image-sidebar" id="image-sidebar">Загрузка...</div><div class="dev-image-main"><div class="dev-image-scroll" id="image-scroll"><div class="dev-image-content" id="image-content"></div></div></div></div>`;
             try {
                 const res = await fetch('assets/manifest.json');
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -242,9 +262,11 @@ async function renderDevMenuItem(itemNumber) {
                 }
                 sidebarHtml += '</ul>';
                 sidebarEl.innerHTML = sidebarHtml;
+                let folderRenderToken = 0;
                 
                 // Function to display folder contents
-                const displayFolder = (folderName) => {
+                const displayFolder = async (folderName, searchQuery = '') => {
+                    const renderToken = ++folderRenderToken;
                     currentFolder = folderName;
                     const items = manifest[folderName] || [];
                     currentFolderImages = items.filter(f => typeof f === 'string' && !f.startsWith('.'));
@@ -252,28 +274,80 @@ async function renderDevMenuItem(itemNumber) {
                     console.log(`Displaying folder: ${folderName}`);
                     console.log(`Items in manifest[${folderName}]:`, items);
                     console.log(`Filtered image files:`, currentFolderImages);
-                    
-                    let contentHtml = `<h4>${folderName.toUpperCase()}</h4>`;
+
+                    const normalizedQuery = (searchQuery || '').trim().toLowerCase();
+
+                    contentEl.innerHTML = `
+                        <div class="image-content-header">
+                            <h4>${folderName.toUpperCase()}</h4>
+                            <input id="image-folder-search" class="image-folder-search" type="search" placeholder="Поиск файлов..." aria-label="Поиск файлов в папке" />
+                        </div>
+                        <div class="image-files-list"><div class="image-empty">Загрузка метаданных...</div></div>
+                    `;
+
+                    const searchInput = contentEl.querySelector('#image-folder-search');
+                    const filesListEl = contentEl.querySelector('.image-files-list');
+                    if (searchInput) {
+                        searchInput.value = searchQuery;
+                        searchInput.addEventListener('input', (e) => {
+                            displayFolder(folderName, e.target.value);
+                        });
+                    }
+
+                    let listHtml = '';
                     if (currentFolderImages.length === 0) {
-                        contentHtml += '<div class="image-empty">Тут ничего нет</div>';
+                        listHtml += '<div class="image-empty">Тут ничего нет</div>';
                     } else {
                         const savedTitles = JSON.parse(localStorage.getItem('iconPreviewTitle') || '{}');
-                        
-                        currentFolderImages.forEach(f => {
+                        const filesWithMeta = await Promise.all(currentFolderImages.map(async (f) => {
                             const filePath = `assets/${folderName}/${encodeURIComponent(f)}`;
+                            const meta = await getImageMeta(filePath);
+                            return { fileName: f, filePath, meta };
+                        }));
+
+                        if (renderToken !== folderRenderToken || currentFolder !== folderName) {
+                            return;
+                        }
+
+                        const filteredFiles = filesWithMeta.filter(({ fileName, filePath }) => {
+                            if (!normalizedQuery) return true;
+
+                            const customTitle = savedTitles[fileName] || '';
+                            const description = (getImageMetadata(filePath).description || '');
+
+                            return [fileName, customTitle, description]
+                                .some(value => String(value).toLowerCase().includes(normalizedQuery));
+                        });
+
+                        if (filteredFiles.length === 0) {
+                            listHtml += '<div class="image-empty">Ничего не найдено</div>';
+                        }
+
+                        filteredFiles.forEach(({ fileName, filePath, meta }) => {
+                            const f = fileName;
                             const customTitle = savedTitles[f];
+                            const metaLabel = meta
+                                ? `${meta.width}×${meta.height} px • ${meta.sizeText}`
+                                : 'Размер: — • Вес: —';
                             
                             let fileHtml = `<div class="image-file"><img src="${filePath}" class="image-thumb" alt="${f}" data-fullsize="${filePath}"/>`;
                             fileHtml += `<div class="image-info">`;
                             if (customTitle && customTitle !== 'Без названия') {
                                 fileHtml += `<span class="image-custom-title">${customTitle}</span>`;
                             }
-                            fileHtml += `<span class="image-name">${f}</span>`;
+                            fileHtml += `<span class="image-name-meta">${f} • ${metaLabel}</span>`;
                             fileHtml += `</div></div>`;
-                            contentHtml += fileHtml;
+                            listHtml += fileHtml;
                         });
                     }
-                    contentEl.innerHTML = contentHtml;
+
+                    if (renderToken !== folderRenderToken || currentFolder !== folderName) {
+                        return;
+                    }
+
+                    if (filesListEl) {
+                        filesListEl.innerHTML = listHtml;
+                    }
                     
                     // Add click handlers for image preview
                     contentEl.querySelectorAll('.image-thumb').forEach(thumb => {
@@ -357,6 +431,7 @@ async function renderDevMenuItem(itemNumber) {
     // для других пунктов — скрываем глобальные subtabs и показываем плейсхолдер
     const globalSubtabs = document.getElementById('dev-subtabs');
     if (globalSubtabs) globalSubtabs.classList.add('hidden');
+    clearHeaderSearch();
     // Хардкодный fallback для других пунктов — пока плейсхолдер
     devMenuBody.innerHTML = `<div style="padding-top: 70px; padding-left: 28px;"><p>тут будет пункт ${itemNumber}</p></div>`;
 }
@@ -413,6 +488,66 @@ let currentImagePath = '';
 let currentFolder = '';
 let currentFolderImages = [];
 let currentImageIndex = -1;
+const imageMetaCache = new Map();
+
+function formatFileSize(bytes) {
+    if (!Number.isFinite(bytes) || bytes < 0) return '—';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) {
+        const kb = bytes / 1024;
+        return `${kb >= 10 ? kb.toFixed(1) : kb.toFixed(2)} KB`;
+    }
+    const mb = bytes / (1024 * 1024);
+    return `${mb >= 10 ? mb.toFixed(1) : mb.toFixed(2)} MB`;
+}
+
+function getImageDimensionsFromBlob(blob) {
+    return new Promise((resolve, reject) => {
+        const objectUrl = URL.createObjectURL(blob);
+        const image = new Image();
+
+        image.onload = () => {
+            resolve({ width: image.naturalWidth, height: image.naturalHeight });
+            URL.revokeObjectURL(objectUrl);
+        };
+
+        image.onerror = () => {
+            reject(new Error('Image metadata load failed'));
+            URL.revokeObjectURL(objectUrl);
+        };
+
+        image.src = objectUrl;
+    });
+}
+
+async function getImageMeta(filePath) {
+    if (imageMetaCache.has(filePath)) {
+        return imageMetaCache.get(filePath);
+    }
+
+    const metaPromise = (async () => {
+        try {
+            const response = await fetch(filePath, { cache: 'force-cache' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const blob = await response.blob();
+            const dimensions = await getImageDimensionsFromBlob(blob);
+
+            return {
+                width: dimensions.width,
+                height: dimensions.height,
+                sizeBytes: blob.size,
+                sizeText: formatFileSize(blob.size)
+            };
+        } catch (error) {
+            console.warn('Cannot read image metadata:', filePath, error);
+            return null;
+        }
+    })();
+
+    imageMetaCache.set(filePath, metaPromise);
+    return metaPromise;
+}
 
 function openImageViewer(imageSrc) {
     currentImagePath = imageSrc;
