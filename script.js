@@ -768,7 +768,23 @@ imageViewerModal.addEventListener('click', (e) => {
 
 // Close by pressing ESC key
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !imageViewerModal.classList.contains('hidden')) {
+    if (imageViewerModal.classList.contains('hidden')) return;
+    
+    if (e.key === 'Escape') {
         closeImageViewer();
+    } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (currentFolderImages.length === 0) return;
+        currentImageIndex = (currentImageIndex - 1 + currentFolderImages.length) % currentFolderImages.length;
+        const nextImage = currentFolderImages[currentImageIndex];
+        const imageSrc = `assets/${currentFolder}/${encodeURIComponent(nextImage)}`;
+        openImageViewer(imageSrc);
+    } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (currentFolderImages.length === 0) return;
+        currentImageIndex = (currentImageIndex + 1) % currentFolderImages.length;
+        const nextImage = currentFolderImages[currentImageIndex];
+        const imageSrc = `assets/${currentFolder}/${encodeURIComponent(nextImage)}`;
+        openImageViewer(imageSrc);
     }
 });
