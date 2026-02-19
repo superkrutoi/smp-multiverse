@@ -188,7 +188,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 24px;
     background: var(--mc-bg-medium);
     border: var(--border-width) solid var(--mc-border);
     color: var(--mc-red);
@@ -196,12 +196,17 @@ body {
     padding: 0;
     transition: all 0.1s linear;
     z-index: 1002;
+    font-weight: 900;
+    font-family: monospace;
+    line-height: 1;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
 }
 
 .sidebar #hide-sidebar:hover {
-    filter: brightness(1.2);
+    filter: brightness(1.2) drop-shadow(0 0 4px var(--mc-red));
     background: var(--mc-red);
-    color: var(--mc-text);
+    color: var(--mc-bg-dark);
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
 }
 
 #show-sidebar {
@@ -214,7 +219,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 22px;
     cursor: pointer;
     color: var(--mc-text);
     background: var(--mc-bg-medium);
@@ -224,6 +229,9 @@ body {
     opacity: 0;
     pointer-events: none;
     z-index: 1000;
+    font-weight: 900;
+    line-height: 1;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
 }
 
 #show-sidebar:not(.hidden) {
@@ -232,9 +240,10 @@ body {
 }
 
 #show-sidebar:hover {
-    filter: brightness(1.2);
+    filter: brightness(1.2) drop-shadow(0 0 4px var(--mc-accent));
     background: var(--mc-accent);
     color: var(--mc-bg-dark);
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
 }
 
 .map-area {
@@ -544,15 +553,19 @@ body.dev-active .dev-toggle {
     background: none;
     border: none;
     color: var(--mc-red);
-    font-size: 24px;
+    font-size: 28px;
     cursor: pointer;
     padding: 0;
     transition: all 0.1s linear;
+    font-weight: 900;
+    font-family: monospace;
+    line-height: 1;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
 }
 
 .settings-close:hover {
-    filter: brightness(1.2);
-    transform: scale(1.1);
+    filter: brightness(1.2) drop-shadow(0 0 4px var(--mc-red));
+    transform: scale(1.15);
 }
 
 .settings-body {
@@ -681,7 +694,7 @@ body.dev-active .dev-toggle {
     background: none;
     border: var(--border-width) solid var(--mc-border);
     color: var(--mc-red);
-    font-size: 24px;
+    font-size: 28px;
     line-height: 1;
     cursor: pointer;
     padding: 0;
@@ -694,12 +707,16 @@ body.dev-active .dev-toggle {
     border-radius: 0;  /* Блочный стиль */
     margin-left: auto;
     flex-shrink: 0;
+    font-weight: 900;
+    font-family: monospace;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
 }
 
 .dev-menu-close:hover {
-    filter: brightness(1.2);
+    filter: brightness(1.2) drop-shadow(0 0 4px var(--mc-red));
     background: var(--mc-red);
-    color: var(--mc-text);
+    color: var(--mc-bg-dark);
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
 }
 
 .dev-menu-body {
@@ -1061,9 +1078,12 @@ body.dev-active .dev-toggle {
 
 .setting-item input:checked + .checkmark::after {
     content: "✓";
-    color: #1a2b40;
-    font-weight: bold;
-    font-size: 12px;
+    color: var(--mc-bg-dark);
+    font-weight: 900;
+    font-size: 16px;
+    line-height: 1;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+    font-family: monospace;
 }
 
 .dev-settings-empty {
