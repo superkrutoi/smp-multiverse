@@ -240,126 +240,6 @@ body {
     display: none;
 }
 
-.test-panel {
-    position: fixed;
-    bottom: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 220px;
-    background: rgba(10, 15, 35, 0.95);
-    border: 1px solid rgba(0, 208, 255, 0.35);
-    border-radius: 10px;
-    box-shadow: 0 0 18px rgba(0, 208, 255, 0.2);
-    padding: 12px;
-    z-index: 1200;
-}
-
-.test-panel.hidden {
-    display: none;
-}
-
-.test-panel h3 {
-    margin: 0 0 10px;
-    color: #e5e7ff;
-    font-size: 14px;
-}
-
-.test-panel button {
-    width: 100%;
-    border: 1px solid rgba(0, 208, 255, 0.4);
-    background: rgba(20, 35, 70, 0.8);
-    color: #dbe7ff;
-    border-radius: 8px;
-    padding: 8px 10px;
-    cursor: pointer;
-}
-
-.test-panel button:hover {
-    box-shadow: 0 0 10px rgba(0, 208, 255, 0.35);
-}
-
-.test-server-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(6px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2200;
-}
-
-.test-server-modal.hidden {
-    display: none;
-}
-
-.test-server-modal-content {
-    width: min(92vw, 420px);
-    background: rgba(15, 22, 44, 0.96);
-    border: 1px solid rgba(0, 208, 255, 0.35);
-    border-radius: 12px;
-    box-shadow: 0 0 22px rgba(0, 208, 255, 0.2);
-    padding: 14px;
-}
-
-.test-server-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-}
-
-.test-server-modal-header h2 {
-    margin: 0;
-    color: #e5e7ff;
-    font-size: 18px;
-}
-
-.test-server-close {
-    border: none;
-    background: transparent;
-    color: #ff69b4;
-    font-size: 22px;
-    cursor: pointer;
-}
-
-.test-server-form {
-    display: grid;
-    gap: 8px;
-}
-
-.test-server-form label {
-    color: #d7dcff;
-    font-size: 13px;
-}
-
-.test-server-form input,
-.test-server-form select {
-    width: 100%;
-    box-sizing: border-box;
-    background: rgba(0, 0, 0, 0.28);
-    border: 1px solid rgba(0, 208, 255, 0.28);
-    color: #e5e7ff;
-    border-radius: 8px;
-    padding: 8px;
-}
-
-.test-server-coords {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-}
-
-.test-server-submit {
-    margin-top: 4px;
-    border: 1px solid rgba(0, 208, 255, 0.4);
-    background: rgba(20, 35, 70, 0.8);
-    color: #dbe7ff;
-    border-radius: 8px;
-    padding: 10px;
-    cursor: pointer;
-}
-
 /* Маскот */
 .mascot {
     position: fixed;
@@ -1699,4 +1579,231 @@ body.dev-active .dev-toggle {
         transform: scale(1);
         opacity: 1;
     }
+}
+
+/* ===== MAP TOOLS STYLES ===== */
+
+/* Toolbar */
+.map-toolbar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    z-index: 1100;
+    background: rgba(10, 20, 40, 0.85);
+    border: 1px solid rgba(127, 211, 255, 0.3);
+    border-radius: 8px;
+    padding: 8px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 0 20px rgba(127, 211, 255, 0.15);
+}
+
+.map-tool-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    border: 1px solid rgba(127, 211, 255, 0.2);
+    background: rgba(20, 40, 80, 0.7);
+    color: #7fd3ff;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.map-tool-btn:hover {
+    background: rgba(30, 60, 100, 0.9);
+    border-color: rgba(127, 211, 255, 0.5);
+    transform: scale(1.05);
+}
+
+.map-tool-btn.active {
+    background: linear-gradient(135deg, #ffc400 0%, #ffb000 100%);
+    border-color: #ffc400;
+    color: #1a2b40;
+    box-shadow: 0 0 15px rgba(255, 196, 0, 0.5);
+}
+
+/* Popover */
+.map-popover {
+    position: fixed;
+    background: rgba(10, 20, 40, 0.95);
+    border: 1px solid rgba(127, 211, 255, 0.4);
+    border-radius: 8px;
+    padding: 8px;
+    z-index: 1101;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 0 25px rgba(127, 211, 255, 0.2), inset 0 0 10px rgba(127, 211, 255, 0.05);
+    animation: popoverFadeIn 0.2s ease;
+}
+
+@keyframes popoverFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.popover-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.popover-btn {
+    padding: 10px 14px;
+    background: rgba(30, 60, 100, 0.8);
+    border: 1px solid rgba(127, 211, 255, 0.3);
+    color: #7fd3ff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.popover-btn:hover {
+    background: rgba(50, 100, 160, 0.9);
+    border-color: rgba(127, 211, 255, 0.6);
+    box-shadow: 0 0 10px rgba(127, 211, 255, 0.2);
+}
+
+/* Map modes */
+.map.drag-mode {
+    cursor: grab;
+}
+
+.map.drag-mode:active {
+    cursor: grabbing;
+}
+
+.map.comment-mode {
+    cursor: crosshair;
+}
+
+/* Comments on map */
+.map-comment {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid rgba(127, 211, 255, 0.6);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 20, 40, 0.7);
+    box-shadow: 0 0 10px rgba(127, 211, 255, 0.2);
+}
+
+.map-comment:hover {
+    transform: scale(1.15);
+    border-color: rgba(255, 196, 0, 0.8);
+    box-shadow: 0 0 15px rgba(127, 211, 255, 0.4), 0 0 20px rgba(255, 196, 0, 0.3);
+}
+
+.comment-avatar {
+    width: 32px;
+    height: 32px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.comment-icon {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 14px;
+    height: 14px;
+    background: rgba(10, 20, 40, 0.95);
+    border-radius: 50%;
+    border: 1px solid rgba(127, 211, 255, 0.5);
+}
+
+/* Comment popover */
+.comment-popover {
+    position: fixed;
+    background: rgba(10, 20, 40, 0.96);
+    border: 1px solid rgba(127, 211, 255, 0.5);
+    border-radius: 8px;
+    padding: 12px;
+    z-index: 1102;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 0 30px rgba(127, 211, 255, 0.25);
+    min-width: 200px;
+    max-width: 300px;
+    animation: popoverFadeIn 0.2s ease;
+}
+
+.comment-popover-header {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.popover-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(127, 211, 255, 0.3);
+    object-fit: cover;
+}
+
+.popover-username {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.popover-time {
+    color: rgba(127, 211, 255, 0.6);
+    font-size: 12px;
+}
+
+.comment-popover-text {
+    color: #c9d1e8;
+    font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 10px;
+    padding: 8px;
+    background: rgba(30, 60, 100, 0.3);
+    border-left: 2px solid rgba(127, 211, 255, 0.5);
+    border-radius: 4px;
+}
+
+.comment-popover-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.popover-delete-btn {
+    flex: 1;
+    padding: 6px 10px;
+    background: rgba(220, 50, 50, 0.7);
+    border: 1px solid rgba(220, 50, 50, 0.5);
+    color: #ff9999;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.popover-delete-btn:hover {
+    background: rgba(220, 50, 50, 0.9);
+    border-color: rgba(220, 50, 50, 0.8);
+    box-shadow: 0 0 10px rgba(220, 50, 50, 0.4);
 }

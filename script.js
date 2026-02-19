@@ -146,8 +146,12 @@ devMenuModal.addEventListener('click', (e) => {
         devMenuModal.classList.add('hidden');
     }
 });
-// Рендер содержимого для пунктов меню разработчика
-async function renderDevMenuItem(itemNumber) {
+// ===== GLOBAL MAP TOOLS STATE =====
+let mapState = null;
+let mapToolsAPI = null;
+let mapToolsUI = null;
+
+const renderDevMenuItem = async (itemNumber) => {
     devMenuBody.classList.toggle('dev-menu-body--images', String(itemNumber) === '2');
 
     if (String(itemNumber) === '1') {
@@ -170,7 +174,8 @@ async function renderDevMenuItem(itemNumber) {
             { id: 'compact-mode', name: 'Компактный режим', type: 'checkbox', checked: false },
             { id: 'map-animations', name: 'Анимация карты', type: 'checkbox', checked: true },
             { id: 'enable-sounds', name: 'Звуковые уведомления', type: 'checkbox', checked: false },
-            { id: 'map-testing-interface', name: 'Интерфес тестирования карты', type: 'checkbox', checked: false }
+            { id: 'map-testing-interface', name: 'Интерфес тестирования карты', type: 'checkbox', checked: false },
+            { id: 'hide-map-comments', name: 'Скрыть комментарии', type: 'checkbox', checked: false }
         ];
 
         const listEl = document.getElementById('dev-settings-list');
@@ -230,6 +235,9 @@ async function renderDevMenuItem(itemNumber) {
                 localStorage.setItem('dev.setting.' + input.id, input.checked);
                 if (input.id === 'map-testing-interface' && typeof window.setMapTestingEnabled === 'function') {
                     window.setMapTestingEnabled(input.checked);
+                }
+                if (input.id === 'hide-map-comments' && mapState) {
+                    mapState.setHideComments(input.checked);
                 }
             }
         });
@@ -1051,112 +1059,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.servers = Array.isArray(window.servers) ? window.servers : [];
-    const servers = window.servers;
 
-    const testPanel = document.getElementById('test-panel');
-    const testServerModal = document.getElementById('test-server-modal');
-    const addTestServerBtn = document.getElementById('add-test-server-btn');
-    const addTestServerForm = document.getElementById('add-test-server-form');
-    const testServerClose = document.getElementById('test-server-close');
-
-    const fillTestServerDefaults = () => {
-        const randomOctet = Math.floor(Math.random() * 255);
-        const randomX = (Math.random() * 200 - 100).toFixed(2);
-        const randomY = (Math.random() * 200 - 100).toFixed(2);
-
-        const nameInput = document.getElementById('test-server-name');
-        const ipInput = document.getElementById('test-server-ip');
-        const versionInput = document.getElementById('test-server-version');
-        const descInput = document.getElementById('test-server-desc');
-        const xInput = document.getElementById('test-server-x');
-        const yInput = document.getElementById('test-server-y');
-
-        if (nameInput) nameInput.value = `Test SMP ${servers.length + 1}`;
-        if (ipInput) ipInput.value = `127.0.0.${randomOctet}`;
-        if (versionInput) versionInput.value = '1.20.4';
-        if (descInput) descInput.value = 'Test server';
-        if (xInput) xInput.value = randomX;
-        if (yInput) yInput.value = randomY;
-    };
-
-    const openTestServerModal = () => {
-        if (!testServerModal) return;
-        fillTestServerDefaults();
-        testServerModal.classList.remove('hidden');
-        testServerModal.setAttribute('aria-hidden', 'false');
-    };
-
-    const closeTestServerModal = () => {
-        if (!testServerModal) return;
-        testServerModal.classList.add('hidden');
-        testServerModal.setAttribute('aria-hidden', 'true');
-    };
-
+    // Enable/disable Map Tools dev mode
     window.setMapTestingEnabled = (enabled) => {
-        if (!testPanel) return;
-        testPanel.classList.toggle('hidden', !enabled);
-        if (!enabled) {
-            closeTestServerModal();
-        }
         localStorage.setItem('mapTestingEnabled', String(enabled));
-    };
 
-    if (addTestServerBtn) {
-        addTestServerBtn.addEventListener('click', openTestServerModal);
-    }
+        // Initialize Map Tools on first enable
+        if (enabled && !mapState && typeof MapToolsState !== 'undefined') {
+            mapState = new MapToolsState();
+            mapToolsAPI = new MapToolsAPI('/api');
+            mapToolsUI = new MapToolsUI(mapContainer, mapState, mapToolsAPI);
 
-    if (testServerClose) {
-        testServerClose.addEventListener('click', closeTestServerModal);
-    }
+            mapState.setDevMode(true);
+            mapToolsUI.loadComments();
+        }
 
-    if (testServerModal) {
-        testServerModal.addEventListener('click', (e) => {
-            if (e.target === testServerModal) {
-                closeTestServerModal();
-            }
-        });
-    }
-
-    if (addTestServerForm) {
-        addTestServerForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-
-            const name = document.getElementById('test-server-name')?.value?.trim() || `Test SMP ${servers.length + 1}`;
-            const ip = document.getElementById('test-server-ip')?.value?.trim() || '127.0.0.1';
-            const version = document.getElementById('test-server-version')?.value?.trim() || '1.20.4';
-            const desc = document.getElementById('test-server-desc')?.value?.trim() || 'Test server';
-            const icon = document.getElementById('test-server-icon')?.value || '';
-            const x = Number(document.getElementById('test-server-x')?.value);
-            const y = Number(document.getElementById('test-server-y')?.value);
-
-            const coords = [Number.isFinite(x) ? x : 0, Number.isFinite(y) ? y : 0];
-
-            servers.push({ name, ip, version, desc, icon, coords });
-
-            if (typeof window.updateMapMarkers === 'function') {
-                window.updateMapMarkers();
-            }
-
-            if (typeof window.updateSidebar === 'function') {
-                window.updateSidebar();
-            }
-
-            closeTestServerModal();
-        });
-    }
-
-    window.setMapTestingEnabled(localStorage.getItem('mapTestingEnabled') === 'true' ? true : false);
-
-    // Синхронизация чекбокса в dev settings на инициализацию
-    const syncTestingToggle = () => {
-        const testToggle = document.getElementById('map-testing-interface');
-        if (testToggle && testPanel) {
-            const isEnabled = localStorage.getItem('mapTestingEnabled') === 'true';
-            testToggle.checked = isEnabled;
-            testPanel.classList.toggle('hidden', !isEnabled);
+        // Toggle dev mode
+        if (mapState) {
+            mapState.setDevMode(enabled);
         }
     };
-    syncTestingToggle();
+
+    // Initialize on page load
+    window.setMapTestingEnabled(localStorage.getItem('mapTestingEnabled') === 'true' ? true : false);
 
     if (servers.length === 0) {
         servers.push(
