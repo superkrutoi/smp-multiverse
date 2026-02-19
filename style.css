@@ -676,7 +676,7 @@ body.dev-active .dev-toggle {
     left: 0;
     width: 100%;
     height: 100%;
-    background: #ffffff;
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -684,6 +684,7 @@ body.dev-active .dev-toggle {
     opacity: 0;
     pointer-events: none;
     transition: all 0.3s ease;
+    overflow: hidden;
 }
 
 .image-viewer-modal:not(.hidden) {
@@ -691,13 +692,29 @@ body.dev-active .dev-toggle {
     pointer-events: auto;
 }
 
+/* Blurred background layer */
+.image-viewer-bg-blur {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: blur(50px);
+    transform: scale(1.1);
+    z-index: 1;
+}
+
 .image-viewer-close {
     position: absolute;
     top: 20px;
     right: 20px;
-    background: rgba(100, 180, 255, 0.2);
+    background: rgba(100, 180, 255, 0.3);
+    backdrop-filter: blur(10px);
     border: 2px solid rgba(100, 180, 255, 0.5);
-    color: #c9d1e8;
+    color: #ffffff;
     font-size: 32px;
     cursor: pointer;
     padding: 8px 16px;
@@ -712,8 +729,8 @@ body.dev-active .dev-toggle {
 }
 
 .image-viewer-close:hover {
-    background: rgba(100, 180, 255, 0.4);
-    color: #64b4ff;
+    background: rgba(100, 180, 255, 0.5);
+    color: #ffffff;
     transform: rotate(90deg);
 }
 
@@ -731,8 +748,9 @@ body.dev-active .dev-toggle {
     width: 40px;
     height: 40px;
     border-radius: 8px;
-    border: 2px solid rgba(100, 180, 255, 0.3);
-    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(100, 180, 255, 0.5);
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
@@ -742,7 +760,8 @@ body.dev-active .dev-toggle {
 }
 
 .control-btn:hover {
-    border-color: rgba(100, 180, 255, 0.6);
+    border-color: rgba(100, 180, 255, 0.8);
+    background: rgba(255, 255, 255, 0.5);
     transform: scale(1.05);
 }
 
@@ -750,33 +769,6 @@ body.dev-active .dev-toggle {
     width: 20px;
     height: 20px;
     object-fit: contain;
-}
-
-.bg-white-btn {
-    background: #ffffff !important;
-    border: 2px solid #333;
-}
-
-.bg-black-btn {
-    background: #000000 !important;
-    border: 2px solid #666;
-}
-
-.color-picker-input {
-    width: 40px;
-    cursor: pointer;
-    border: 2px solid rgba(100, 180, 255, 0.3);
-    font-size: 0;
-    position: relative;
-}
-
-.color-picker-input::before {
-    content: '🎨';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 20px;
 }
 
 /* Image Viewer Wrapper */
@@ -787,33 +779,21 @@ body.dev-active .dev-toggle {
     align-items: center;
     justify-content: center;
     padding: 80px 40px 40px 40px;
+    z-index: 2;
+    position: relative;
 }
 
 .image-viewer-img {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 90%;
+    max-height: 90%;
     object-fit: contain;
-    border-radius: 8px;
-    box-shadow: 0 0 60px rgba(0, 0, 0, 0.3);
+    filter: drop-shadow(0 0 30px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 60px rgba(0, 0, 0, 0.3));
     animation: imageZoomIn 0.3s ease;
-    transition: box-shadow 0.3s ease;
+    transition: filter 0.3s ease;
 }
 
 .image-viewer-img.no-shadow {
-    box-shadow: none;
-}
-
-/* Dark background */
-.image-viewer-modal.dark-bg {
-    background: #000000;
-}
-
-.image-viewer-modal.dark-bg .image-viewer-img {
-    box-shadow: 0 0 60px rgba(255, 255, 255, 0.3);
-}
-
-.image-viewer-modal.dark-bg .image-viewer-img.no-shadow {
-    box-shadow: none;
+    filter: none;
 }
 
 @keyframes imageZoomIn {

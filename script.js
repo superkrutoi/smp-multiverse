@@ -336,40 +336,23 @@ if (activeItem) {
 // Image Viewer Modal Logic
 const imageViewerModal = document.getElementById('image-viewer-modal');
 const imageViewerImg = document.getElementById('image-viewer-img');
+const imageViewerBgBlur = document.getElementById('image-viewer-bg-blur');
 const imageViewerClose = document.querySelector('.image-viewer-close');
 const toggleShadowBtn = document.getElementById('toggle-shadow-btn');
-const bgWhiteBtn = document.getElementById('bg-white-btn');
-const bgBlackBtn = document.getElementById('bg-black-btn');
-const bgColorPicker = document.getElementById('bg-color-picker');
-
-// Initialize Coloris
-Coloris({
-    el: '#bg-color-picker',
-    theme: 'pill',
-    themeMode: 'light',
-    formatToggle: true,
-    swatches: [
-        '#ffffff',
-        '#000000',
-        '#ff0000',
-        '#00ff00',
-        '#0000ff',
-        '#ffff00',
-        '#ff00ff',
-        '#00ffff'
-    ]
-});
 
 let shadowEnabled = true;
 
 function openImageViewer(imageSrc) {
     imageViewerImg.src = imageSrc;
+    // Set blurred background to the same image
+    imageViewerBgBlur.style.backgroundImage = `url(${imageSrc})`;
     imageViewerModal.classList.remove('hidden');
 }
 
 function closeImageViewer() {
     imageViewerModal.classList.add('hidden');
     imageViewerImg.src = '';
+    imageViewerBgBlur.style.backgroundImage = '';
 }
 
 // Toggle shadow
@@ -385,56 +368,6 @@ toggleShadowBtn.addEventListener('click', () => {
         toggleShadowBtn.querySelector('img').src = 'assets/icons/hide.png';
     }
 });
-
-// White background
-bgWhiteBtn.addEventListener('click', () => {
-    imageViewerModal.style.background = '#ffffff';
-    imageViewerModal.classList.remove('dark-bg');
-    bgColorPicker.value = '#ffffff';
-    updateShadowColor('#000000');
-});
-
-// Black background
-bgBlackBtn.addEventListener('click', () => {
-    imageViewerModal.style.background = '#000000';
-    imageViewerModal.classList.add('dark-bg');
-    bgColorPicker.value = '#000000';
-    updateShadowColor('#ffffff');
-});
-
-// Custom color from picker
-bgColorPicker.addEventListener('input', (e) => {
-    const color = e.target.value;
-    imageViewerModal.style.background = color;
-    
-    // Determine if the color is dark or light
-    const rgb = hexToRgb(color);
-    const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
-    const shadowColor = brightness > 128 ? '#000000' : '#ffffff';
-    
-    if (brightness > 128) {
-        imageViewerModal.classList.remove('dark-bg');
-    } else {
-        imageViewerModal.classList.add('dark-bg');
-    }
-    
-    updateShadowColor(shadowColor);
-});
-
-function updateShadowColor(color) {
-    const alpha = color === '#000000' ? '0.3' : '0.3';
-    const rgbColor = hexToRgb(color);
-    imageViewerImg.style.boxShadow = `0 0 60px rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, ${alpha})`;
-}
-
-function hexToRgb(hex) {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-    } : { r: 0, g: 0, b: 0 };
-}
 
 // Close by clicking the close button
 imageViewerClose.addEventListener('click', closeImageViewer);

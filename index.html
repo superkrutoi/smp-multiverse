@@ -96,6 +96,7 @@
 
     <!-- Модальное окно для просмотра изображений -->
     <div id="image-viewer-modal" class="image-viewer-modal hidden">
+        <div class="image-viewer-bg-blur" id="image-viewer-bg-blur"></div>
         <button class="image-viewer-close" aria-label="Закрыть просмотр изображения">✕</button>
         
         <!-- Контролы просмотра -->
@@ -103,9 +104,6 @@
             <button id="toggle-shadow-btn" class="control-btn" title="Скрыть тень">
                 <img src="assets/icons/view.png" alt="Toggle shadow" width="20" height="20">
             </button>
-            <button id="bg-white-btn" class="control-btn bg-white-btn" title="Белый фон"></button>
-            <button id="bg-black-btn" class="control-btn bg-black-btn" title="Черный фон"></button>
-            <input type="text" id="bg-color-picker" class="control-btn color-picker-input" value="#ffffff" data-coloris>
         </div>
         
         <div class="image-viewer-wrapper">
