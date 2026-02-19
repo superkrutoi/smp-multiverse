@@ -114,7 +114,7 @@ const devHeaderSearchSlot = document.getElementById('dev-header-search-slot');
 
 function renderHeaderSearch(onInput) {
     if (!devHeaderSearchSlot) return;
-    devHeaderSearchSlot.innerHTML = '<input id="dev-search" class="dev-header-search" type="search" placeholder="Поиск настроек..." aria-label="Поиск настроек" />';
+    devHeaderSearchSlot.innerHTML = '<div class="dev-header-search-wrap"><span class="dev-header-search-icon" aria-hidden="true">🔍</span><input id="dev-search" class="dev-header-search" type="search" placeholder="Поиск настроек..." aria-label="Поиск настроек" /></div>';
     devHeaderSearchSlot.classList.remove('hidden');
     devHeaderSearchSlot.setAttribute('aria-hidden', 'false');
 
@@ -170,20 +170,40 @@ async function renderDevMenuItem(itemNumber) {
             { id: 'compact-mode', name: 'Компактный режим', type: 'checkbox', checked: false },
             { id: 'map-animations', name: 'Анимация карты', type: 'checkbox', checked: true },
             { id: 'enable-sounds', name: 'Звуковые уведомления', type: 'checkbox', checked: false },
-            { id: 'map-testing-interface', name: 'Интерфейс тестирования карты', type: 'checkbox', checked: localStorage.getItem('mapTestingEnabled') === 'true' }
+            { id: 'map-testing-interface', name: 'Интерфес тестирования карты', type: 'checkbox', checked: false }
         ];
 
         const listEl = document.getElementById('dev-settings-list');
         function renderList(filter = '') {
             const q = filter.trim().toLowerCase();
-            listEl.innerHTML = settings
-                .filter(s => s.name.toLowerCase().includes(q))
-                .map(s => `
-                    <label class="dev-setting-item" data-name="${s.name}">
-                        <span>${s.name}</span>
-                        <input type="${s.type}" id="${s.id}" ${s.checked ? 'checked' : ''} />
-                    </label>
-                `).join('');
+
+            const filtered = settings.filter(s => s.name.toLowerCase().includes(q));
+            const mainSettings = filtered.filter(s => s.id === 'map-testing-interface');
+            const miscSettings = filtered.filter(s => s.id !== 'map-testing-interface');
+
+            const renderSettingsItems = (items) => items.map(s => `
+                <label class="dev-setting-item" data-name="${s.name}">
+                    <span>${s.name}</span>
+                    <input type="${s.type}" id="${s.id}" ${s.checked ? 'checked' : ''} />
+                </label>
+            `).join('');
+
+            let html = '';
+            if (mainSettings.length > 0) {
+                html += `
+                    <div class="dev-settings-group-title">Основные</div>
+                    ${renderSettingsItems(mainSettings)}
+                `;
+            }
+
+            if (miscSettings.length > 0) {
+                html += `
+                    <div class="dev-settings-group-title">Всякая фигня</div>
+                    ${renderSettingsItems(miscSettings)}
+                `;
+            }
+
+            listEl.innerHTML = html || '<div class="dev-settings-empty">Ничего не найдено</div>';
         }
 
         renderList();
@@ -371,6 +391,49 @@ async function renderDevMenuItem(itemNumber) {
                             currentImageIndex = currentFolderImages.indexOf(imageName);
                             openImageViewer(thumb.dataset.fullsize);
                         });
+
+                        thumb.addEventListener('mouseover', (e) => {
+                            const preview = document.createElement('div');
+                            preview.className = 'image-preview-tooltip';
+                            preview.innerHTML = `<img src="${thumb.dataset.fullsize}" alt="preview"/>`;
+                            document.body.appendChild(preview);
+                            thumb.dataset.preview = true;
+
+                            const updatePosition = (evt) => {
+                                const offsetX = 15;
+                                const offsetY = 15;
+                                let x = evt.clientX + offsetX;
+                                let y = evt.clientY + offsetY;
+
+                                if (x + preview.offsetWidth > window.innerWidth) {
+                                    x = evt.clientX - preview.offsetWidth - offsetX;
+                                }
+                                if (y + preview.offsetHeight > window.innerHeight) {
+                                    y = evt.clientY - preview.offsetHeight - offsetY;
+                                }
+
+                                preview.style.left = x + 'px';
+                                preview.style.top = y + 'px';
+                            };
+
+                            updatePosition(e);
+                            thumb.dataset.previewEl = preview;
+                            thumb.dataset.positionMove = (evt) => updatePosition(evt);
+                            document.addEventListener('mousemove', thumb.dataset.positionMove);
+                        });
+
+                        thumb.addEventListener('mouseleave', () => {
+                            if (thumb.dataset.previewEl) {
+                                const el = thumb.dataset.previewEl;
+                                el.remove();
+                                if (thumb.dataset.positionMove) {
+                                    document.removeEventListener('mousemove', thumb.dataset.positionMove);
+                                }
+                                delete thumb.dataset.previewEl;
+                                delete thumb.dataset.positionMove;
+                                delete thumb.dataset.preview;
+                            }
+                        });
                     });
 
                     updateImageStatusBadges();
@@ -394,7 +457,7 @@ async function renderDevMenuItem(itemNumber) {
                         <div class="image-content-header">
                             <h4>${folderName.toUpperCase()}</h4>
                             <div class="image-header-controls">
-                                <input id="image-folder-search" class="image-folder-search" type="search" placeholder="Поиск файлов..." aria-label="Поиск файлов в папке" />
+                                <div class="image-header-search-wrap"><span class="image-header-search-icon" aria-hidden="true">🔍</span><input id="image-folder-search" class="image-folder-search" type="search" placeholder="Поиск файлов..." aria-label="Поиск файлов в папке" /></div>
                                 <button id="image-refresh-btn" class="image-refresh-btn" title="Обновить список файлов из папки assets">🔄</button>
                             </div>
                         </div>
@@ -1061,6 +1124,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.setMapTestingEnabled = (enabled) => {
         if (!testPanel) return;
         testPanel.classList.toggle('hidden', !enabled);
+        if (!enabled) {
+            closeTestServerModal();
+        }
         localStorage.setItem('mapTestingEnabled', String(enabled));
     };
 
@@ -1108,7 +1174,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    window.setMapTestingEnabled(localStorage.getItem('mapTestingEnabled') === 'true');
+    window.setMapTestingEnabled(localStorage.getItem('mapTestingEnabled') === 'true' ? true : false);
 
     if (servers.length === 0) {
         servers.push(

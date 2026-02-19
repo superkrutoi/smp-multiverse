@@ -242,8 +242,9 @@ body {
 
 .test-panel {
     position: fixed;
-    top: 92px;
-    right: 16px;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
     width: 220px;
     background: rgba(10, 15, 35, 0.95);
     border: 1px solid rgba(0, 208, 255, 0.35);
@@ -251,6 +252,10 @@ body {
     box-shadow: 0 0 18px rgba(0, 208, 255, 0.2);
     padding: 12px;
     z-index: 1200;
+}
+
+.test-panel.hidden {
+    display: none;
 }
 
 .test-panel h3 {
@@ -282,6 +287,10 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 2200;
+}
+
+.test-server-modal.hidden {
+    display: none;
 }
 
 .test-server-modal-content {
@@ -793,10 +802,10 @@ body.dev-active .dev-toggle {
     flex: 1;
     font-size: 18px;
     height: 100%;
-    background-color: #0f1c33;
+    background-color: #163055;
     background-image: 
-        linear-gradient(0deg, transparent 24%, rgba(100, 180, 255, 0.06) 25%, rgba(100, 180, 255, 0.06) 26%, transparent 27%, transparent 74%, rgba(100, 180, 255, 0.06) 75%, rgba(100, 180, 255, 0.06) 76%, transparent 77%, transparent),
-        linear-gradient(90deg, transparent 24%, rgba(100, 180, 255, 0.06) 25%, rgba(100, 180, 255, 0.06) 26%, transparent 27%, transparent 74%, rgba(100, 180, 255, 0.06) 75%, rgba(100, 180, 255, 0.06) 76%, transparent 77%, transparent);
+        linear-gradient(0deg, transparent 24%, rgba(140, 200, 255, 0.11) 25%, rgba(140, 200, 255, 0.11) 26%, transparent 27%, transparent 74%, rgba(140, 200, 255, 0.11) 75%, rgba(140, 200, 255, 0.11) 76%, transparent 77%, transparent),
+        linear-gradient(90deg, transparent 24%, rgba(140, 200, 255, 0.11) 25%, rgba(140, 200, 255, 0.11) 26%, transparent 27%, transparent 74%, rgba(140, 200, 255, 0.11) 75%, rgba(140, 200, 255, 0.11) 76%, transparent 77%, transparent);
     background-size: 40px 40px;
     background-position: 0 0, 0 0;
 }
@@ -856,6 +865,28 @@ body.dev-active .dev-toggle {
     color: #e0d0ff;
     font-size: 14px;
     box-sizing: border-box;
+}
+
+.dev-header-search-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+}
+
+.dev-header-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    line-height: 1;
+    pointer-events: none;
+    opacity: 0.85;
+}
+
+.dev-header-search-wrap .dev-header-search {
+    max-width: 100%;
+    padding-left: 34px;
 }
 
 .dev-header-search::placeholder {
@@ -936,8 +967,42 @@ body.dev-active .dev-toggle {
 .image-node > .image-folder-btn { font-weight:500; }
 .image-file { display:flex; align-items:center; gap:11px; margin:3px 0; padding:8px 0; border-radius:4px; transition:all 0.15s ease; min-height:44px; }
 .image-file:hover { background:rgba(100,180,255,0.08); }
-.image-thumb { width:56px; height:56px; object-fit:cover; border-radius:4px; border:1px solid rgba(100,180,255,0.15); flex-shrink:0; transition:all 0.15s ease; cursor:pointer; }
+.image-thumb { width:56px; height:56px; object-fit:cover; border-radius:4px; border:2px solid rgba(100,180,255,0.4); flex-shrink:0; transition:all 0.15s ease; cursor:pointer; }
 .image-file:hover .image-thumb { border-color:rgba(100,180,255,0.4); box-shadow:0 0 8px rgba(100,180,255,0.2); transform:scale(1.05); }
+
+.image-preview-tooltip {
+    position: fixed;
+    background: rgba(15, 22, 44, 0.96);
+    border: 2px solid rgba(0, 212, 255, 0.5);
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3), 0 0 40px rgba(0, 150, 200, 0.2);
+    padding: 6px;
+    max-width: 88px;
+    max-height: 88px;
+    z-index: 2500;
+    pointer-events: none;
+    animation: previewFadeIn 0.2s ease;
+}
+
+.image-preview-tooltip img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+    display: block;
+}
+
+@keyframes previewFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 .image-info { display:flex; flex-direction:column; gap:3px; flex:1; overflow:hidden; }
 .image-custom-title { font-size:14.5px; color:rgba(100,180,255,0.95); font-weight:600; line-height:1.3; letter-spacing:0.7px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .image-name { font-size:13.5px; color:rgba(224,208,255,0.6); line-height:1.3; letter-spacing:0.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -948,7 +1013,24 @@ body.dev-active .dev-toggle {
 .image-content-header { display:flex; flex-direction:column; gap:6px; margin:0 0 16px 0; width:100%; }
 .image-content-header h4 { margin:0; color:rgba(224,208,255,0.95); font-size:16px; font-weight:600; letter-spacing:0.7px; min-width:0; }
 .image-header-controls { display:flex; gap:10px; align-items:center; width:100%; }
-.image-folder-search { flex:1; min-width:0; padding:10px 14px; border-radius:8px; border:1px solid rgba(100,180,255,0.28); background:rgba(10,20,45,0.46); color:#d9e6ff; font-size:13.5px; box-sizing:border-box; }
+.image-folder-search { flex:1; min-width:0; padding:10px 14px; border-radius:8px; border:1px solid rgba(100,180,255,0.28); background:rgba(10,20,45,0.46); color:#d9e6ff; font-size:13.5px; box-sizing:border-box; padding-left: 34px; }
+
+.image-header-search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+}
+
+.image-header-search-icon {
+    position: absolute;
+    left: 12px;
+    font-size: 14px;
+    pointer-events: none;
+    opacity: 0.85;
+}
+
 .image-refresh-btn { padding:10px; border-radius:8px; border:1px solid rgba(0,212,255,0.35); background:linear-gradient(145deg, rgba(0,150,200,0.15), rgba(0,100,150,0.12)); color:#64b4ff; font-size:18px; cursor:pointer; transition:all 0.2s ease; display:flex; align-items:center; justify-content:center; flex-shrink:0; width:42px; height:42px; }
 .image-refresh-btn:hover { background:linear-gradient(145deg, rgba(0,180,230,0.25), rgba(0,130,180,0.2)); border-color:rgba(0,212,255,0.55); box-shadow:0 0 12px rgba(0,212,255,0.3); transform:translateY(-1px); }
 .image-refresh-btn:active { transform:translateY(0); box-shadow:0 0 6px rgba(0,212,255,0.2); }
@@ -991,6 +1073,22 @@ body.dev-active .dev-toggle {
     flex-direction: column;
     gap: 4px;
     padding-left: 0;
+}
+
+.dev-settings-group-title {
+    margin-top: 8px;
+    margin-bottom: 4px;
+    color: #8ad8ff;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.dev-settings-empty {
+    color: rgba(224, 208, 255, 0.7);
+    font-size: 14px;
+    padding: 10px 4px;
 }
 
 .dev-setting-item {
