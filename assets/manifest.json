@@ -6,68 +6,14 @@
 
            ],
     "icons":  [
-                  {
-                      "resolution":  "512512",
-                      "format":  "PNG",
-                      "name":  "aliens.png",
-                      "size":  "11.1 KB",
-                      "modified":  "2026-02-17"
-                  },
-                  {
-                      "resolution":  "512512",
-                      "format":  "PNG",
-                      "name":  "bell 1.png",
-                      "size":  "8.2 KB",
-                      "modified":  "2026-02-17"
-                  },
-                  {
-                      "resolution":  "512512",
-                      "format":  "PNG",
-                      "name":  "bell 2.png",
-                      "size":  "12.4 KB",
-                      "modified":  "2026-02-17"
-                  },
-                  {
-                      "resolution":  "512512",
-                      "format":  "PNG",
-                      "name":  "closed_folder.png",
-                      "size":  "4.6 KB",
-                      "modified":  "2026-02-17"
-                  },
-                  {
-                      "resolution":  "512512",
-                      "format":  "PNG",
-                      "name":  "edit.png",
-                      "size":  "7.1 KB",
-                      "modified":  "2026-02-19"
-                  },
-                  {
-                      "resolution":  "512512",
-                      "format":  "PNG",
-                      "name":  "hide.png",
-                      "size":  "14.4 KB",
-                      "modified":  "2026-02-19"
-                  },
-                  {
-                      "resolution":  "512512",
-                      "format":  "PNG",
-                      "name":  "open_folder.png",
-                      "size":  "8.4 KB",
-                      "modified":  "2026-02-17"
-                  },
-                  {
-                      "resolution":  "512512",
-                      "format":  "PNG",
-                      "name":  "support.png",
-                      "size":  "16.2 KB",
-                      "modified":  "2026-02-17"
-                  },
-                  {
-                      "resolution":  "512512",
-                      "format":  "PNG",
-                      "name":  "view.png",
-                      "size":  "14.4 KB",
-                      "modified":  "2026-02-19"
-                  }
+                  "aliens.png",
+                  "bell 1.png",
+                  "bell 2.png",
+                  "closed_folder.png",
+                  "edit.png",
+                  "hide.png",
+                  "open_folder.png",
+                  "support.png",
+                  "view.png"
               ]
 }
