@@ -209,6 +209,15 @@ async function renderDevMenuItem(itemNumber) {
         renderList();
         renderHeaderSearch((value) => renderList(value));
 
+        // Синхронизация чекбокса с состоянием панели тестирования
+        setTimeout(() => {
+            const testToggle = document.getElementById('map-testing-interface');
+            if (testToggle) {
+                const isEnabled = localStorage.getItem('mapTestingEnabled') === 'true';
+                testToggle.checked = isEnabled;
+            }
+        }, 10);
+
         // Обработчики для переключения (демо): сохраняем в localStorage
         listEl.addEventListener('change', (e) => {
             const input = e.target;
@@ -1175,6 +1184,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.setMapTestingEnabled(localStorage.getItem('mapTestingEnabled') === 'true' ? true : false);
+
+    // Синхронизация чекбокса в dev settings на инициализацию
+    const syncTestingToggle = () => {
+        const testToggle = document.getElementById('map-testing-interface');
+        if (testToggle && testPanel) {
+            const isEnabled = localStorage.getItem('mapTestingEnabled') === 'true';
+            testToggle.checked = isEnabled;
+            testPanel.classList.toggle('hidden', !isEnabled);
+        }
+    };
+    syncTestingToggle();
 
     if (servers.length === 0) {
         servers.push(

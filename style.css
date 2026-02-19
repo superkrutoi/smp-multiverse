@@ -965,8 +965,8 @@ body.dev-active .dev-toggle {
 .image-node { margin:0; }
 .image-node.collapsed > ul { display:none; }
 .image-node > .image-folder-btn { font-weight:500; }
-.image-file { display:flex; align-items:center; gap:11px; margin:3px 0; padding:8px 0; border-radius:4px; transition:all 0.15s ease; min-height:44px; }
-.image-file:hover { background:rgba(100,180,255,0.08); }
+.image-file { display:flex; align-items:center; gap:11px; margin:3px 0; padding:8px 0; border-radius:4px; transition:all 0.15s ease; min-height:44px; opacity: 0.6; }
+.image-file:hover { background:rgba(100,180,255,0.08); opacity: 1; }
 .image-thumb { width:56px; height:56px; object-fit:cover; border-radius:4px; border:2px solid rgba(100,180,255,0.4); flex-shrink:0; transition:all 0.15s ease; cursor:pointer; }
 .image-file:hover .image-thumb { border-color:rgba(100,180,255,0.4); box-shadow:0 0 8px rgba(100,180,255,0.2); transform:scale(1.05); }
 
