@@ -19,13 +19,17 @@ last_added: Полная типографическая система (Minecraf
 
 ### Основные переменные:
 ```css
---font-primary: 'Glasstown', monospace, sans-serif;      /* Основной текст (не жирный, читабельный) */
---font-heading: 'ContraPhobotech', 'Glasstown', monospace; /* Заголовки (жирный пиксельный) */
+--font-primary: 'TipoMine', monospace, sans-serif;      /* Основной текст (не жирный, читабельный) */
+--font-heading: 'ContraPhobotech', 'TipoMine', monospace; /* Заголовки (жирный пиксельный) */
 --font-accent: 'Mintsoda', monospace;                     /* Курсив для акцентов */
 --font-size-base: 16px;
 --font-size-small: 12px;
 --font-size-large: 20px;
 ```
+
+### Важно (обновлено)
+- **Glasstown NBP больше не используется** в прод-типографике: в текущей сборке наблюдаются проблемы рендеринга.
+- **Основной шрифт проекта — TipoMine** (`tipo_mine.woff2`) через `--font-primary`.
 
 ### Нюансы: все шрифты локальные (в `assets/fonts/`), формат .woff2
 
@@ -101,37 +105,41 @@ last_added: Полная типографическая система (Minecraf
 
 **Доступные шрифты:**
 
-1. **Glasstown NBP** (`GlasstownNbpRegular-RyMM.woff2`) — Пиксельный не жирный
-   - Основной шрифт для всего текста (body, p, li, описания)
-   - Полная поддержка кириллицы, отличная читаемость
-   - Переменная: `var(--font-primary)`
-   - Источник: https://www.fontspace.com/glasstown-nbp-font-f14742
+1. **TipoMine** (`tipo_mine.woff2`) — Пиксельный не жирный (ОСНОВНОЙ)
+    - Основной шрифт для всего текста (body, p, li, описания)
+    - Применяется через `var(--font-primary)`
+    - Статус: активен в проекте
 
-2. **Contra Phobotech Regular** (`Contra Phobotech Regular.woff2`) — Пиксельный жирный ИДЕАЛЬНЫЙ
+2. **Glasstown NBP** (`GlasstownNbpRegular-RyMM.woff2`) — Пиксельный не жирный
+    - Статус: **отключён** (проблемы рендеринга в текущей сборке)
+    - Не используется как основной шрифт
+    - Источник: https://www.fontspace.com/glasstown-nbp-font-f14742
+
+3. **Contra Phobotech Regular** (`Contra Phobotech Regular.woff2`) — Пиксельный жирный ИДЕАЛЬНЫЙ
    - Отличная читаемость, без артифактов рендеринга
    - Применение: h1, h2, h3, названия серверов, логотипы
    - Переменная: `var(--font-heading)` ✅ Основные
    - Источник: https://vseshrifty.ru/fonts/contra-phobotech
 
-3. **HUD Sonic X1** (`HUD Sonic X1 Regular.woff2`) — Пиксельный полужирный
-   - Хорошая читаемость, альтернатива Glasstown для выделения
+4. **HUD Sonic X1** (`HUD Sonic X1 Regular.woff2`) — Пиксельный полужирный
+    - Хорошая читаемость, альтернатива TipoMine для выделения
    - Применение: управление, подсказки, вторичные заголовки
-   - Статус: может заменить Glasstown в определённых элементах
+    - Статус: может заменить TipoMine в определённых элементах
    - Источник: https://vseshrifty.ru/fonts/hud-sonic-x1
 
-4. **Mintsoda Lime Green** (`MintsodaLimeGreen13X16Regular-KVvzA.woff2`) — Пиксельный курсив
+5. **Mintsoda Lime Green** (`MintsodaLimeGreen13X16Regular-KVvzA.woff2`) — Пиксельный курсив
    - Применение: специальные акценты, цитаты, лор-тексты
    - Переменная: `var(--font-accent)`
    - Не используется в основной типографике
    - Источник: https://www.fontspace.com/mintsoda-lime-green-font-f92418
 
-5. **Starseed Pro** (`StarseedPro.woff2`) — Пиксельный жирный (ПЛОХОЙ вариант) ❌ Устарел
+6. **Starseed Pro** (`StarseedPro.woff2`) — Пиксельный жирный (ПЛОХОЙ вариант) ❌ Устарел
    - НЕ рекомендируется: артифакты рендеринга, плохая читаемость
    - Статус: декомиссионирован, архивные копии только
    - Заменен на: **Contra Phobotech Regular**
    - Источник: https://thefonts.ru/528-starseed-pro.html (только для референса)
 
-6. **Dungeonmode** + **Dungeonmode Inverted** — Пиксельные в стиле ретро-игр
+7. **Dungeonmode** + **Dungeonmode Inverted** — Пиксельные в стиле ретро-игр
    - Статус: зарезервированы для будущего
    - Потенциальное применение: dev-меню, консоль, специальные эффекты
    - Источник: https://datagoblin.itch.io/dungeonmode
@@ -140,8 +148,8 @@ last_added: Полная типографическая система (Minecraf
 Все шрифты подключены через @font-face в начале style.css:
 ```css
 @font-face {
-    font-family: 'Glasstown';
-    src: url('assets/fonts/GlasstownNbpRegular-RyMM.woff2') format('woff2');
+    font-family: 'TipoMine';
+    src: url('assets/fonts/tipo_mine.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
     font-display: swap;  /* критически важно! → текст не исчезает при загрузке */
@@ -150,19 +158,19 @@ last_added: Полная типографическая система (Minecraf
 
 - Используй **font-display: swap;** для всех шрифтов (FOUT вместо FOIT — лучший UX)
 - Формат **.woff2** — стандарт 2026 года (максимальное сжатие, поддержка всех браузеров)
-- Fallback-иерархия: Glasstown (основной) → monospace → sans-serif
+- Fallback-иерархия: TipoMine (основной) → monospace → sans-serif
 - Mintsoda не в fallback-цепочке — используется только для специальных акцентов
 
 ### Применение в CSS
 ```css
 /* Базовый текст (основной читабельный) */
 body, p, li, .server-description {
-    font-family: var(--font-primary);  /* 'Glasstown', monospace, sans-serif */
+    font-family: var(--font-primary);  /* 'TipoMine', monospace, sans-serif */
 }
 
 /* Заголовки (жирный пиксельный) */
 h1, h2, h3, .sidebar h2, .image-custom-title {
-    font-family: var(--font-heading);  /* 'ContraPhobotech', 'Glasstown', monospace */
+    font-family: var(--font-heading);  /* 'ContraPhobotech', 'TipoMine', monospace */
     text-shadow: 2px 2px 0 #000,     /* классический MC-эффект тени */
                  -2px -2px 0 #000,
                  2px -2px 0 #000,
@@ -213,12 +221,12 @@ text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
 
 | Роль | Шрифт | Размер | Применение | CSS переменная |
 |------|-------|--------|-----------|-----------------|
-| **Основной текст** | Glasstown NBP | 16px | body, p, li, описания, основной контент | `--font-primary` |
-| **Небольшой текст** | Glasstown NBP | 12px | footnotes, комментарии, small labels | `--font-primary` |
+| **Основной текст** | TipoMine | 16px | body, p, li, описания, основной контент | `--font-primary` |
+| **Небольшой текст** | TipoMine | 12px | footnotes, комментарии, small labels | `--font-primary` |
 | **Заголовки (h1-h3)** | Contra Phobotech | 32px / 24px / 20px | Названия серверов, заголовки разделов, логотипы | `--font-heading` |
 | **UI элементы** | HUD Sonic X1 | 16px–18px | Кнопки, табы, навигация, инструменты | `--font-ui` |
 | **Акценты & цитаты** | Mintsoda | 14px–16px | Лор-тексты, специальные фразы, подсказки | `--font-accent` |
-| **Утилита** | Glasstown NBP | 10px–12px | Dev menu, код, технические данные, микротекст | `--font-primary` |
+| **Утилита** | TipoMine | 10px–12px | Dev menu, код, технические данные, микротекст | `--font-primary` |
 | **Ретро-эффекты** | Dungeonmode | 16px | Для будущего: консоль, древние артефакты, мод-эффекты | `--font-retro` |
 
 ### Размеры (строгие множители — ВАЖНО!)
@@ -404,8 +412,8 @@ body {
 
 ### Визуальные примеры (приоритет применения)
 
-**Tier 1 (основное):** Glasstown (body) + Contra (h1-h3) — 90% интерфейса
-**Tier 2 (модуль):** Glasstown (body) + HUD Sonic (buttons) — интерактивные элементы
+**Tier 1 (основное):** TipoMine (body) + Contra (h1-h3) — 90% интерфейса
+**Tier 2 (модуль):** TipoMine (body) + HUD Sonic (buttons) — интерактивные элементы
 **Tier 3 (акценты):** Mintsoda (special text) — редкие выделения
 **Tier 4 (ретро):** Dungeonmode (reserved) — будущие фичи
 
@@ -428,7 +436,7 @@ body {
 5. Шрифт Minecraftia обязателен для заголовков, названий серверов, подписей на карте.
 
 ## Полезные ресурсы
-- Пиксельные шрифты (локально в assets/fonts/): Glasstown NBP (основной), Contra Phobotech Regular (жирный ✓), HUD Sonic X1 (полужирный), Mintsoda (курсив), ~~Starseed Pro~~ (устарел), Dungeonmode (резерв)
+- Пиксельные шрифты (локально в assets/fonts/): TipoMine (основной), Contra Phobotech Regular (жирный ✓), HUD Sonic X1 (полужирный), Mintsoda (курсив), Glasstown NBP (архивно, не в прод), ~~Starseed Pro~~ (устарел), Dungeonmode (резерв)
 - Lucid Icons: assets/Lucid_V1.2_icons/ (Leo Red, CC0 — пиксельные иконки для UI)
 - Текстуры Minecraft GUI: можно взять из официальных текстур-паков (public domain) или перерисовать в пиксель-арте
 - Xaero's World Map референс: скриншоты интерфейса, waypoints, мини-карта

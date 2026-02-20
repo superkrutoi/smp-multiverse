@@ -2391,7 +2391,7 @@ body.dev-active .dev-toggle {
     background: #1f1f1f;
     border: var(--border-width) solid var(--mc-border);
     color: var(--mc-accent);
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.12s linear;
@@ -2415,9 +2415,10 @@ body.dev-active .dev-toggle {
     transform: scale(0.95);
 }
 
-.sound-card.playing .sound-play-btn {
+.sound-play-btn.active {
     background: var(--mc-accent);
     color: #000;
+    box-shadow: 0 0 8px rgba(85, 255, 85, 0.4);
 }
 
 /* Информация о звуке */
@@ -2443,6 +2444,27 @@ body.dev-active .dev-toggle {
 
 .sound-card.playing .sound-title {
     color: var(--mc-accent);
+}
+
+/* Sound format tags */
+.sound-formats {
+    display: flex;
+    gap: 6px;
+    margin: 2px 0;
+    flex-wrap: wrap;
+}
+
+.format-tag {
+    background: rgba(85, 255, 85, 0.15);
+    border: 1px solid var(--mc-accent);
+    padding: 1px 4px;
+    color: var(--mc-accent);
+    font-size: 9px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    border-radius: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 /* Ползунок прогресса */

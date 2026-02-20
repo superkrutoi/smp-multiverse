@@ -647,79 +647,71 @@ const renderDevMenuItem = async (itemNumber) => {
                 const sidebarEl = document.getElementById('sounds-sidebar');
                 const contentEl = document.getElementById('sounds-content');
                 
-                // Build sidebar tree - only MP3 and OGG formats
+                // Build sidebar tree - show only JDSh_Ui folder
                 let sidebarHtml = '<ul class="sounds-tree">';
-                const formatsToShow = ['mp3', 'ogg'];
-                
-                // Get all unique formats from all categories
-                const allFormats = new Set();
-                for (const [category, formats] of Object.entries(soundsManifest.sounds)) {
-                    for (const format of Object.keys(formats)) {
-                        if (formatsToShow.includes(format)) {
-                            allFormats.add(format);
-                        }
-                    }
-                }
-                
-                // Build buttons for each format
-                for (const format of formatsToShow) {
-                    if (allFormats.has(format)) {
-                        sidebarHtml += `<li class="sounds-format-item"><button class="sounds-format-btn" data-format="${format}"><span class="file-icon">🎵</span><span>${format.toUpperCase()}</span></button></li>`;
-                    }
-                }
+                sidebarHtml += `<li class="sounds-item"><button class="sounds-jdsh-btn" data-folder="JDSh_Ui" style="display:block;"><span class="folder-icon">📁</span><span>JDSherbert UI</span></button></li>`;
                 sidebarHtml += '</ul>';
                 sidebarEl.innerHTML = sidebarHtml;
 
-                // Handle format selection
-                sidebarEl.querySelectorAll('.sounds-format-btn').forEach(btn => {
+                // Handle folder click
+                sidebarEl.querySelectorAll('.sounds-jdsh-btn').forEach(btn => {
                     btn.addEventListener('click', async () => {
-                        const format = btn.dataset.format;
-                        await displaySounds(format);
+                        await displaySounds();
                     });
                 });
 
-                // Function to display sounds for a format (from both Mono and Stereo)
-                const displaySounds = async (format) => {
+                // Function to display sounds (merged from both Mono and Stereo)
+                const displaySounds = async () => {
                     contentEl.innerHTML = `
                         <div class="sounds-content-header">
-                            <h4>${format.toUpperCase()}</h4>
+                            <h4>JDSherbert UI Sounds</h4>
                         </div>
                         <div class="sounds-files-list" id="sounds-files-list"><div class="sounds-empty">Загрузка звуков...</div></div>
                     `;
 
                     try {
-                        // Collect sounds from both Mono and Stereo
-                        const soundsMap = new Map(); // key: soundName, value: { name, monoFile, stereoFile }
+                        // Collect sounds from JDSh_Ui structure (Mono and Stereo)
+                        const soundsMap = new Map();
                         
                         for (const [category, formats] of Object.entries(soundsManifest.sounds)) {
-                            if (formats[format]) {
-                                formats[format].forEach(fileName => {
-                                    const baseName = fileName.replace(/JDSherbert - Pixel UI SFX Pack - /, '').replace(/\.(mp3|ogg)$/, '');
-                                    const key = baseName;
-                                    
-                                    if (!soundsMap.has(key)) {
-                                        soundsMap.set(key, { name: baseName, monoFile: null, stereoFile: null });
+                            if (formats && typeof formats === 'object') {
+                                // Handle both old and new structure
+                                for (const [format, files] of Object.entries(formats)) {
+                                    if (Array.isArray(files)) {
+                                        files.forEach(fileName => {
+                                            const baseName = fileName.replace(/JDSherbert - Pixel UI SFX Pack - /, '').replace(/\.(mp3|ogg|wav|m4a)$/, '');
+                                            const ext = fileName.match(/\.(mp3|ogg|wav|m4a)$/)?.[0].slice(1);
+                                            
+                                            if (!soundsMap.has(baseName)) {
+                                                soundsMap.set(baseName, { name: baseName, formats: {} });
+                                            }
+                                            
+                                            const entry = soundsMap.get(baseName);
+                                            if (!entry.formats[category]) {
+                                                entry.formats[category] = {};
+                                            }
+                                            // Only include mp3 and ogg
+                                            if (ext === 'mp3' || ext === 'ogg') {
+                                                entry.formats[category][ext] = fileName;
+                                            }
+                                        });
                                     }
-                                    
-                                    const entry = soundsMap.get(key);
-                                    if (category === 'Mono') {
-                                        entry.monoFile = fileName;
-                                    } else if (category === 'Stereo') {
-                                        entry.stereoFile = fileName;
-                                    }
-                                });
+                                }
                             }
                         }
                         
-                        renderSoundsList(Array.from(soundsMap.values()), format, soundsPath);
+                        renderSoundsList(Array.from(soundsMap.values()), soundsPath);
                     } catch (err) {
                         const filesListEl = document.getElementById('sounds-files-list');
                         filesListEl.innerHTML = `<div class="sounds-empty">Ошибка загрузки: ${err.message}</div>`;
                     }
                 };
 
+                // Auto-open JDSh_Ui on load
+                await displaySounds();
+
                 // Render list of sounds
-                const renderSoundsList = (soundFiles, format, soundsBasePath) => {
+                const renderSoundsList = (soundFiles, soundsBasePath) => {
                     const filesListEl = document.getElementById('sounds-files-list');
                     const globalAudio = document.getElementById('global-audio');
                     
@@ -740,37 +732,94 @@ const renderDevMenuItem = async (itemNumber) => {
                         return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
                     };
 
+                    // Preload metadata for all sounds
+                    const metadataCache = new Map(); // src -> { duration, size }
+                    const preloadMetadata = async () => {
+                        for (const { name, formats } of soundFiles) {
+                            for (const [category, categoryFormats] of Object.entries(formats)) {
+                                for (const [ext, fileName] of Object.entries(categoryFormats)) {
+                                    const src = `${soundsBasePath}/JDSh_Ui/${category}/${ext}/${fileName}`;
+                                    if (!metadataCache.has(src)) {
+                                        return new Promise((resolve) => {
+                                            const tempAudio = new Audio();
+                                            let duration = 0;
+                                            
+                                            tempAudio.addEventListener('loadedmetadata', () => {
+                                                duration = tempAudio.duration;
+                                                metadataCache.set(src, { duration, size: 'N/A' });
+                                                tempAudio.src = '';
+                                                resolve();
+                                            }, { once: true });
+                                            
+                                            tempAudio.addEventListener('error', () => {
+                                                metadataCache.set(src, { duration: 0, size: 'N/A' });
+                                                resolve();
+                                            }, { once: true });
+                                            
+                                            tempAudio.preload = 'metadata';
+                                            tempAudio.src = src;
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    };
+
+                    // Build and render HTML
                     let listHtml = '<div class="sounds-list">';
-                    soundFiles.forEach(({ name, monoFile, stereoFile }) => {
-                        const monoPath = monoFile ? `${soundsBasePath}/Mono/${format}/${monoFile}` : null;
-                        const stereoPath = stereoFile ? `${soundsBasePath}/Stereo/${format}/${stereoFile}` : null;
+                    soundFiles.forEach(({ name, formats }) => {
+                        // Find available formats and categories
+                        const availableButtons = [];
+                        const defaultSrc = null;
                         
-                        // Build data attributes for the card
-                        const dataAttrs = monoPath ? `data-mono-src="${monoPath}"` : '';
-                        const dataStereo = stereoPath ? `data-stereo-src="${stereoPath}"` : '';
-                        const dataDefault = stereoPath ? `data-src="${stereoPath}"` : (monoPath ? `data-src="${monoPath}"` : '');
-                        
-                        listHtml += `
-                            <div class="sound-card" ${dataAttrs} ${dataStereo} ${dataDefault}>
-                                <div class="sound-buttons">
-                                    ${stereoPath ? `<button class="sound-play-btn sound-stereo-btn" data-src="${stereoPath}" title="Stereo">L/R</button>` : ''}
-                                    ${monoPath ? `<button class="sound-play-btn sound-mono-btn" data-src="${monoPath}" title="Mono">M</button>` : ''}
+                        for (const [category, categoryFormats] of Object.entries(formats)) {
+                            for (const [ext, fileName] of Object.entries(categoryFormats)) {
+                                const src = `${soundsBasePath}/JDSh_Ui/${category}/${ext}/${fileName}`;
+                                availableButtons.push({
+                                    src,
+                                    label: category === 'Mono' ? 'M' : (ext === 'mp3' ? 'L/R' : 'L/R'),
+                                    ext,
+                                    category
+                                });
+                            }
+                        }
+
+                        // Build format tags
+                        const formatsSet = new Set();
+                        for (const [category, categoryFormats] of Object.entries(formats)) {
+                            Object.keys(categoryFormats).forEach(ext => formatsSet.add(ext));
+                        }
+                        const formatTagsHtml = Array.from(formatsSet)
+                            .map(ext => `<span class="format-tag">${ext}</span>`)
+                            .join('');
+
+                        if (availableButtons.length > 0) {
+                            const buttonsHtml = availableButtons.map((btn, idx) => 
+                                `<button class="sound-play-btn" data-src="${btn.src}" title="${btn.category} ${btn.ext.toUpperCase()}" style="order: ${idx};">${btn.label}</button>`
+                            ).join('');
+
+                            listHtml += `
+                                <div class="sound-card">
+                                    <div class="sound-buttons" style="display: flex; gap: 4px;">
+                                        ${buttonsHtml}
+                                    </div>
+                                    <div class="sound-info">
+                                        <div class="sound-title">${name}</div>
+                                        <div class="sound-formats">${formatTagsHtml}</div>
+                                        <input type="range" class="sound-progress" min="0" max="100" value="0" step="0.1">
+                                        <div class="sound-time"><span class="sound-current">0:00</span> / <span class="sound-duration">0:00</span></div>
+                                    </div>
                                 </div>
-                                <div class="sound-info">
-                                    <div class="sound-title">${name}</div>
-                                    <input type="range" class="sound-progress" min="0" max="100" value="0" step="0.1">
-                                    <div class="sound-time"><span class="sound-current">0:00</span> / <span class="sound-duration">0:00</span></div>
-                                </div>
-                            </div>
-                        `;
+                            `;
+                        }
                     });
                     listHtml += '</div>';
                     filesListEl.innerHTML = listHtml;
 
                     let currentPlayingCard = null;
-                    let currentPlayingSource = null; // Track which button triggered play
+                    let currentPlayingButton = null;
 
-                    // Attach play button handlers for all play buttons
+                    // Attach play button handlers
                     filesListEl.querySelectorAll('.sound-play-btn').forEach(playBtn => {
                         playBtn.addEventListener('click', (e) => {
                             e.stopPropagation();
@@ -778,7 +827,7 @@ const renderDevMenuItem = async (itemNumber) => {
                             const soundSrc = playBtn.dataset.src;
                             
                             // If clicking the same button, toggle play/pause
-                            if (currentPlayingCard === card && currentPlayingSource === soundSrc) {
+                            if (currentPlayingButton === playBtn && currentPlayingCard === card) {
                                 if (globalAudio.paused) {
                                     globalAudio.play().catch(err => console.error('Play error:', err));
                                 } else {
@@ -787,28 +836,34 @@ const renderDevMenuItem = async (itemNumber) => {
                                 return;
                             }
 
-                            // Switch to new sound
-                            if (currentPlayingCard) {
-                                currentPlayingCard.classList.remove('playing');
-                                currentPlayingCard.querySelectorAll('.sound-play-btn').forEach(btn => btn.textContent = btn.classList.contains('sound-stereo-btn') ? 'L/R' : 'M');
-                            }
+                            // Remove .active from all other buttons
+                            filesListEl.querySelectorAll('.sound-play-btn.active').forEach(btn => {
+                                btn.classList.remove('active');
+                            });
 
+                            // Switch to new sound
                             globalAudio.src = soundSrc;
                             globalAudio.currentTime = 0;
                             globalAudio.play().catch(err => console.error('Play error:', err));
                             
                             currentPlayingCard = card;
-                            currentPlayingSource = soundSrc;
-                            card.classList.add('playing');
+                            currentPlayingButton = playBtn;
+                            playBtn.classList.add('active');
+
+                            // Load metadata if available
+                            const metadata = metadataCache.get(soundSrc);
+                            if (metadata && metadata.duration > 0) {
+                                const durationEl = card.querySelector('.sound-duration');
+                                durationEl.textContent = formatTime(metadata.duration);
+                            }
                         });
                     });
 
                     // Update progress and time display
                     const updateProgress = () => {
-                        if (filesListEl.querySelector('.sound-card.playing')) {
-                            const playingCard = filesListEl.querySelector('.sound-card.playing');
-                            const progressBar = playingCard.querySelector('.sound-progress');
-                            const currentTimeEl = playingCard.querySelector('.sound-current');
+                        if (currentPlayingCard) {
+                            const progressBar = currentPlayingCard.querySelector('.sound-progress');
+                            const currentTimeEl = currentPlayingCard.querySelector('.sound-current');
                             
                             const percent = (globalAudio.currentTime / globalAudio.duration) * 100;
                             progressBar.value = percent || 0;
@@ -829,16 +884,15 @@ const renderDevMenuItem = async (itemNumber) => {
 
                     // Handle end of audio
                     globalAudio.addEventListener('ended', () => {
+                        if (currentPlayingButton) {
+                            currentPlayingButton.classList.remove('active');
+                        }
                         if (currentPlayingCard) {
-                            currentPlayingCard.classList.remove('playing');
-                            currentPlayingCard.querySelectorAll('.sound-play-btn').forEach(btn => {
-                                btn.textContent = btn.classList.contains('sound-stereo-btn') ? 'L/R' : 'M';
-                            });
                             const progressBar = currentPlayingCard.querySelector('.sound-progress');
                             progressBar.value = 0;
-                            currentPlayingCard = null;
-                            currentPlayingSource = null;
                         }
+                        currentPlayingCard = null;
+                        currentPlayingButton = null;
                     });
 
                     // Manual progress bar seek
@@ -850,24 +904,19 @@ const renderDevMenuItem = async (itemNumber) => {
                         });
                     });
 
-                    // Update play button text when playing
+                    // Update play button visuals when playing
                     globalAudio.addEventListener('play', () => {
-                        if (currentPlayingCard) {
-                            const playingBtn = currentPlayingCard.querySelector('.sound-play-btn:hover') || 
-                                             currentPlayingCard.querySelector('.sound-play-btn');
-                            if (playingBtn) {
-                                playingBtn.textContent = '⏸';
-                            }
+                        if (currentPlayingButton) {
+                            currentPlayingButton.classList.add('active');
                         }
                     });
 
                     globalAudio.addEventListener('pause', () => {
-                        if (currentPlayingCard) {
-                            currentPlayingCard.querySelectorAll('.sound-play-btn').forEach(btn => {
-                                btn.textContent = btn.classList.contains('sound-stereo-btn') ? 'L/R' : 'M';
-                            });
-                        }
+                        // Button .active state remains
                     });
+
+                    // Preload all metadata
+                    preloadMetadata();
                 };
 
             } catch (err) {
