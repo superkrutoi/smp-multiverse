@@ -628,10 +628,119 @@ const renderDevMenuItem = async (itemNumber) => {
                 setActiveSub(key);
                 if (key === 'colors') renderColors();
                 if (key === 'images') await renderImages();
+                if (key === 'sounds') await renderSounds();
             }));
             // default to images
             setActiveSub('images');
             await renderImages();
+        
+        // Функция для отображения звуков
+        async function renderSounds() {
+            tabContent.innerHTML = `<div class="dev-sounds-browser"><div class="dev-sounds-sidebar" id="sounds-sidebar">Загрузка...</div><div class="dev-sounds-main"><div class="dev-sounds-scroll" id="sounds-scroll"><div class="dev-sounds-content" id="sounds-content"></div></div></div></div>`;
+            
+            try {
+                const soundsPath = 'assets/ui/sfx/JDSherbert_Pixel_UI_SFX_Pack';
+                const manifestRes = await fetch(`${soundsPath}/manifest.json?v=${Date.now()}`);
+                if (!manifestRes.ok) throw new Error(`HTTP ${manifestRes.status}`);
+                const soundsManifest = await manifestRes.json();
+                
+                const sidebarEl = document.getElementById('sounds-sidebar');
+                const contentEl = document.getElementById('sounds-content');
+                
+                // Build sidebar tree
+                let sidebarHtml = '<ul class="sounds-tree">';
+                for (const [category, formats] of Object.entries(soundsManifest.sounds)) {
+                    sidebarHtml += `<li class="sounds-category"><button class="sounds-category-btn" data-category="${category}"><span class="folder-icon">📁</span><span>${category}</span></button><ul class="sounds-formats" style="display:none;">`;
+                    for (const [format] of Object.entries(formats)) {
+                        sidebarHtml += `<li class="sounds-format-item"><button class="sounds-format-btn" data-category="${category}" data-format="${format}"><span class="file-icon">🎵</span><span>${format}</span></button></li>`;
+                    }
+                    sidebarHtml += `</ul></li>`;
+                }
+                sidebarHtml += '</ul>';
+                sidebarEl.innerHTML = sidebarHtml;
+
+                // Handle category expansion
+                sidebarEl.querySelectorAll('.sounds-category-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const list = btn.parentElement.querySelector('.sounds-formats');
+                        const isVisible = list.style.display !== 'none';
+                        list.style.display = isVisible ? 'none' : 'block';
+                    });
+                });
+
+                // Handle format selection
+                sidebarEl.querySelectorAll('.sounds-format-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const category = btn.dataset.category;
+                        const format = btn.dataset.format;
+                        await displaySounds(category, format);
+                    });
+                });
+
+                // Function to display sounds for a format
+                const displaySounds = async (category, format) => {
+                    const folderPath = `${soundsPath}/${category}/${format}`;
+                    
+                    contentEl.innerHTML = `
+                        <div class="sounds-content-header">
+                            <h4>${category} / ${format}</h4>
+                        </div>
+                        <div class="sounds-files-list" id="sounds-files-list"><div class="sounds-empty">Загрузка звуков...</div></div>
+                    `;
+
+                    try {
+                        const soundFiles = (soundsManifest.sounds[category][format] || []).map(fileName => ({
+                            name: fileName.replace(/JDSherbert - Pixel UI SFX Pack - /, '').replace(/\.(mp3|wav|m4a|ogg)$/, ''),
+                            fileName: fileName.replace(/\.(mp3|wav|m4a|ogg)$/, '')
+                        }));
+                        
+                        renderSoundsList(soundFiles, folderPath, format);
+                    } catch (err) {
+                        const filesListEl = document.getElementById('sounds-files-list');
+                        filesListEl.innerHTML = `<div class="sounds-empty">Ошибка загрузки: ${err.message}</div>`;
+                    }
+                };
+
+                // Render list of sounds
+                const renderSoundsList = (soundFiles, folderPath, format) => {
+                    const filesListEl = document.getElementById('sounds-files-list');
+                    
+                    if (soundFiles.length === 0) {
+                        filesListEl.innerHTML = '<div class="sounds-empty">Звуки не найдены</div>';
+                        return;
+                    }
+
+                    const ext = format;
+                    let listHtml = '<div class="sounds-list">';
+                    soundFiles.forEach(({ name, fileName }) => {
+                        const soundPath = `${folderPath}/${fileName}.${ext}`;
+                        
+                        listHtml += `
+                            <div class="sound-item">
+                                <div class="sound-info">
+                                    <span class="sound-name">${name}</span>
+                                    <span class="sound-path">${fileName}</span>
+                                </div>
+                                <button class="sound-play-btn" data-src="${soundPath}" title="Воспроизвести">▶ Слушать</button>
+                            </div>
+                        `;
+                    });
+                    listHtml += '</div>';
+                    filesListEl.innerHTML = listHtml;
+
+                    // Attach play button handlers
+                    filesListEl.querySelectorAll('.sound-play-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const audio = new Audio(btn.dataset.src);
+                            audio.play().catch(err => console.error('Ошибка воспроизведения:', err));
+                        });
+                    });
+                };
+
+            } catch (err) {
+                tabContent.innerHTML = `<div class="dev-sounds-browser"><div style="padding: 20px; color: var(--mc-red);">Ошибка загрузки звуков: ${err.message}</div></div>`;
+            }
+        }
         }
 
         const savedTheme = localStorage.getItem('site.theme');
@@ -1517,10 +1626,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let nextCometFrame = 240;
     let hoveredPlanetName = '';
     let cameraZoom = 1;
+    let cameraZoomTarget = 1;
     let cameraPanX = 0;
     let cameraPanY = 0;
     const minZoom = 0.55;
     const maxZoom = 2.4;
+    const baseLerpSpeed = 0.12;
+    let currentZoomSpeed = baseLerpSpeed;
+    let lastZoomInputTime = 0;
 
     const pointer = { x: 0, y: 0, active: false };
     const dragState = {
@@ -1603,7 +1716,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setZoom(nextZoom) {
-        cameraZoom = clamp(nextZoom, minZoom, maxZoom);
+        const now = performance.now();
+        const timeSinceLastInput = now - lastZoomInputTime;
+        lastZoomInputTime = now;
+
+        // Ускорение при частых вызовах: если прошло менее 150мс, увеличиваем скорость
+        if (timeSinceLastInput < 150) {
+            currentZoomSpeed = Math.min(currentZoomSpeed + 0.08, 0.4);
+        } else {
+            currentZoomSpeed = baseLerpSpeed;
+        }
+
+        cameraZoomTarget = clamp(nextZoom, minZoom, maxZoom);
     }
 
     function spawnComet() {
@@ -1798,6 +1922,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function tick() {
         frame += 1;
+
+        // Плавная интерполяция масштаба с динамической скоростью
+        cameraZoom += (cameraZoomTarget - cameraZoom) * currentZoomSpeed;
+
+        // Затухание скорости, если нет активных вводов
+        const now = performance.now();
+        if (now - lastZoomInputTime > 100) {
+            currentZoomSpeed = Math.max(currentZoomSpeed - 0.01, baseLerpSpeed);
+        }
 
         updateStars();
         updateComets();

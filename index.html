@@ -31,10 +31,10 @@
         <canvas id="universe" class="scene-layer scene-universe" aria-hidden="true"></canvas>
 
         <div class="map-zoom-controls" aria-label="Управление масштабом">
-            <button id="map-zoom-in" class="map-zoom-btn" aria-label="Приблизить" title="Приблизить">
+            <button id="map-zoom-in" class="map-zoom-btn" aria-label="Приблизить" title="Приблизить" data-tooltip="приблизить">
                 <img src="assets/Lucid_V1.2_icons/PNG/Flat/32/Magnifying-Glass-Add.png" alt="" class="map-zoom-icon" width="20" height="20">
             </button>
-            <button id="map-zoom-out" class="map-zoom-btn" aria-label="Отдалить" title="Отдалить">
+            <button id="map-zoom-out" class="map-zoom-btn" aria-label="Отдалить" title="Отдалить" data-tooltip="отдалить">
                 <img src="assets/Lucid_V1.2_icons/PNG/Flat/32/Magnifying-Glass-Reduce.png" alt="" class="map-zoom-icon" width="20" height="20">
             </button>
             <button id="map-center-view" class="map-zoom-btn map-center-btn" aria-label="Центрировать карту" title="Центрировать карту" data-tooltip="центрировать">
@@ -109,6 +109,7 @@
                 <div class="dev-menu-header">
                     <div id="dev-subtabs" class="dev-subtabs hidden" aria-hidden="true">
                         <button class="dev-subtab" data-sub="images">Ассеты</button>
+                        <button class="dev-subtab" data-sub="sounds">Звуки</button>
                         <button class="dev-subtab" data-sub="colors">Цвета</button>
                     </div>                    <div id="dev-reports-tabs" class="dev-subtabs hidden" aria-hidden="true">
                         <button class="dev-subtab" data-sub="main">Основной</button>
