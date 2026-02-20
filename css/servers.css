@@ -1,0 +1,283 @@
+body {
+    overflow: auto;
+    min-height: 100vh;
+}
+
+.page-shell {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px;
+    border: 2px solid var(--mc-border);
+    background: var(--xaero-bg-card);
+    box-shadow: 0 0 0 2px var(--mc-bg-medium) inset;
+    margin-bottom: 16px;
+}
+
+.page-topbar-title {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 24px;
+    color: var(--mc-text);
+}
+
+.page-topbar-nav {
+    display: flex;
+    gap: 8px;
+}
+
+.topbar-link,
+.add-server-btn,
+.primary-btn,
+.secondary-btn,
+.server-delete-btn,
+.server-edit-btn,
+.server-questionnaire-btn,
+.server-questionnaire-link {
+    border: 2px solid var(--mc-border);
+    background: var(--mc-bg-light);
+    color: #111;
+    padding: 8px 10px;
+    font-family: var(--font-ui);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.add-server-btn,
+.primary-btn {
+    background: var(--mc-accent);
+}
+
+.topbar-link:hover,
+.add-server-btn:hover,
+.primary-btn:hover,
+.secondary-btn:hover,
+.server-delete-btn:hover,
+.server-edit-btn:hover,
+.server-questionnaire-btn:hover,
+.server-questionnaire-link:hover {
+    filter: brightness(1.07);
+}
+
+.servers-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.servers-title {
+    margin: 0;
+    color: var(--mc-text);
+    font-family: var(--font-heading);
+    font-size: 22px;
+}
+
+.servers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 18px;
+}
+
+.server-card {
+    border: 2px solid var(--mc-border);
+    background: var(--xaero-bg-card);
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 0 0 2px var(--mc-bg-medium) inset;
+}
+
+.server-card:hover {
+    outline: 2px solid var(--mc-accent);
+}
+
+.server-card-preview-wrap {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 8px;
+    display: grid;
+    place-items: center;
+    background: var(--xaero-bg-dark);
+    border: 1px solid var(--xaero-border);
+}
+
+.server-card-preview {
+    width: 88px;
+    height: 88px;
+    image-rendering: pixelated;
+    object-fit: contain;
+}
+
+.server-card-title {
+    margin: 0 0 6px;
+    color: var(--mc-text);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.server-card-meta,
+.server-card-date {
+    margin: 0 0 6px;
+    color: var(--mc-text-dark);
+    font-size: 12px;
+}
+
+.server-card-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+}
+
+.server-edit-btn,
+.server-delete-btn,
+.server-questionnaire-btn,
+.server-questionnaire-link {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.server-questionnaire-link {
+    display: inline-block;
+}
+
+.empty-state {
+    margin-top: 36px;
+    border: 2px dashed var(--xaero-border-alt);
+    background: color-mix(in srgb, var(--xaero-bg-card) 90%, transparent);
+    text-align: center;
+    padding: 28px 16px;
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 8px;
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    background: rgba(0, 0, 0, 0.75);
+    display: grid;
+    place-items: center;
+    padding: 16px;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    width: min(680px, 100%);
+    border: 2px solid var(--mc-border);
+    background: var(--xaero-bg-card);
+    box-shadow: 0 0 0 2px var(--mc-bg-medium) inset;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--mc-border);
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--mc-text);
+    font-family: var(--font-heading);
+    font-size: 18px;
+}
+
+.icon-btn {
+    border: 2px solid var(--mc-border);
+    background: var(--mc-red);
+    color: #111;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+}
+
+.server-form {
+    display: grid;
+    gap: 12px;
+    padding: 12px;
+}
+
+.field-label {
+    display: grid;
+    gap: 6px;
+    color: var(--mc-text);
+    font-family: var(--font-ui);
+}
+
+.field-label input,
+.field-label textarea,
+.field-label select {
+    border: 2px solid var(--mc-border);
+    background: var(--xaero-bg-dark);
+    color: var(--mc-text);
+    padding: 8px;
+    font-family: var(--font-primary);
+}
+
+.planet-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#planetPreview {
+    width: 72px;
+    height: 72px;
+    border: 2px solid var(--mc-border);
+    background: var(--xaero-bg-dark);
+    image-rendering: pixelated;
+    object-fit: contain;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.planet-modal-content {
+    width: min(980px, 100%);
+    height: min(680px, 90vh);
+    border: 2px solid var(--mc-border);
+    background: #111;
+    display: grid;
+    grid-template-rows: 1fr auto;
+}
+
+#planetFrame {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.planet-modal-actions {
+    border-top: 2px solid var(--mc-border);
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--mc-text);
+}
+
+.planet-modal-note {
+    margin: 0;
+    color: var(--mc-text-dark);
+    font-size: 12px;
+}

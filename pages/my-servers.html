@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMP Multiverse — Мои серверы</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../css/servers.css">
+    <script defer src="../js/page-transition.js"></script>
+</head>
+<body>
+    <main class="page-shell">
+        <header class="page-topbar">
+            <h1 class="page-topbar-title">SMP Multiverse</h1>
+            <nav class="page-topbar-nav" aria-label="Навигация">
+                <a class="topbar-link" href="../index.html">Карта</a>
+                <a class="topbar-link" href="./profile.html">Профиль</a>
+            </nav>
+        </header>
+
+        <section class="servers-page" aria-labelledby="serversTitle">
+            <header class="servers-header">
+                <h2 id="serversTitle" class="servers-title">Мои серверы</h2>
+                <button id="addServerBtn" class="add-server-btn" type="button">+ Добавить сервер</button>
+            </header>
+
+            <div id="serversGrid" class="servers-grid" aria-live="polite"></div>
+
+            <div id="emptyState" class="empty-state hidden">
+                <div class="empty-icon" aria-hidden="true">🪐</div>
+                <h3>У вас пока нет серверов</h3>
+                <p>Создайте первый сервер и выберите планету.</p>
+                <button id="emptyCreateBtn" class="primary-btn" type="button">Создать первый сервер</button>
+            </div>
+        </section>
+    </main>
+
+    <div id="createServerModal" class="modal hidden" aria-hidden="true">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="createServerTitle">
+            <div class="modal-header">
+                <h2 id="createServerTitle">Создание сервера</h2>
+                <button id="closeServerModal" class="icon-btn" type="button" aria-label="Закрыть">✕</button>
+            </div>
+            <form id="createServerForm" class="server-form">
+                <label class="field-label">
+                    Название
+                    <input type="text" name="name" maxlength="50" required>
+                </label>
+
+                <label class="field-label">
+                    Описание
+                    <textarea name="description" rows="3" maxlength="220"></textarea>
+                </label>
+
+                <label class="field-label">
+                    Планета
+                    <div class="planet-picker-row">
+                        <img id="planetPreview" src="" alt="Предпросмотр планеты">
+                        <button id="pickPlanetBtn" class="secondary-btn" type="button">Редактировать планету</button>
+                    </div>
+                </label>
+
+                <label class="field-label">
+                    Версия
+                    <select id="serverVersion" name="version"></select>
+                </label>
+
+                <label class="field-label">
+                    Ядро
+                    <select id="serverCore" name="core"></select>
+                </label>
+
+                <label class="field-label">
+                    Ссылка на анкету
+                    <input type="url" name="questionnaireUrl" placeholder="https://...">
+                </label>
+
+                <div class="form-actions">
+                    <button class="secondary-btn" type="button" id="closeServerModalSecondary">Отмена</button>
+                    <button class="primary-btn" type="submit" id="saveServerBtn">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="planetModal" class="modal hidden" aria-hidden="true">
+        <div class="planet-modal-content" role="dialog" aria-modal="true" aria-label="Генератор планет">
+            <iframe id="planetFrame" src="../assets/planet_web/PixelPlanets.html" title="Pixel Planets"></iframe>
+            <div class="planet-modal-actions">
+                <p class="planet-modal-note">После экспорта в генераторе данные подтянутся автоматически.</p>
+                <button id="closePlanetModal" class="secondary-btn" type="button">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../js/servers.js"></script>
+</body>
+</html>

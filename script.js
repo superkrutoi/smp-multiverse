@@ -3,6 +3,11 @@ const appShell = document.getElementById('app-shell');
 const sidebar = document.getElementById('sidebar');
 const hideBtn = document.getElementById('hide-sidebar');
 const showBtn = document.getElementById('show-sidebar');
+const mapArea = document.getElementById('map-area');
+
+if (mapArea) {
+    mapArea.classList.add('is-initializing');
+}
 
 // Инициализация: сайдбар видна по умолчанию, кнопка возврата скрыта
 appShell.classList.remove('sidebar-closed');
@@ -22,6 +27,29 @@ function toggleSidebar() {
         closeSidebar();
     }
 }
+
+document.addEventListener('click', (event) => {
+    const navTarget = event.target.closest('[data-nav]');
+    if (!navTarget) {
+        return;
+    }
+
+    const page = navTarget.getAttribute('data-nav');
+    const routes = {
+        map: 'index.html',
+        'my-servers': 'pages/my-servers.html',
+        profile: 'pages/profile.html'
+    };
+
+    if (page && routes[page]) {
+        const target = routes[page];
+        if (typeof window.navigateWithTransition === 'function') {
+            window.navigateWithTransition(target);
+        } else {
+            window.location.href = target;
+        }
+    }
+});
 
 // Скрытие панели
 hideBtn.addEventListener('click', () => {
@@ -1606,7 +1634,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    window.servers = Array.isArray(window.servers) ? window.servers : [];
+    function readStoredServers() {
+        try {
+            const raw = localStorage.getItem('smp.multiverse.servers');
+            const parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function randomCoord(min, max) {
+        return Number((Math.random() * (max - min) + min).toFixed(4));
+    }
+
+    function ensureServerCoords(server) {
+        if (Array.isArray(server.coords) && server.coords.length === 2) {
+            return server;
+        }
+
+        return {
+            ...server,
+            coords: [randomCoord(-80, 80), randomCoord(-170, 170)]
+        };
+    }
+
+    const localServers = readStoredServers().map(ensureServerCoords);
+    window.servers = localServers.length > 0
+        ? localServers
+        : (Array.isArray(window.servers) ? window.servers : []);
 
     // Enable/disable Map Tools dev mode
     window.setMapTestingEnabled = (enabled) => {
@@ -1726,7 +1782,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     const starsCanvas = document.getElementById('stars');
     const universeCanvas = document.getElementById('universe');
 
+    function revealMapScene() {
+        if (!mapArea) {
+            return;
+        }
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                mapArea.classList.add('is-ready');
+                mapArea.classList.remove('is-initializing');
+            });
+        });
+    }
+
     if (!starsCanvas || !universeCanvas) {
+        if (mapArea) {
+            mapArea.classList.remove('is-initializing');
+        }
         return;
     }
 
@@ -1734,6 +1806,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const universeCtx = universeCanvas.getContext('2d');
 
     if (!starsCtx || !universeCtx) {
+        if (mapArea) {
+            mapArea.classList.remove('is-initializing');
+        }
         return;
     }
 
@@ -2416,4 +2491,5 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     setCanvasSize(false);
     tick();
+    revealMapScene();
 });

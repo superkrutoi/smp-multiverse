@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMP Multiverse — Профиль</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../css/profile.css">
+    <script defer src="../js/page-transition.js"></script>
+</head>
+<body>
+    <main class="page-shell">
+        <header class="page-topbar">
+            <h1 class="page-topbar-title">SMP Multiverse</h1>
+            <nav class="page-topbar-nav" aria-label="Навигация">
+                <a class="topbar-link" href="../index.html">Карта</a>
+                <a class="topbar-link" href="./my-servers.html">Мои серверы</a>
+            </nav>
+        </header>
+
+        <section class="profile-grid">
+            <article class="profile-card">
+                <h2 class="profile-heading">Профиль</h2>
+                <form id="profileForm" class="profile-form">
+                    <label class="field-label">
+                        Имя
+                        <input type="text" name="name" maxlength="60" required>
+                    </label>
+
+                    <label class="field-label">
+                        Email
+                        <input type="email" name="email" maxlength="120">
+                    </label>
+
+                    <label class="field-label">
+                        О себе
+                        <textarea name="bio" rows="4" maxlength="320"></textarea>
+                    </label>
+
+                    <label class="field-label">
+                        Discord
+                        <input type="text" name="discord" maxlength="120" placeholder="username#0000">
+                    </label>
+
+                    <label class="field-label">
+                        Twitch
+                        <input type="url" name="twitch" maxlength="240" placeholder="https://twitch.tv/...">
+                    </label>
+
+                    <label class="field-label">
+                        Website
+                        <input type="url" name="website" maxlength="240" placeholder="https://...">
+                    </label>
+
+                    <button class="primary-btn" type="submit">Сохранить профиль</button>
+                </form>
+            </article>
+
+            <article class="stats-card">
+                <h2 class="profile-heading">Статистика</h2>
+                <ul class="stats-list">
+                    <li>Серверов: <strong id="serversCount">0</strong></li>
+                    <li>Планет: <strong id="planetsCount">0</strong></li>
+                    <li>Анкет завершено: <strong id="questionnaireCount">0/0</strong></li>
+                    <li>Дата регистрации: <strong id="registeredAt">—</strong></li>
+                </ul>
+            </article>
+        </section>
+    </main>
+
+    <script type="module" src="../js/profile.js"></script>
+</body>
+</html>

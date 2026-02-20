@@ -159,6 +159,46 @@ body {
     line-height: 1.2;
 }
 
+body.page-transition-enabled {
+    position: relative;
+}
+
+body.page-transition-enabled::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: #04020c;
+    opacity: 1;
+    z-index: 5000;
+    pointer-events: none;
+    transition: opacity 0.16s ease;
+}
+
+body.page-transition-ready::before {
+    opacity: 0;
+}
+
+body.page-transition-leaving::before {
+    opacity: 1;
+}
+
+body.page-transition-enabled .app,
+body.page-transition-enabled .page-shell,
+body.page-transition-enabled .mascot,
+body.page-transition-enabled .dev-toggle,
+body.page-transition-enabled .notification-bell {
+    opacity: 0.985;
+    transition: opacity 0.16s ease;
+}
+
+body.page-transition-ready .app,
+body.page-transition-ready .page-shell,
+body.page-transition-ready .mascot,
+body.page-transition-ready .dev-toggle,
+body.page-transition-ready .notification-bell {
+    opacity: 1;
+}
+
 /* ===== GLOBAL SCROLLBAR STYLES (Sci-Fi Neon Glow) ===== */
 /* Modern scrollbar with cyan glow effect */
 
@@ -443,6 +483,45 @@ body {
     will-change: transform;
 }
 
+.map-area::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #04020c;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 4;
+    transition: opacity 0.65s ease;
+}
+
+.map-area .scene-layer,
+.map-area .scene-overlay {
+    opacity: 1;
+    transform: scale(1);
+    transform-origin: center center;
+    transition: opacity 0.65s ease, transform 0.75s cubic-bezier(.22, 1, .36, 1);
+}
+
+.map-area.is-initializing .scene-layer,
+.map-area.is-initializing .scene-overlay {
+    opacity: 0;
+    transform: scale(1.035);
+}
+
+.map-area.is-initializing::after {
+    opacity: 1;
+}
+
+.map-area.is-ready .scene-layer,
+.map-area.is-ready .scene-overlay {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.map-area.is-ready::after {
+    opacity: 0;
+}
+
 .app.sidebar-closed .map-area {
     transform: translateX(calc(-1 * var(--sidebar-width)));
 }
@@ -561,9 +640,21 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    body.page-transition-enabled::before,
+    body.page-transition-enabled .app,
+    body.page-transition-enabled .page-shell,
+    body.page-transition-enabled .mascot,
+    body.page-transition-enabled .dev-toggle,
+    body.page-transition-enabled .notification-bell,
     .sidebar,
     .map-area,
     #show-sidebar {
+        transition: none;
+    }
+
+    .map-area::after,
+    .map-area .scene-layer,
+    .map-area .scene-overlay {
         transition: none;
     }
 }

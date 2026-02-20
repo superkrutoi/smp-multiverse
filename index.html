@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SMP Multiverse — Карта миров</title>
     <link rel="stylesheet" href="style.css">
+    <script defer src="js/page-transition.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
@@ -19,9 +20,9 @@
             <button id="hide-sidebar" class="sidebar-close" aria-label="Скрыть боковую панель">×</button>
             <h2 class="sidebar-title">Меню</h2>
             <ul class="sidebar-menu">
-                <li class="sidebar-item active">Поиск серверов</li>
-                <li class="sidebar-item">Мои серверы</li>
-                <li class="sidebar-item">Профиль</li>
+                <li class="sidebar-item active" data-nav="map">Поиск серверов</li>
+                <li class="sidebar-item" data-nav="my-servers">Мои серверы</li>
+                <li class="sidebar-item" data-nav="profile">Профиль</li>
             </ul>
             <div id="server-info" class="space-block">
                 <h3 class="sidebar-section-title">Космическая погода</h3>
@@ -64,8 +65,8 @@
     <div id="mascot" class="mascot">
         <img src="assets/Lucid_V1.2_icons/PNG/Flat/160/Person.png" alt="Mascot" class="mascot-img" width="80" height="80">
         <div id="mascot-menu" class="mascot-menu hidden">
-            <button>Профиль</button>
-            <button>Мои серверы</button>
+            <button data-nav="profile">Профиль</button>
+            <button data-nav="my-servers">Мои серверы</button>
             <button>Настройки</button>
             <button>Выйти</button>
         </div>
