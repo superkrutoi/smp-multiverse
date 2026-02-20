@@ -704,6 +704,7 @@ const renderDevMenuItem = async (itemNumber) => {
                 // Render list of sounds
                 const renderSoundsList = (soundFiles, folderPath, format) => {
                     const filesListEl = document.getElementById('sounds-files-list');
+                    const globalAudio = document.getElementById('global-audio');
                     
                     if (soundFiles.length === 0) {
                         filesListEl.innerHTML = '<div class="sounds-empty">Звуки не найдены</div>';
@@ -716,23 +717,111 @@ const renderDevMenuItem = async (itemNumber) => {
                         const soundPath = `${folderPath}/${fileName}.${ext}`;
                         
                         listHtml += `
-                            <div class="sound-item">
+                            <div class="sound-card" data-src="${soundPath}">
+                                <button class="sound-play-btn" title="Воспроизвести">▶</button>
                                 <div class="sound-info">
-                                    <span class="sound-name">${name}</span>
-                                    <span class="sound-path">${fileName}</span>
+                                    <div class="sound-title">${name}</div>
+                                    <input type="range" class="sound-progress" min="0" max="100" value="0" step="0.1">
+                                    <div class="sound-time"><span class="sound-current">0:00</span> / <span class="sound-duration">0:00</span></div>
                                 </div>
-                                <button class="sound-play-btn" data-src="${soundPath}" title="Воспроизвести">▶ Слушать</button>
                             </div>
                         `;
                     });
                     listHtml += '</div>';
                     filesListEl.innerHTML = listHtml;
 
+                    // Format time display
+                    const formatTime = (seconds) => {
+                        if (!seconds || !isFinite(seconds)) return '0:00';
+                        const mins = Math.floor(seconds / 60);
+                        const secs = Math.floor(seconds % 60);
+                        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                    };
+
+                    let currentPlayingCard = null;
+
                     // Attach play button handlers
-                    filesListEl.querySelectorAll('.sound-play-btn').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            const audio = new Audio(btn.dataset.src);
-                            audio.play().catch(err => console.error('Ошибка воспроизведения:', err));
+                    filesListEl.querySelectorAll('.sound-card').forEach(card => {
+                        const playBtn = card.querySelector('.sound-play-btn');
+                        const progressBar = card.querySelector('.sound-progress');
+                        const currentTimeEl = card.querySelector('.sound-current');
+                        const durationEl = card.querySelector('.sound-duration');
+                        const soundSrc = card.dataset.src;
+
+                        // Play/pause handler
+                        playBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            
+                            // If clicking on the same card, toggle play/pause
+                            if (currentPlayingCard === card) {
+                                if (globalAudio.paused) {
+                                    globalAudio.play().catch(err => console.error('Play error:', err));
+                                } else {
+                                    globalAudio.pause();
+                                }
+                                return;
+                            }
+
+                            // Switch to new sound
+                            if (currentPlayingCard) {
+                                currentPlayingCard.classList.remove('playing');
+                            }
+
+                            globalAudio.src = soundSrc;
+                            globalAudio.currentTime = 0;
+                            globalAudio.play().catch(err => console.error('Play error:', err));
+                            
+                            currentPlayingCard = card;
+                            card.classList.add('playing');
+                        });
+
+                        // Update progress bar when audio plays
+                        const updateProgress = () => {
+                            if (globalAudio.src === soundSrc && !globalAudio.paused) {
+                                const percent = (globalAudio.currentTime / globalAudio.duration) * 100;
+                                progressBar.value = percent || 0;
+                                currentTimeEl.textContent = formatTime(globalAudio.currentTime);
+                            }
+                        };
+
+                        // Load metadata to get duration
+                        globalAudio.addEventListener('loadedmetadata', () => {
+                            if (globalAudio.src === soundSrc) {
+                                durationEl.textContent = formatTime(globalAudio.duration);
+                            }
+                        });
+
+                        // Update on timeupdate
+                        globalAudio.addEventListener('timeupdate', updateProgress);
+
+                        // Handle end of audio
+                        globalAudio.addEventListener('ended', () => {
+                            if (globalAudio.src === soundSrc && currentPlayingCard === card) {
+                                card.classList.remove('playing');
+                                playBtn.textContent = '▶';
+                                progressBar.value = 0;
+                                currentPlayingCard = null;
+                            }
+                        });
+
+                        // Manual progress bar seek
+                        progressBar.addEventListener('input', (e) => {
+                            if (globalAudio.src === soundSrc) {
+                                globalAudio.currentTime = (e.target.value / 100) * globalAudio.duration;
+                            }
+                        });
+
+                        // Update play button text when playing
+                        globalAudio.addEventListener('play', () => {
+                            if (globalAudio.src === soundSrc) {
+                                playBtn.textContent = '⏸';
+                            }
+                        });
+
+                        globalAudio.addEventListener('pause', () => {
+                            if (globalAudio.src === soundSrc && currentPlayingCard === card) {
+                                playBtn.textContent = '▶';
+                            }
                         });
                     });
                 };
