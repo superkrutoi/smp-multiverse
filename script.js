@@ -1,27 +1,22 @@
 // Элементы
+const appShell = document.getElementById('app-shell');
 const sidebar = document.getElementById('sidebar');
-const mapArea = document.getElementById('map-area');
 const hideBtn = document.getElementById('hide-sidebar');
 const showBtn = document.getElementById('show-sidebar');
 
 // Инициализация: сайдбар видна по умолчанию, кнопка возврата скрыта
-sidebar.classList.remove('hidden');
-showBtn.classList.add('hidden');
+appShell.classList.remove('sidebar-closed');
 
 function openSidebar() {
-    sidebar.classList.remove('hidden');
-    mapArea.classList.remove('expanded');
-    showBtn.classList.add('hidden');
+    appShell.classList.remove('sidebar-closed');
 }
 
 function closeSidebar() {
-    sidebar.classList.add('hidden');
-    mapArea.classList.add('expanded');
-    showBtn.classList.remove('hidden');
+    appShell.classList.add('sidebar-closed');
 }
 
 function toggleSidebar() {
-    if (sidebar.classList.contains('hidden')) {
+    if (appShell.classList.contains('sidebar-closed')) {
         openSidebar();
     } else {
         closeSidebar();
@@ -637,239 +632,347 @@ const renderDevMenuItem = async (itemNumber) => {
         // Функция для отображения звуков
         async function renderSounds() {
             tabContent.innerHTML = `<div class="dev-sounds-browser"><div class="dev-sounds-sidebar" id="sounds-sidebar">Загрузка...</div><div class="dev-sounds-main"><div class="dev-sounds-scroll" id="sounds-scroll"><div class="dev-sounds-content" id="sounds-content"></div></div></div></div>`;
-            
+
             try {
                 const soundsPath = 'assets/ui/sfx/JDSherbert_Pixel_UI_SFX_Pack';
                 const manifestRes = await fetch(`${soundsPath}/manifest.json?v=${Date.now()}`);
                 if (!manifestRes.ok) throw new Error(`HTTP ${manifestRes.status}`);
                 const soundsManifest = await manifestRes.json();
-                
+
                 const sidebarEl = document.getElementById('sounds-sidebar');
                 const contentEl = document.getElementById('sounds-content');
-                
-                // Build sidebar tree - only MP3 and OGG formats
-                let sidebarHtml = '<ul class="sounds-tree">';
+                const globalAudio = document.getElementById('global-audio');
                 const formatsToShow = ['mp3', 'ogg'];
-                
-                // Get all unique formats from all categories
-                const allFormats = new Set();
-                for (const [category, formats] of Object.entries(soundsManifest.sounds)) {
-                    for (const format of Object.keys(formats)) {
-                        if (formatsToShow.includes(format)) {
-                            allFormats.add(format);
-                        }
-                    }
-                }
-                
-                // Build buttons for each format
-                for (const format of formatsToShow) {
-                    if (allFormats.has(format)) {
-                        sidebarHtml += `<li class="sounds-format-item"><button class="sounds-format-btn" data-format="${format}"><span class="file-icon">🎵</span><span>${format.toUpperCase()}</span></button></li>`;
-                    }
-                }
-                sidebarHtml += '</ul>';
-                sidebarEl.innerHTML = sidebarHtml;
+                const folders = [{ name: 'JDSh_Ui', path: soundsPath }];
 
-                // Handle format selection
-                sidebarEl.querySelectorAll('.sounds-format-btn').forEach(btn => {
-                    btn.addEventListener('click', async () => {
-                        const format = btn.dataset.format;
-                        await displaySounds(format);
-                    });
-                });
+                const escapeHtml = (value) => String(value || '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
 
-                // Function to display sounds for a format (from both Mono and Stereo)
-                const displaySounds = async (format) => {
-                    contentEl.innerHTML = `
-                        <div class="sounds-content-header">
-                            <h4>${format.toUpperCase()}</h4>
-                        </div>
-                        <div class="sounds-files-list" id="sounds-files-list"><div class="sounds-empty">Загрузка звуков...</div></div>
-                    `;
-
-                    try {
-                        // Collect sounds from both Mono and Stereo
-                        const soundsMap = new Map(); // key: soundName, value: { name, monoFile, stereoFile }
-                        
-                        for (const [category, formats] of Object.entries(soundsManifest.sounds)) {
-                            if (formats[format]) {
-                                formats[format].forEach(fileName => {
-                                    const baseName = fileName.replace(/JDSherbert - Pixel UI SFX Pack - /, '').replace(/\.(mp3|ogg)$/, '');
-                                    const key = baseName;
-                                    
-                                    if (!soundsMap.has(key)) {
-                                        soundsMap.set(key, { name: baseName, monoFile: null, stereoFile: null });
-                                    }
-                                    
-                                    const entry = soundsMap.get(key);
-                                    if (category === 'Mono') {
-                                        entry.monoFile = fileName;
-                                    } else if (category === 'Stereo') {
-                                        entry.stereoFile = fileName;
-                                    }
-                                });
-                            }
-                        }
-                        
-                        renderSoundsList(Array.from(soundsMap.values()), format, soundsPath);
-                    } catch (err) {
-                        const filesListEl = document.getElementById('sounds-files-list');
-                        filesListEl.innerHTML = `<div class="sounds-empty">Ошибка загрузки: ${err.message}</div>`;
-                    }
+                const formatMs = (value) => {
+                    const ms = Number(value) || 0;
+                    const totalSec = Math.max(0, Math.floor(ms / 1000));
+                    const mins = Math.floor(totalSec / 60);
+                    const secs = totalSec % 60;
+                    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
                 };
 
-                // Render list of sounds
-                const renderSoundsList = (soundFiles, format, soundsBasePath) => {
+                const formatBytes = (value) => {
+                    const bytes = Number(value);
+                    if (!Number.isFinite(bytes) || bytes <= 0) return '—';
+                    if (bytes < 1024) return `${bytes} B`;
+                    const kb = bytes / 1024;
+                    if (kb < 1024) return `${Math.round(kb)} KB`;
+                    const mb = kb / 1024;
+                    return `${mb.toFixed(1)} MB`;
+                };
+
+                async function getFileSize(path) {
+                    try {
+                        const headRes = await fetch(path, { method: 'HEAD' });
+                        const sizeHeader = headRes.headers.get('Content-Length');
+                        if (sizeHeader) {
+                            const parsed = Number(sizeHeader);
+                            if (Number.isFinite(parsed)) return parsed;
+                        }
+                    } catch (err) {
+                        console.warn('HEAD size failed for', path, err);
+                    }
+
+                    try {
+                        const getRes = await fetch(path);
+                        if (!getRes.ok) return null;
+                        const blob = await getRes.blob();
+                        return blob.size;
+                    } catch (err) {
+                        console.warn('GET size failed for', path, err);
+                        return null;
+                    }
+                }
+
+                function getDuration(path) {
+                    return new Promise((resolve) => {
+                        const audio = new Audio(path);
+                        const finalize = (value) => resolve(Number.isFinite(value) ? Math.floor(value) : 0);
+                        audio.addEventListener('loadedmetadata', () => finalize(audio.duration * 1000), { once: true });
+                        audio.addEventListener('error', () => finalize(0), { once: true });
+                    });
+                }
+
+                const stripPrefix = (fileName) => fileName
+                    .replace(/JDSherbert - Pixel UI SFX Pack - /, '')
+                    .replace(/\.(mp3|ogg)$/i, '');
+
+                const buildSoundsMap = () => {
+                    const soundsMap = new Map();
+                    for (const [category, formats] of Object.entries(soundsManifest.sounds || {})) {
+                        const normalizedCategory = String(category).toLowerCase();
+                        if (normalizedCategory !== 'mono' && normalizedCategory !== 'stereo') continue;
+
+                        for (const format of formatsToShow) {
+                            const files = formats[format] || [];
+                            files.forEach((fileName) => {
+                                const title = stripPrefix(fileName);
+                                if (!soundsMap.has(title)) {
+                                    soundsMap.set(title, {
+                                        title,
+                                        files: {
+                                            mono: { mp3: null, ogg: null },
+                                            stereo: { mp3: null, ogg: null }
+                                        }
+                                    });
+                                }
+
+                                const entry = soundsMap.get(title);
+                                const modeKey = normalizedCategory === 'stereo' ? 'stereo' : 'mono';
+                                entry.files[modeKey][format] = `${soundsPath}/${category}/${format}/${fileName}`;
+                            });
+                        }
+                    }
+
+                    return Array.from(soundsMap.values()).sort((a, b) => a.title.localeCompare(b.title, 'ru'));
+                };
+
+                async function buildSoundItem(rawSound) {
+                    const pickSource = (format) => rawSound.files.stereo[format] || rawSound.files.mono[format] || null;
+                    const mp3Source = pickSource('mp3');
+                    const oggSource = pickSource('ogg');
+
+                    const [mp3Size, oggSize, mp3Dur, oggDur] = await Promise.all([
+                        mp3Source ? getFileSize(mp3Source) : Promise.resolve(null),
+                        oggSource ? getFileSize(oggSource) : Promise.resolve(null),
+                        mp3Source ? getDuration(mp3Source) : Promise.resolve(0),
+                        oggSource ? getDuration(oggSource) : Promise.resolve(0)
+                    ]);
+
+                    const formats = [];
+                    if (mp3Source) formats.push('mp3');
+                    if (oggSource) formats.push('ogg');
+
+                    return {
+                        title: rawSound.title,
+                        formats,
+                        fileSizes: { mp3: mp3Size, ogg: oggSize },
+                        duration: Math.max(mp3Dur || 0, oggDur || 0),
+                        files: rawSound.files
+                    };
+                }
+
+                function createSoundHTML(soundObj) {
+                    const stereoAvailable = soundObj.formats.some((format) => Boolean(soundObj.files.stereo[format]));
+                    const monoAvailable = soundObj.formats.some((format) => Boolean(soundObj.files.mono[format]));
+
+                    const defaultMode = stereoAvailable ? 'stereo' : (monoAvailable ? 'mono' : 'stereo');
+                    const defaultSrc = soundObj.files[defaultMode].mp3 || soundObj.files[defaultMode].ogg || '';
+
+                    const mp3Meta = soundObj.formats.includes('mp3') ? `MP3 (${formatBytes(soundObj.fileSizes.mp3)})` : null;
+                    const oggMeta = soundObj.formats.includes('ogg') ? `OGG (${formatBytes(soundObj.fileSizes.ogg)})` : null;
+                    const metaChunks = [mp3Meta, oggMeta].filter(Boolean);
+                    metaChunks.push(formatMs(soundObj.duration));
+                    const metaLine = metaChunks.join(' • ');
+
+                    return `
+                        <div class="sound-card" data-default-src="${escapeHtml(defaultSrc)}">
+                            <button class="play-btn" type="button" aria-label="Воспроизвести">▶</button>
+                            <div class="sound-info">
+                                <div class="sound-title" title="${escapeHtml(soundObj.title)}">${escapeHtml(soundObj.title)}</div>
+                                <div class="sound-meta">${escapeHtml(metaLine)}</div>
+                                <div class="sound-controls-row">
+                                    <div class="sound-mode-switcher">
+                                        ${stereoAvailable ? `<button type="button" class="sound-mode-btn ${defaultMode === 'stereo' ? 'active' : ''}" data-mode="stereo" data-src="${escapeHtml(soundObj.files.stereo.mp3 || soundObj.files.stereo.ogg || '')}"><span class="mode-btn-text">L / R</span></button>` : ''}
+                                        ${monoAvailable ? `<button type="button" class="sound-mode-btn ${defaultMode === 'mono' ? 'active' : ''}" data-mode="mono" data-src="${escapeHtml(soundObj.files.mono.mp3 || soundObj.files.mono.ogg || '')}"><span class="mode-btn-text">M</span></button>` : ''}
+                                    </div>
+                                    <div class="sound-time"><span class="sound-current">00:00</span> / <span class="sound-duration">${formatMs(soundObj.duration)}</span></div>
+                                </div>
+                                <input type="range" class="sound-progress" min="0" max="100" value="0" step="0.1">
+                            </div>
+                        </div>
+                    `;
+                }
+
+                async function renderSoundsList(soundItems) {
+                    contentEl.innerHTML = `
+                        <div class="sounds-content-header">
+                            <h4>Папка: JDSh_Ui</h4>
+                        </div>
+                        <div class="sounds-files-list" id="sounds-files-list"><div class="sounds-empty">Подготовка звуков...</div></div>
+                    `;
+
                     const filesListEl = document.getElementById('sounds-files-list');
-                    const globalAudio = document.getElementById('global-audio');
-                    
-                    if (soundFiles.length === 0) {
+                    if (!filesListEl) return;
+                    if (!soundItems.length) {
                         filesListEl.innerHTML = '<div class="sounds-empty">Звуки не найдены</div>';
                         return;
                     }
 
-                    // Format time display - show ms if < 1 second
-                    const formatTime = (seconds) => {
-                        if (!seconds || !isFinite(seconds)) return '0:00';
-                        if (seconds < 1) {
-                            const ms = Math.round(seconds * 1000);
-                            return `${ms}ms`;
-                        }
-                        const mins = Math.floor(seconds / 60);
-                        const secs = Math.floor(seconds % 60);
-                        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-                    };
+                    const builtItems = await Promise.all(soundItems.map((item) => buildSoundItem(item)));
+                    const validItems = builtItems.filter((item) => item.formats.length > 0);
 
-                    let listHtml = '<div class="sounds-list">';
-                    soundFiles.forEach(({ name, monoFile, stereoFile }) => {
-                        const monoPath = monoFile ? `${soundsBasePath}/Mono/${format}/${monoFile}` : null;
-                        const stereoPath = stereoFile ? `${soundsBasePath}/Stereo/${format}/${stereoFile}` : null;
-                        
-                        // Build data attributes for the card
-                        const dataAttrs = monoPath ? `data-mono-src="${monoPath}"` : '';
-                        const dataStereo = stereoPath ? `data-stereo-src="${stereoPath}"` : '';
-                        const dataDefault = stereoPath ? `data-src="${stereoPath}"` : (monoPath ? `data-src="${monoPath}"` : '');
-                        
-                        listHtml += `
-                            <div class="sound-card" ${dataAttrs} ${dataStereo} ${dataDefault}>
-                                <div class="sound-buttons">
-                                    ${stereoPath ? `<button class="sound-play-btn sound-stereo-btn" data-src="${stereoPath}" title="Stereo">L/R</button>` : ''}
-                                    ${monoPath ? `<button class="sound-play-btn sound-mono-btn" data-src="${monoPath}" title="Mono">M</button>` : ''}
-                                </div>
-                                <div class="sound-info">
-                                    <div class="sound-title">${name}</div>
-                                    <input type="range" class="sound-progress" min="0" max="100" value="0" step="0.1">
-                                    <div class="sound-time"><span class="sound-current">0:00</span> / <span class="sound-duration">0:00</span></div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    listHtml += '</div>';
-                    filesListEl.innerHTML = listHtml;
+                    if (!validItems.length) {
+                        filesListEl.innerHTML = '<div class="sounds-empty">Доступных mp3/ogg не найдено</div>';
+                        return;
+                    }
+
+                    filesListEl.innerHTML = `<div class="sounds-list">${validItems.map(createSoundHTML).join('')}</div>`;
 
                     let currentPlayingCard = null;
-                    let currentPlayingSource = null; // Track which button triggered play
 
-                    // Attach play button handlers for all play buttons
-                    filesListEl.querySelectorAll('.sound-play-btn').forEach(playBtn => {
-                        playBtn.addEventListener('click', (e) => {
-                            e.stopPropagation();
+                    const setPlayButtonState = (card, isPlaying) => {
+                        if (!card) return;
+                        const playBtn = card.querySelector('.play-btn');
+                        if (!playBtn) return;
+                        playBtn.textContent = isPlaying ? '⏸' : '▶';
+                    };
+
+                    const clearPlayingState = () => {
+                        if (!currentPlayingCard) return;
+                        currentPlayingCard.classList.remove('playing');
+                        const progressBar = currentPlayingCard.querySelector('.sound-progress');
+                        if (progressBar) progressBar.value = 0;
+                        const currentTimeEl = currentPlayingCard.querySelector('.sound-current');
+                        if (currentTimeEl) currentTimeEl.textContent = '00:00';
+                        setPlayButtonState(currentPlayingCard, false);
+                        currentPlayingCard = null;
+                    };
+
+                    const getActiveSource = (card) => {
+                        const activeModeBtn = card.querySelector('.sound-mode-btn.active');
+                        return activeModeBtn?.dataset.src || card.dataset.defaultSrc || '';
+                    };
+
+                    filesListEl.querySelectorAll('.sound-mode-btn').forEach((btn) => {
+                        btn.addEventListener('click', () => {
+                            const card = btn.closest('.sound-card');
+                            if (!card) return;
+                            card.querySelectorAll('.sound-mode-btn').forEach((b) => b.classList.remove('active'));
+                            btn.classList.add('active');
+                        });
+                    });
+
+                    filesListEl.querySelectorAll('.play-btn').forEach((playBtn) => {
+                        playBtn.addEventListener('click', async () => {
                             const card = playBtn.closest('.sound-card');
-                            const soundSrc = playBtn.dataset.src;
-                            
-                            // If clicking the same button, toggle play/pause
-                            if (currentPlayingCard === card && currentPlayingSource === soundSrc) {
+                            if (!card) return;
+                            const source = getActiveSource(card);
+                            if (!source) return;
+
+                            if (currentPlayingCard === card && globalAudio.src.includes(source)) {
                                 if (globalAudio.paused) {
-                                    globalAudio.play().catch(err => console.error('Play error:', err));
+                                    await globalAudio.play().catch((err) => console.error('Play error:', err));
                                 } else {
                                     globalAudio.pause();
                                 }
                                 return;
                             }
 
-                            // Switch to new sound
-                            if (currentPlayingCard) {
+                            if (currentPlayingCard && currentPlayingCard !== card) {
+                                setPlayButtonState(currentPlayingCard, false);
                                 currentPlayingCard.classList.remove('playing');
-                                currentPlayingCard.querySelectorAll('.sound-play-btn').forEach(btn => btn.textContent = btn.classList.contains('sound-stereo-btn') ? 'L/R' : 'M');
                             }
 
-                            globalAudio.src = soundSrc;
+                            globalAudio.src = source;
                             globalAudio.currentTime = 0;
-                            globalAudio.play().catch(err => console.error('Play error:', err));
-                            
                             currentPlayingCard = card;
-                            currentPlayingSource = soundSrc;
                             card.classList.add('playing');
+                            await globalAudio.play().catch((err) => console.error('Play error:', err));
                         });
                     });
 
-                    // Update progress and time display
-                    const updateProgress = () => {
-                        if (filesListEl.querySelector('.sound-card.playing')) {
-                            const playingCard = filesListEl.querySelector('.sound-card.playing');
-                            const progressBar = playingCard.querySelector('.sound-progress');
-                            const currentTimeEl = playingCard.querySelector('.sound-current');
-                            
-                            const percent = (globalAudio.currentTime / globalAudio.duration) * 100;
-                            progressBar.value = percent || 0;
-                            currentTimeEl.textContent = formatTime(globalAudio.currentTime);
+                    filesListEl.querySelectorAll('.sound-progress').forEach((progressBar) => {
+                        progressBar.addEventListener('input', (e) => {
+                            if (!globalAudio.duration || !currentPlayingCard) return;
+                            globalAudio.currentTime = (Number(e.target.value) / 100) * globalAudio.duration;
+                        });
+                    });
+
+                    if (globalAudio._soundTimeUpdateHandler) {
+                        globalAudio.removeEventListener('timeupdate', globalAudio._soundTimeUpdateHandler);
+                    }
+                    if (globalAudio._soundPlayHandler) {
+                        globalAudio.removeEventListener('play', globalAudio._soundPlayHandler);
+                    }
+                    if (globalAudio._soundPauseHandler) {
+                        globalAudio.removeEventListener('pause', globalAudio._soundPauseHandler);
+                    }
+                    if (globalAudio._soundEndedHandler) {
+                        globalAudio.removeEventListener('ended', globalAudio._soundEndedHandler);
+                    }
+
+                    globalAudio._soundTimeUpdateHandler = () => {
+                        if (!currentPlayingCard) return;
+                        const progressBar = currentPlayingCard.querySelector('.sound-progress');
+                        const currentTimeEl = currentPlayingCard.querySelector('.sound-current');
+                        const durationEl = currentPlayingCard.querySelector('.sound-duration');
+                        if (progressBar && globalAudio.duration) {
+                            progressBar.value = ((globalAudio.currentTime / globalAudio.duration) * 100) || 0;
+                        }
+                        if (currentTimeEl) {
+                            currentTimeEl.textContent = formatMs(globalAudio.currentTime * 1000);
+                        }
+                        if (durationEl && globalAudio.duration) {
+                            durationEl.textContent = formatMs(globalAudio.duration * 1000);
                         }
                     };
 
-                    // Load metadata to get duration
-                    globalAudio.addEventListener('loadedmetadata', () => {
-                        if (currentPlayingCard) {
-                            const durationEl = currentPlayingCard.querySelector('.sound-duration');
-                            durationEl.textContent = formatTime(globalAudio.duration);
-                        }
-                    });
+                    globalAudio._soundPlayHandler = () => {
+                        setPlayButtonState(currentPlayingCard, true);
+                    };
 
-                    // Update on timeupdate
-                    globalAudio.addEventListener('timeupdate', updateProgress);
+                    globalAudio._soundPauseHandler = () => {
+                        setPlayButtonState(currentPlayingCard, false);
+                    };
 
-                    // Handle end of audio
-                    globalAudio.addEventListener('ended', () => {
-                        if (currentPlayingCard) {
-                            currentPlayingCard.classList.remove('playing');
-                            currentPlayingCard.querySelectorAll('.sound-play-btn').forEach(btn => {
-                                btn.textContent = btn.classList.contains('sound-stereo-btn') ? 'L/R' : 'M';
-                            });
-                            const progressBar = currentPlayingCard.querySelector('.sound-progress');
-                            progressBar.value = 0;
-                            currentPlayingCard = null;
-                            currentPlayingSource = null;
-                        }
-                    });
+                    globalAudio._soundEndedHandler = () => {
+                        clearPlayingState();
+                    };
 
-                    // Manual progress bar seek
-                    filesListEl.querySelectorAll('.sound-progress').forEach(progressBar => {
-                        progressBar.addEventListener('input', (e) => {
-                            if (globalAudio.duration) {
-                                globalAudio.currentTime = (e.target.value / 100) * globalAudio.duration;
-                            }
-                        });
-                    });
+                    globalAudio.addEventListener('timeupdate', globalAudio._soundTimeUpdateHandler);
+                    globalAudio.addEventListener('play', globalAudio._soundPlayHandler);
+                    globalAudio.addEventListener('pause', globalAudio._soundPauseHandler);
+                    globalAudio.addEventListener('ended', globalAudio._soundEndedHandler);
+                }
 
-                    // Update play button text when playing
-                    globalAudio.addEventListener('play', () => {
-                        if (currentPlayingCard) {
-                            const playingBtn = currentPlayingCard.querySelector('.sound-play-btn:hover') || 
-                                             currentPlayingCard.querySelector('.sound-play-btn');
-                            if (playingBtn) {
-                                playingBtn.textContent = '⏸';
-                            }
-                        }
-                    });
+                const rawSounds = buildSoundsMap();
 
-                    globalAudio.addEventListener('pause', () => {
-                        if (currentPlayingCard) {
-                            currentPlayingCard.querySelectorAll('.sound-play-btn').forEach(btn => {
-                                btn.textContent = btn.classList.contains('sound-stereo-btn') ? 'L/R' : 'M';
-                            });
-                        }
+                let sidebarHtml = '<ul class="sounds-tree">';
+                folders.forEach((folder) => {
+                    const folderName = folder.name;
+                    let isOpen = false;
+                    if (folderName === 'JDSh_Ui') {
+                        isOpen = true;
+                    }
+                    sidebarHtml += `
+                        <li class="sounds-folder-item ${isOpen ? 'open' : ''}">
+                            <button class="sounds-folder-btn ${isOpen ? 'active' : ''}" data-folder-name="${folderName}">
+                                <span class="file-icon">📁</span>
+                                <span>${folderName}</span>
+                            </button>
+                        </li>
+                    `;
+                });
+                sidebarHtml += '</ul>';
+                sidebarEl.innerHTML = sidebarHtml;
+
+                const openFolder = async (folderName) => {
+                    sidebarEl.querySelectorAll('.sounds-folder-btn').forEach((btn) => {
+                        btn.classList.toggle('active', btn.dataset.folderName === folderName);
                     });
+                    await renderSoundsList(rawSounds);
                 };
 
+                sidebarEl.querySelectorAll('.sounds-folder-btn').forEach((btn) => {
+                    btn.addEventListener('click', async () => {
+                        await openFolder(btn.dataset.folderName);
+                    });
+                });
+
+                const defaultFolderBtn = sidebarEl.querySelector('.sounds-folder-btn[data-folder-name="JDSh_Ui"]') || sidebarEl.querySelector('.sounds-folder-btn');
+                if (defaultFolderBtn) {
+                    await openFolder(defaultFolderBtn.dataset.folderName);
+                }
             } catch (err) {
                 tabContent.innerHTML = `<div class="dev-sounds-browser"><div style="padding: 20px; color: var(--mc-red);">Ошибка загрузки звуков: ${err.message}</div></div>`;
             }
@@ -1492,7 +1595,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     if (typeof window.L === 'undefined') {
         console.warn('Leaflet is not available: map initialization skipped.');
         return;
@@ -1619,7 +1722,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const starsCanvas = document.getElementById('stars');
     const universeCanvas = document.getElementById('universe');
 
@@ -1640,6 +1743,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const overlayCoords = document.getElementById('scene-coords');
 
     const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+    let serverClockOffsetMs = 0;
+
+    function getSynchronizedNowMs() {
+        return Date.now() + serverClockOffsetMs;
+    }
+
+    async function syncServerClock() {
+        try {
+            const requestStartedAt = Date.now();
+            const response = await fetch(`assets/manifest.json?clockSync=${requestStartedAt}`, {
+                method: 'HEAD',
+                cache: 'no-store'
+            });
+            const requestFinishedAt = Date.now();
+
+            const serverDateHeader = response.headers.get('date');
+            if (!serverDateHeader) {
+                return false;
+            }
+
+            const serverNowMs = Date.parse(serverDateHeader);
+            if (!Number.isFinite(serverNowMs)) {
+                return false;
+            }
+
+            const midpointClientNow = requestStartedAt + ((requestFinishedAt - requestStartedAt) / 2);
+            serverClockOffsetMs = serverNowMs - midpointClientNow;
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
 
     function seededRandom(initialSeed) {
         let seed = initialSeed % 2147483647;
@@ -1755,16 +1890,22 @@ document.addEventListener('DOMContentLoaded', () => {
     let stars = [];
     let comets = [];
     let planets = [];
-    let frame = 0;
-    let nextCometFrame = 240;
+    const simulationEpochMs = Date.UTC(2026, 0, 1, 0, 0, 0);
+    let simulationTimeSec = (getSynchronizedNowMs() - simulationEpochMs) / 1000;
+    let simulationFrame = Math.floor(simulationTimeSec * 60);
+    let nextCometFrame = simulationFrame + 240;
     let hoveredPlanetName = '';
     let cameraZoom = 1;
     let cameraZoomTarget = 1;
     let cameraPanX = 0;
     let cameraPanY = 0;
+    let cameraPanTargetX = 0;
+    let cameraPanTargetY = 0;
+    let layoutPanX = 0;
     const minZoom = 0.55;
     const maxZoom = 2.4;
     const baseLerpSpeed = 0.12;
+    const panLerpSpeed = 0.14;
     let currentZoomSpeed = baseLerpSpeed;
     let lastZoomInputTime = 0;
 
@@ -1778,12 +1919,55 @@ document.addEventListener('DOMContentLoaded', () => {
     const serverList = buildServerList();
     const cometRand = seededRandom(serverList.reduce((sum, server) => sum + server.seed, 73));
 
+    function getSidebarWidthPx() {
+        const rawValue = getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width').trim();
+        const parsedValue = Number.parseFloat(rawValue);
+        return Number.isFinite(parsedValue) ? parsedValue : 280;
+    }
+
+    function getSidebarTranslateXPx() {
+        if (!sidebar) {
+            return 0;
+        }
+
+        const transform = getComputedStyle(sidebar).transform;
+        if (!transform || transform === 'none') {
+            return 0;
+        }
+
+        const matrix3dMatch = transform.match(/^matrix3d\((.+)\)$/);
+        if (matrix3dMatch) {
+            const values = matrix3dMatch[1].split(',').map((part) => Number.parseFloat(part.trim()));
+            return Number.isFinite(values[12]) ? values[12] : 0;
+        }
+
+        const matrixMatch = transform.match(/^matrix\((.+)\)$/);
+        if (matrixMatch) {
+            const values = matrixMatch[1].split(',').map((part) => Number.parseFloat(part.trim()));
+            return Number.isFinite(values[4]) ? values[4] : 0;
+        }
+
+        return 0;
+    }
+
+    function getLayoutPanCompensation() {
+        if (!appShell) {
+            return 0;
+        }
+
+        const sidebarWidth = getSidebarWidthPx();
+        const sidebarTranslateX = clamp(getSidebarTranslateXPx(), -sidebarWidth, 0);
+        return -((sidebarWidth + sidebarTranslateX) / 2);
+    }
+
     if (overlayCount) {
         overlayCount.textContent = `Серверов: ${serverList.length}`;
     }
 
-    function setCanvasSize() {
+    function setCanvasSize(preserveState = true) {
         const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+        const prevWidth = width;
+        const prevHeight = height;
         width = window.innerWidth;
         height = window.innerHeight;
 
@@ -1799,8 +1983,39 @@ document.addEventListener('DOMContentLoaded', () => {
         starsCtx.imageSmoothingEnabled = false;
         universeCtx.imageSmoothingEnabled = false;
 
-        createStars();
-        createPlanets();
+        const canScaleExisting = preserveState && prevWidth > 0 && prevHeight > 0;
+
+        if (!canScaleExisting || stars.length === 0) {
+            createStars();
+        } else {
+            stars.forEach((star) => {
+                star.x = (star.x / prevWidth) * width;
+                star.y = (star.y / prevHeight) * height;
+            });
+        }
+
+        if (!canScaleExisting || planets.length === 0) {
+            createPlanets();
+        } else {
+            const prevMinSide = Math.max(320, Math.min(prevWidth, prevHeight));
+            const nextMinSide = Math.max(320, Math.min(width, height));
+            const orbitScale = nextMinSide / prevMinSide;
+
+            planets.forEach((planet) => {
+                planet.orbitRadius *= orbitScale;
+            });
+        }
+
+        if (canScaleExisting && comets.length > 0) {
+            const scaleX = width / prevWidth;
+            const scaleY = height / prevHeight;
+            comets.forEach((comet) => {
+                comet.startX *= scaleX;
+                comet.startY *= scaleY;
+                comet.vx *= scaleX;
+                comet.vy *= scaleY;
+            });
+        }
     }
 
     function createStars() {
@@ -1815,7 +2030,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 x: Math.floor(rand() * width),
                 y: Math.floor(rand() * height),
                 size: rand() > 0.92 ? 2 : 1,
-                brightness: 0.35 + rand() * 0.65,
+                brightnessBase: 0.35 + rand() * 0.65,
                 twinkleOffset: rand() * Math.PI * 2,
                 twinkleSpeed: 0.004 + rand() * 0.02
             });
@@ -1839,6 +2054,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 ratio,
                 radius: baseRadius,
                 orbitRadius,
+                angleBase: angle,
+                orbitSpeed: 0.06 + (0.21 * server.activity),
                 angle,
                 x: 0,
                 y: 0,
@@ -1863,47 +2080,44 @@ document.addEventListener('DOMContentLoaded', () => {
         cameraZoomTarget = clamp(nextZoom, minZoom, maxZoom);
     }
 
-    function spawnComet() {
+    function spawnComet(spawnFrame) {
         const horizontalStart = cometRand() > 0.5;
         const startX = horizontalStart ? -30 : Math.floor(cometRand() * width);
         const startY = horizontalStart ? Math.floor(cometRand() * (height * 0.55)) : -30;
         const speedBase = 1.4 + cometRand() * 1.8;
 
         comets.push({
-            x: startX,
-            y: startY,
+            startX,
+            startY,
             vx: speedBase * (0.9 + cometRand() * 0.9),
             vy: speedBase * (0.7 + cometRand() * 0.9),
             maxLife: 140 + Math.floor(cometRand() * 90),
-            life: 0
+            spawnFrame
         });
     }
 
     function updateStars() {
-        stars.forEach((star) => {
-            const twinkle = Math.sin((frame * star.twinkleSpeed) + star.twinkleOffset) * 0.24;
-            star.brightness = clamp(star.brightness + twinkle * 0.02, 0.3, 1);
-        });
+        // Twinkle now derives from shared simulationTimeSec in drawStars()
     }
 
     function updateComets() {
-        if (frame >= nextCometFrame && comets.length < 4) {
-            spawnComet();
-            nextCometFrame = frame + 180 + Math.floor(cometRand() * 340);
+        if (simulationFrame >= nextCometFrame && comets.length < 4) {
+            spawnComet(nextCometFrame);
+            nextCometFrame = simulationFrame + 180 + Math.floor(cometRand() * 340);
         }
 
         comets = comets.filter((comet) => {
-            comet.x += comet.vx;
-            comet.y += comet.vy;
-            comet.life += 1;
+            const age = simulationFrame - comet.spawnFrame;
+            const x = comet.startX + (comet.vx * age);
+            const y = comet.startY + (comet.vy * age);
 
-            return comet.life < comet.maxLife && comet.x < width + 50 && comet.y < height + 50;
+            return age < comet.maxLife && x < width + 50 && y < height + 50;
         });
     }
 
     function updatePlanets() {
         planets.forEach((planet) => {
-            planet.angle += 0.001 + (0.0035 * planet.activity);
+            planet.angle = planet.angleBase + (simulationTimeSec * planet.orbitSpeed);
             planet.x = Math.cos(planet.angle) * planet.orbitRadius;
             planet.y = Math.sin(planet.angle) * planet.orbitRadius;
         });
@@ -1915,7 +2129,9 @@ document.addEventListener('DOMContentLoaded', () => {
         starsCtx.fillRect(0, 0, width, height);
 
         stars.forEach((star) => {
-            starsCtx.globalAlpha = star.brightness;
+            const twinkle = Math.sin((simulationTimeSec * 60 * star.twinkleSpeed) + star.twinkleOffset) * 0.22;
+            const brightness = clamp(star.brightnessBase + twinkle, 0.3, 1);
+            starsCtx.globalAlpha = brightness;
             starsCtx.fillStyle = '#ffffff';
             starsCtx.fillRect(star.x, star.y, star.size, star.size);
         });
@@ -1927,12 +2143,16 @@ document.addEventListener('DOMContentLoaded', () => {
         starsCtx.fillStyle = '#d9f1ff';
 
         comets.forEach((comet) => {
+            const age = simulationFrame - comet.spawnFrame;
+            const x = comet.startX + (comet.vx * age);
+            const y = comet.startY + (comet.vy * age);
+
             starsCtx.globalAlpha = 1;
-            starsCtx.fillRect(comet.x, comet.y, 3, 3);
+            starsCtx.fillRect(x, y, 3, 3);
 
             for (let i = 1; i <= 12; i += 1) {
                 starsCtx.globalAlpha = Math.max(0.03, 1 - i * 0.08);
-                starsCtx.fillRect(comet.x - i * 2, comet.y - i * 2, 2, 2);
+                starsCtx.fillRect(x - i * 2, y - i * 2, 2, 2);
             }
         });
 
@@ -1969,7 +2189,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function drawPlanets() {
         universeCtx.clearRect(0, 0, width, height);
-        const centerX = (width / 2) + cameraPanX;
+        const centerX = (width / 2) + cameraPanX + layoutPanX;
         const centerY = (height / 2) + cameraPanY;
 
         const pointerWorldX = centerX + (pointer.x - centerX) / cameraZoom;
@@ -2042,7 +2262,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (overlayCoords) {
             if (pointer.active) {
-                const centerX = (width / 2) + cameraPanX;
+                const centerX = (width / 2) + cameraPanX + layoutPanX;
                 const centerY = (height / 2) + cameraPanY;
                 const worldX = Math.round((pointer.x - centerX) / cameraZoom);
                 const worldY = Math.round((pointer.y - centerY) / cameraZoom);
@@ -2054,7 +2274,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function tick() {
-        frame += 1;
+        simulationTimeSec = (getSynchronizedNowMs() - simulationEpochMs) / 1000;
+        simulationFrame = Math.floor(simulationTimeSec * 60);
+        layoutPanX = getLayoutPanCompensation();
 
         // Плавная интерполяция масштаба с динамической скоростью
         cameraZoom += (cameraZoomTarget - cameraZoom) * currentZoomSpeed;
@@ -2064,6 +2286,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (now - lastZoomInputTime > 100) {
             currentZoomSpeed = Math.max(currentZoomSpeed - 0.01, baseLerpSpeed);
         }
+
+        cameraPanX += (cameraPanTargetX - cameraPanX) * panLerpSpeed;
+        cameraPanY += (cameraPanTargetY - cameraPanY) * panLerpSpeed;
 
         updateStars();
         updateComets();
@@ -2085,6 +2310,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dragState.active && dragState.pointerId === event.pointerId) {
             cameraPanX += nextX - dragState.lastX;
             cameraPanY += nextY - dragState.lastY;
+            cameraPanTargetX = cameraPanX;
+            cameraPanTargetY = cameraPanY;
             dragState.lastX = nextX;
             dragState.lastY = nextY;
         }
@@ -2155,8 +2382,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (centerViewBtn) {
         centerViewBtn.addEventListener('click', (event) => {
             event.preventDefault();
-            cameraPanX = 0;
-            cameraPanY = 0;
+            cameraPanTargetX = 0;
+            cameraPanTargetY = 0;
         });
     }
 
@@ -2169,9 +2396,24 @@ document.addEventListener('DOMContentLoaded', () => {
     universeCanvas.style.cursor = 'grab';
 
     window.addEventListener('resize', () => {
-        setCanvasSize();
+        setCanvasSize(true);
     });
 
-    setCanvasSize();
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            syncServerClock();
+        }
+    });
+
+    await Promise.race([
+        syncServerClock(),
+        new Promise((resolve) => setTimeout(() => resolve(false), 1200))
+    ]);
+
+    setInterval(() => {
+        syncServerClock();
+    }, 3 * 60 * 1000);
+
+    setCanvasSize(false);
     tick();
 });

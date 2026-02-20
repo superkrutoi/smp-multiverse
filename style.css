@@ -132,6 +132,9 @@
     --border-width:  2px;        /* Толщина блочных рамок */
     --slot-size:     32px;       /* Размер инвентарных слотов/иконок */
     --panel-padding: calc(var(--spacing-unit) * 2);
+    --sidebar-width: 280px;
+    --sidebar-motion-duration: 0.55s;
+    --sidebar-motion-ease: cubic-bezier(.22, 1, .36, 1);
 }
 
 html {
@@ -223,30 +226,37 @@ body {
     display: none;
 }
 
+.app {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
 /* Сайдбар (sliding эффект) — MC стиль */
 .sidebar {
     height: 100%;
-    width: 280px;  /* ← ширина по умолчанию — виден сразу */
-    position: fixed;
+    width: var(--sidebar-width);
+    box-sizing: border-box;
+    flex-shrink: 0;
+    position: relative;
     z-index: 1001;
-    top: 0;
-    left: 0;
     background: var(--xaero-bg-card);
     border: var(--border-width) solid var(--mc-border);
     border-right: var(--border-width) solid var(--xaero-border);
     box-shadow: 0 0 0 2px var(--mc-bg-medium) inset;
     overflow-x: hidden;
-    transition: width 0.1s linear, opacity 0.1s linear, transform 0.1s linear;
+    transition: transform var(--sidebar-motion-duration) var(--sidebar-motion-ease);
     padding: 72px 16px 16px;
     opacity: 1;
     font-family: var(--font-primary);
     font-size: 14px;
     line-height: 1.2;
+    will-change: transform;
 }
 
-.sidebar.hidden {
-    width: 0;  /* скрывается когда есть класс hidden */
-    opacity: 0;  /* плавно исчезает */
+.app.sidebar-closed .sidebar {
+    transform: translateX(-100%);
 }
 
 .sidebar ul,
@@ -345,7 +355,7 @@ body {
 }
 
 .sidebar #hide-sidebar {
-    position: fixed;
+    position: absolute;
     top: 16px;
     left: 16px;
     width: var(--slot-size);
@@ -385,7 +395,7 @@ body {
 }
 
 #show-sidebar {
-    position: fixed;
+    position: absolute;
     top: 16px;
     left: 16px;
     width: var(--slot-size);
@@ -400,7 +410,7 @@ body {
     background: var(--mc-bg-medium);
     border: var(--border-width) solid var(--mc-border);
     padding: 0;
-    transition: all 0.1s linear;
+    transition: opacity 0.2s linear, filter 0.1s linear, background-color 0.1s linear, color 0.1s linear;
     opacity: 0;
     pointer-events: none;
     z-index: 1000;
@@ -409,7 +419,7 @@ body {
     text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
 }
 
-#show-sidebar:not(.hidden) {
+.app.sidebar-closed #show-sidebar {
     opacity: 1;
     pointer-events: auto;
 }
@@ -422,17 +432,19 @@ body {
 }
 
 .map-area {
-    margin-left: 280px;
-    transition: margin-left 0.1s linear;
+    flex: 0 0 100vw;
+    width: 100vw;
     padding: 0;
-    height: 100vh;
+    height: 100%;
     background: var(--xaero-bg-dark);
     position: relative;
     overflow: hidden;
+    transition: transform var(--sidebar-motion-duration) var(--sidebar-motion-ease);
+    will-change: transform;
 }
 
-.map-area.expanded {
-    margin-left: 0;
+.app.sidebar-closed .map-area {
+    transform: translateX(calc(-1 * var(--sidebar-width)));
 }
 
 #map {
@@ -494,7 +506,7 @@ body {
 }
 
 .map-zoom-controls {
-    position: absolute;
+    position: fixed;
     right: 24px;
     top: 50%;
     transform: translateY(-50%);
@@ -546,6 +558,14 @@ body {
     width: 38px;
     height: 38px;
     margin-top: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar,
+    .map-area,
+    #show-sidebar {
+        transition: none;
+    }
 }
 
 .map-center-btn .map-zoom-icon {
@@ -2334,6 +2354,9 @@ body.dev-active .dev-toggle {
 .sounds-tree { list-style:none; padding:0; margin:0; font-size:13px; width:100%; overflow:visible; flex:0 0 auto; font-family: var(--font-primary); }
 .sounds-tree ul { list-style:none; padding-left:0; margin:0; }
 .sounds-tree li { margin:0; }
+.sounds-folder-btn { background:none; border:none; color:var(--mc-text); cursor:pointer; font-size:13px; letter-spacing:0.4px; padding:10px 12px; display:flex; align-items:center; gap:8px; width:100%; text-align:left; transition:all 0.1s linear; min-height:34px; border-radius:0; font-family:var(--font-ui); }
+.sounds-folder-btn:hover { background:rgba(85,255,85,0.1); filter:brightness(1.15); }
+.sounds-folder-btn.active { background:rgba(85,255,85,0.2); color:var(--mc-accent); }
 
 .sounds-category { margin:0; }
 .sounds-category-btn { background:none; border:none; color:var(--mc-text); cursor:pointer; font-size:13.5px; letter-spacing:0.5px; padding:10px 12px; display:flex; align-items:center; gap:11px; width:100%; text-align:left; transition:all 0.1s linear; min-height:38px; border-radius:0; font-family: var(--font-ui); font-weight:500; }
@@ -2355,12 +2378,12 @@ body.dev-active .dev-toggle {
 /* Карточка звука */
 .sound-card {
     display: flex;
-    align-items: center;
     gap: 10px;
-    padding: 8px 10px;
-    background: #2a2a2a;
-    border: var(--border-width) solid var(--mc-border);
-    min-height: 56px;
+    padding: 8px;
+    border: 2px solid #1a1a1a;
+    background: #222;
+    font-family: 'Glasstown';
+    align-items: flex-start;
     transition: all 0.15s linear;
     position: relative;
 }
@@ -2376,46 +2399,36 @@ body.dev-active .dev-toggle {
     box-shadow: 0 0 12px rgba(85, 255, 85, 0.3), inset 0 0 8px rgba(85, 255, 85, 0.1);
 }
 
-/* Контейнер кнопок */
-.sound-buttons {
-    display: flex;
-    gap: 4px;
-    flex-shrink: 0;
-}
-
 /* Кнопка play/pause */
-.sound-play-btn {
+.play-btn {
     flex-shrink: 0;
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
     background: #1f1f1f;
     border: var(--border-width) solid var(--mc-border);
     color: var(--mc-accent);
-    font-size: 11px;
-    font-weight: 700;
+    font-family: 'HUD Sonic X1', 'HUDSonic', monospace;
+    font-size: 14px;
     cursor: pointer;
     transition: all 0.12s linear;
     border-radius: 0;
-    font-family: var(--font-ui);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
 }
 
-.sound-play-btn:hover {
+.play-btn:hover {
     background: #2a2a2a;
     border-color: var(--mc-accent);
     filter: brightness(1.1);
 }
 
-.sound-play-btn:active {
+.play-btn:active {
     transform: scale(0.95);
 }
 
-.sound-card.playing .sound-play-btn {
+.sound-card.playing .play-btn {
     background: var(--mc-accent);
     color: #000;
 }
@@ -2430,19 +2443,56 @@ body.dev-active .dev-toggle {
 }
 
 .sound-title {
-    font-family: var(--font-primary);
+    font-family: 'Glasstown', var(--font-primary);
     font-size: 12px;
     color: #ddd;
     line-height: 1.2;
-    letter-spacing: 0.3px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-weight: normal;
 }
 
 .sound-card.playing .sound-title {
     color: var(--mc-accent);
+}
+
+.sound-meta {
+    font-size: 10px;
+    color: #aaa;
+    margin-top: 2px;
+}
+
+.sound-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.sound-mode-switcher {
+    display: flex;
+    gap: 4px;
+}
+
+.sound-mode-btn {
+    border: var(--border-width) solid var(--mc-border);
+    background: #1f1f1f;
+    color: var(--mc-text);
+    min-width: 30px;
+    height: 20px;
+    padding: 0 4px;
+    cursor: pointer;
+    font-family: var(--font-ui);
+}
+
+.sound-mode-btn.active {
+    border-color: var(--mc-accent);
+    color: var(--mc-accent);
+}
+
+.mode-btn-text {
+    font-size: 10px;
+    padding-left: 6px;
 }
 
 /* Ползунок прогресса */
