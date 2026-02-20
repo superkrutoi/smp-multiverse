@@ -261,10 +261,45 @@ body {
     grid-template-rows: 1fr auto;
 }
 
-#planetFrame {
-    width: 100%;
-    height: 100%;
-    border: 0;
+.planet-editor-layout {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) minmax(280px, 1fr);
+    gap: 14px;
+    padding: 14px;
+    align-items: start;
+}
+
+.planet-editor-preview-wrap {
+    border: 2px solid var(--mc-border);
+    background: radial-gradient(circle at 50% 40%, #181a30, #080912 75%);
+    box-shadow: 0 0 0 2px var(--mc-bg-medium) inset;
+    display: grid;
+    place-items: center;
+    min-height: 320px;
+}
+
+#planetEditorCanvas {
+    width: 220px;
+    height: 220px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.planet-editor-controls {
+    display: grid;
+    gap: 10px;
+}
+
+.planet-checkbox-label {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 10px;
+}
+
+.planet-checkbox-label input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
 }
 
 .planet-modal-actions {
@@ -280,4 +315,19 @@ body {
     margin: 0;
     color: var(--mc-text-dark);
     font-size: 12px;
+}
+
+.planet-modal-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+@media (max-width: 820px) {
+    .planet-editor-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .planet-editor-preview-wrap {
+        min-height: 250px;
+    }
 }

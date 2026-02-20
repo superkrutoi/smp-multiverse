@@ -1,6 +1,6 @@
 import { State } from './state.js';
 import { setupModal } from './modal.js';
-import { setupPlanetGenerator } from './planet-generator-wrapper.js';
+import { createPlanetEditor } from './planet-editor.js';
 
 const versions = ['1.21.4', '1.21.1', '1.20.6', '1.20.4'];
 const cores = ['Paper', 'Fabric', 'Forge', 'Purpur'];
@@ -23,9 +23,17 @@ const pickPlanetBtn = document.getElementById('pickPlanetBtn');
 
 const planetModal = document.getElementById('planetModal');
 const closePlanetModal = document.getElementById('closePlanetModal');
-const planetFrame = document.getElementById('planetFrame');
+const applyPlanetBtn = document.getElementById('applyPlanetBtn');
+const randomPlanetBtn = document.getElementById('randomPlanetBtn');
+const planetEditorCanvas = document.getElementById('planetEditorCanvas');
+const planetSeed = document.getElementById('planetSeed');
+const planetHue = document.getElementById('planetHue');
+const planetWater = document.getElementById('planetWater');
+const planetAtmosphere = document.getElementById('planetAtmosphere');
+const planetCraters = document.getElementById('planetCraters');
+const planetRing = document.getElementById('planetRing');
 
-let selectedPlanetPreview = 'assets/planet_web/PixelPlanets.icon.png';
+let selectedPlanetPreview = '';
 let selectedPlanetData = null;
 let editingServerId = null;
 
@@ -83,8 +91,9 @@ function resetServerForm() {
     editingServerId = null;
     createServerTitle.textContent = 'Создание сервера';
     saveServerBtn.textContent = 'Создать';
-    selectedPlanetPreview = 'assets/planet_web/PixelPlanets.icon.png';
-    selectedPlanetData = null;
+    const generated = planetEditor.exportPlanet();
+    selectedPlanetPreview = generated.preview;
+    selectedPlanetData = generated.params;
     planetPreview.src = selectedPlanetPreview;
 }
 
@@ -111,7 +120,7 @@ function openEditServerModal(id, focusQuestionnaire = false) {
     serverForm.elements.core.value = server.core || cores[0];
     serverForm.elements.questionnaireUrl.value = server.questionnaireUrl || '';
 
-    selectedPlanetPreview = server.planetPreview || 'assets/planet_web/PixelPlanets.icon.png';
+    selectedPlanetPreview = server.planetPreview || selectedPlanetPreview;
     selectedPlanetData = server.planetData || null;
     planetPreview.src = selectedPlanetPreview;
 
@@ -134,23 +143,46 @@ closeServerModalSecondary.addEventListener('click', () => {
     serverModalControls.close();
 });
 
-const planetGenerator = setupPlanetGenerator({
+const planetModalControls = setupModal({
     modal: planetModal,
-    closeButton: closePlanetModal,
-    iframe: planetFrame,
-    onPlanetSelected: ({ preview, params }) => {
-        selectedPlanetPreview = preview;
-        selectedPlanetData = params;
-        planetPreview.src = preview;
+    closeButton: closePlanetModal
+});
+
+const planetEditor = createPlanetEditor({
+    canvas: planetEditorCanvas,
+    fields: {
+        seed: planetSeed,
+        hue: planetHue,
+        water: planetWater,
+        atmosphere: planetAtmosphere,
+        craters: planetCraters,
+        ring: planetRing
     }
 });
+
+const initialPlanet = planetEditor.exportPlanet();
+selectedPlanetPreview = initialPlanet.preview;
+selectedPlanetData = initialPlanet.params;
 
 addServerBtn.addEventListener('click', openCreateServerModal);
 
 emptyCreateBtn.addEventListener('click', openCreateServerModal);
 
 pickPlanetBtn.addEventListener('click', () => {
-    planetGenerator.openGenerator();
+    planetEditor.setParams(selectedPlanetData || null);
+    planetModalControls.open();
+});
+
+randomPlanetBtn.addEventListener('click', () => {
+    planetEditor.randomize();
+});
+
+applyPlanetBtn.addEventListener('click', () => {
+    const generated = planetEditor.exportPlanet();
+    selectedPlanetPreview = generated.preview;
+    selectedPlanetData = generated.params;
+    planetPreview.src = selectedPlanetPreview;
+    planetModalControls.close();
 });
 
 grid.addEventListener('click', (event) => {

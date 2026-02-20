@@ -13,19 +13,26 @@ Write-Host "Root: $root"
 
 $mime = @{
     ".html" = "text/html; charset=utf-8"
+    ".md"   = "text/markdown; charset=utf-8"
+    ".txt"  = "text/plain; charset=utf-8"
     ".js"   = "application/javascript; charset=utf-8"
     ".mjs"  = "application/javascript; charset=utf-8"
     ".css"  = "text/css; charset=utf-8"
     ".json" = "application/json; charset=utf-8"
     ".wasm" = "application/wasm"
+    ".pck"  = "application/octet-stream"
     ".png"  = "image/png"
     ".jpg"  = "image/jpeg"
     ".jpeg" = "image/jpeg"
+    ".webp" = "image/webp"
+    ".gif"  = "image/gif"
     ".svg"  = "image/svg+xml"
     ".ico"  = "image/x-icon"
     ".woff2" = "font/woff2"
+    ".woff" = "font/woff"
     ".ogg"  = "audio/ogg"
     ".mp3"  = "audio/mpeg"
+    ".m4a"  = "audio/mp4"
     ".wav"  = "audio/wav"
 }
 
@@ -47,7 +54,10 @@ while ($listener.IsListening) {
         $targetPath = Join-Path $root $relativePath
 
         if ((Test-Path $targetPath) -and (Get-Item $targetPath).PSIsContainer) {
-            $targetPath = Join-Path $targetPath "index.html"
+            $indexPath = Join-Path $targetPath "index.html"
+            if (Test-Path $indexPath) {
+                $targetPath = $indexPath
+            }
         }
 
         if (-not (Test-Path $targetPath)) {

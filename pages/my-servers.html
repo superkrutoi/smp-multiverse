@@ -85,10 +85,44 @@
 
     <div id="planetModal" class="modal hidden" aria-hidden="true">
         <div class="planet-modal-content" role="dialog" aria-modal="true" aria-label="Генератор планет">
-            <iframe id="planetFrame" src="../assets/planet_web/PixelPlanets.html" title="Pixel Planets"></iframe>
+            <div class="planet-editor-layout">
+                <div class="planet-editor-preview-wrap">
+                    <canvas id="planetEditorCanvas" width="220" height="220" aria-label="Предпросмотр планеты"></canvas>
+                </div>
+                <div class="planet-editor-controls">
+                    <label class="field-label">
+                        Seed
+                        <input type="number" id="planetSeed" min="1" max="999999" step="1">
+                    </label>
+                    <label class="field-label">
+                        Цвет планеты
+                        <input type="range" id="planetHue" min="0" max="360" step="1">
+                    </label>
+                    <label class="field-label">
+                        Вода / лёд
+                        <input type="range" id="planetWater" min="0" max="100" step="1">
+                    </label>
+                    <label class="field-label">
+                        Атмосфера
+                        <input type="range" id="planetAtmosphere" min="0" max="100" step="1">
+                    </label>
+                    <label class="field-label">
+                        Кратеры
+                        <input type="range" id="planetCraters" min="0" max="100" step="1">
+                    </label>
+                    <label class="field-label planet-checkbox-label">
+                        <input type="checkbox" id="planetRing">
+                        Кольцо планеты
+                    </label>
+                    <button id="randomPlanetBtn" class="secondary-btn" type="button">Случайная планета</button>
+                </div>
+            </div>
             <div class="planet-modal-actions">
-                <p class="planet-modal-note">После экспорта в генераторе данные подтянутся автоматически.</p>
-                <button id="closePlanetModal" class="secondary-btn" type="button">Закрыть</button>
+                <p class="planet-modal-note">Нативный редактор планет (без iframe/Godot).</p>
+                <div class="planet-modal-buttons">
+                    <button id="closePlanetModal" class="secondary-btn" type="button">Отмена</button>
+                    <button id="applyPlanetBtn" class="primary-btn" type="button">Сохранить планету</button>
+                </div>
             </div>
         </div>
     </div>

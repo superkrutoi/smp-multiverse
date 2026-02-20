@@ -1071,17 +1071,37 @@ const renderDevMenuItem = async (itemNumber) => {
                 
                 // Удаляем metadata из текста перед рендерингом
                 let cleanedText = text.replace(/<!--metadata[\s\S]*?-->\s*/, '');
+
+                function convertMarkdownToHtml(markdownText) {
+                    let htmlText = markdownText
+                        .replace(/^# (.*?)$/gm, '<h1>$1</h1>')
+                        .replace(/^## (.*?)$/gm, '<h2>$1</h2>')
+                        .replace(/^### (.*?)$/gm, '<h3>$1</h3>')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+
+                    htmlText = htmlText.replace(/(?:^|\n)-\s+(.+?)(?=\n(?:-\s+|$)|\n\n|$)/g, (match) => {
+                        const items = match
+                            .trim()
+                            .split('\n')
+                            .map((line) => line.replace(/^-\s+/, '').trim())
+                            .filter(Boolean)
+                            .map((item) => `<li>${item}</li>`)
+                            .join('');
+
+                        return `\n<ul>${items}</ul>`;
+                    });
+
+                    htmlText = htmlText
+                        .replace(/\n\n/g, '</p><p>')
+                        .replace(/\n/g, '<br>');
+
+                    return htmlText;
+                }
                 
                 // Простой рендер markdown (без библиотеки)
-                const html = cleanedText
-                    .replace(/^# (.*?)$/gm, '<h1>$1</h1>')
-                    .replace(/^## (.*?)$/gm, '<h2>$1</h2>')
-                    .replace(/^### (.*?)$/gm, '<h3>$1</h3>')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                    .replace(/```(.*?)```/gs, '<pre><code>$1</code></pre>')
-                    .replace(/\n\n/g, '</p><p>')
-                    .replace(/\n/g, '<br>');
+                const html = convertMarkdownToHtml(cleanedText);
                 
                 // Формируем HTML с metadata в правом верхнем углу
                 const metadataHtml = metadata.updated ? `
