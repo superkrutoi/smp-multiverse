@@ -28,8 +28,10 @@ const randomPlanetBtn = document.getElementById('randomPlanetBtn');
 const planetEditorCanvas = document.getElementById('planetEditorCanvas');
 const planetSeed = document.getElementById('planetSeed');
 const planetPalette = document.getElementById('planetPalette');
-const planetTerrain = document.getElementById('planetTerrain');
-const planetClouds = document.getElementById('planetClouds');
+const planetScale = document.getElementById('planetScale');
+const planetOctaves = document.getElementById('planetOctaves');
+const planetSeaLevel = document.getElementById('planetSeaLevel');
+const planetCloudDensity = document.getElementById('planetCloudDensity');
 const planetAtmosphere = document.getElementById('planetAtmosphere');
 const planetRingType = document.getElementById('planetRingType');
 
@@ -159,8 +161,10 @@ const planetEditor = createPlanetEditor({
     fields: {
         seed: planetSeed,
         palette: planetPalette,
-        terrain: planetTerrain,
-        clouds: planetClouds,
+        scale: planetScale,
+        octaves: planetOctaves,
+        seaLevel: planetSeaLevel,
+        cloudDensity: planetCloudDensity,
         atmosphere: planetAtmosphere,
         ringType: planetRingType
     }

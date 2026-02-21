@@ -87,7 +87,7 @@
         <div class="planet-modal-content" role="dialog" aria-modal="true" aria-label="Генератор планет">
             <div class="planet-editor-layout">
                 <div class="planet-editor-preview-wrap">
-                    <canvas id="planetEditorCanvas" width="220" height="220" aria-label="Предпросмотр планеты"></canvas>
+                    <canvas id="planetEditorCanvas" width="288" height="288" aria-label="Предпросмотр планеты"></canvas>
                 </div>
                 <div class="planet-editor-controls">
                     <label class="field-label">
@@ -100,21 +100,31 @@
                             <option value="earth">Земная</option>
                             <option value="lava">Лавовая</option>
                             <option value="ice">Ледяная</option>
-                            <option value="toxic">Токсичная</option>
+                            <option value="desert">Пустынная</option>
+                            <option value="dark">Тёмная</option>
                         </select>
                     </label>
                     <label class="field-label">
-                        Тип поверхности
-                        <select id="planetTerrain">
-                            <option value="smooth">Гладкая</option>
-                            <option value="mixed">Смешанная</option>
-                            <option value="rough">Шероховатая</option>
-                            <option value="cracked">Трещины</option>
+                        Масштаб континентов
+                        <input type="range" id="planetScale" min="120" max="340" step="1">
+                    </label>
+                    <label class="field-label">
+                        Детализация (octaves)
+                        <select id="planetOctaves">
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
                         </select>
                     </label>
                     <label class="field-label">
-                        Облачность
-                        <input type="range" id="planetClouds" min="0" max="100" step="1">
+                        Уровень моря
+                        <input type="range" id="planetSeaLevel" min="25" max="80" step="1">
+                    </label>
+                    <label class="field-label">
+                        Плотность облаков
+                        <input type="range" id="planetCloudDensity" min="0" max="100" step="1">
                     </label>
                     <label class="field-label">
                         Атмосфера
@@ -132,7 +142,7 @@
                 </div>
             </div>
             <div class="planet-modal-actions">
-                <p class="planet-modal-note">Atlas-редактор: дешёвый preview + параметры для масштабируемого рендера.</p>
+                <p class="planet-modal-note">Cube-генерация: бесшовный 3D-noise + псевдо-3D canvas preview.</p>
                 <div class="planet-modal-buttons">
                     <button id="closePlanetModal" class="secondary-btn" type="button">Отмена</button>
                     <button id="applyPlanetBtn" class="primary-btn" type="button">Сохранить планету</button>

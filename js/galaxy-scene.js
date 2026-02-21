@@ -86,7 +86,7 @@ export class GalaxyScene {
         const atlas = await buildPlanetAtlas({
             count: this.atlasCount,
             cellSize: 64,
-            style: 'hybrid',
+            style: 'cube',
             baseSeed: 7000
         });
 

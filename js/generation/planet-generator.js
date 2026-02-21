@@ -37,9 +37,18 @@ const PLANET_PALETTES = {
 };
 
 const PLANET_TYPES = ['earth', 'lava', 'ice', 'desert', 'dark'];
+const FACE_NAMES = ['top', 'bottom', 'left', 'right', 'front', 'back'];
 
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
+}
+
+function lerp(a, b, t) {
+    return a + ((b - a) * t);
+}
+
+function smoothStep(t) {
+    return t * t * (3 - (2 * t));
 }
 
 function hexToRgb(hex) {
@@ -53,6 +62,22 @@ function hexToRgb(hex) {
 
 function rgbToString(color, alpha = 1) {
     return `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha})`;
+}
+
+function mixColor(a, b, t) {
+    return {
+        r: Math.round(lerp(a.r, b.r, t)),
+        g: Math.round(lerp(a.g, b.g, t)),
+        b: Math.round(lerp(a.b, b.b, t))
+    };
+}
+
+function shadeColor(color, amount) {
+    return {
+        r: clamp(Math.round(color.r * amount), 0, 255),
+        g: clamp(Math.round(color.g * amount), 0, 255),
+        b: clamp(Math.round(color.b * amount), 0, 255)
+    };
 }
 
 export function rng(seed) {
@@ -69,48 +94,6 @@ function pickPlanetType(seedValue) {
     return PLANET_TYPES[Math.abs(seedValue) % PLANET_TYPES.length];
 }
 
-function createBlobSet(random, size, radius) {
-    const blobCount = 3 + Math.floor(random() * 3);
-    const blobs = [];
-
-    for (let i = 0; i < blobCount; i += 1) {
-        const angle = random() * Math.PI * 2;
-        const dist = random() * (radius * 0.5);
-        blobs.push({
-            x: (size * 0.5) + Math.cos(angle) * dist,
-            y: (size * 0.5) + Math.sin(angle) * dist,
-            radius: radius * (0.18 + random() * 0.2)
-        });
-    }
-
-    return blobs;
-}
-
-function selectShade(dot) {
-    if (dot > 0.35) {
-        return 'light';
-    }
-    if (dot > -0.1) {
-        return 'mid';
-    }
-    return 'dark';
-}
-
-function isInsideStyleMask(nx, ny, style) {
-    if (style === 'cubic') {
-        return Math.max(Math.abs(nx), Math.abs(ny)) <= 1;
-    }
-
-    if (style === 'hybrid') {
-        const sphere = (nx * nx) + (ny * ny);
-        const cube = Math.max(Math.abs(nx), Math.abs(ny));
-        const hybrid = (sphere * 0.7) + ((cube * cube) * 0.3);
-        return hybrid <= 1;
-    }
-
-    return (nx * nx) + (ny * ny) <= 1;
-}
-
 function createCanvas(size) {
     if (typeof OffscreenCanvas !== 'undefined') {
         return new OffscreenCanvas(size, size);
@@ -122,64 +105,214 @@ function createCanvas(size) {
     return canvas;
 }
 
-function drawRingPixel(ctx, center, radius, random, colorDark, colorLight, frontLayer) {
-    const tilt = 0.45;
-    const inner = radius * 1.18;
-    const outer = radius * 1.42;
+function hashInt3(x, y, z, seed) {
+    let h = (x * 374761393) ^ (y * 668265263) ^ (z * 2147483647) ^ (seed * 1274126177);
+    h = (h ^ (h >>> 13)) | 0;
+    h = Math.imul(h, 1274126177);
+    h = h ^ (h >>> 16);
+    return ((h >>> 0) / 4294967295) * 2 - 1;
+}
 
-    for (let y = -Math.ceil(outer); y <= Math.ceil(outer); y += 1) {
-        for (let x = -Math.ceil(outer); x <= Math.ceil(outer); x += 1) {
-            const ex = x;
-            const ey = y / tilt;
-            const len = Math.sqrt((ex * ex) + (ey * ey));
-            if (len < inner || len > outer) {
-                continue;
+function createNoise3D(seed) {
+    return function noise3D(x, y, z) {
+        const xi = Math.floor(x);
+        const yi = Math.floor(y);
+        const zi = Math.floor(z);
+        const xf = x - xi;
+        const yf = y - yi;
+        const zf = z - zi;
+
+        const u = smoothStep(xf);
+        const v = smoothStep(yf);
+        const w = smoothStep(zf);
+
+        const n000 = hashInt3(xi, yi, zi, seed);
+        const n100 = hashInt3(xi + 1, yi, zi, seed);
+        const n010 = hashInt3(xi, yi + 1, zi, seed);
+        const n110 = hashInt3(xi + 1, yi + 1, zi, seed);
+        const n001 = hashInt3(xi, yi, zi + 1, seed);
+        const n101 = hashInt3(xi + 1, yi, zi + 1, seed);
+        const n011 = hashInt3(xi, yi + 1, zi + 1, seed);
+        const n111 = hashInt3(xi + 1, yi + 1, zi + 1, seed);
+
+        const x00 = lerp(n000, n100, u);
+        const x10 = lerp(n010, n110, u);
+        const x01 = lerp(n001, n101, u);
+        const x11 = lerp(n011, n111, u);
+
+        const y0 = lerp(x00, x10, v);
+        const y1 = lerp(x01, x11, v);
+        return lerp(y0, y1, w);
+    };
+}
+
+function fbm(noise3D, x, y, z, octaves, persistence, lacunarity) {
+    let value = 0;
+    let amplitude = 1;
+    let frequency = 1;
+    let sumAmplitude = 0;
+
+    for (let i = 0; i < octaves; i += 1) {
+        value += noise3D(x * frequency, y * frequency, z * frequency) * amplitude;
+        sumAmplitude += amplitude;
+        amplitude *= persistence;
+        frequency *= lacunarity;
+    }
+
+    return sumAmplitude > 0 ? value / sumAmplitude : 0;
+}
+
+function faceToXYZ(face, u, v) {
+    switch (face) {
+        case 'top':
+            return [u, 1, -v];
+        case 'bottom':
+            return [u, -1, v];
+        case 'left':
+            return [-1, v, u];
+        case 'right':
+            return [1, v, -u];
+        case 'front':
+            return [u, v, 1];
+        default:
+            return [-u, v, -1];
+    }
+}
+
+function sampleFace(faceMap, x, y, sourceSize) {
+    const px = clamp(Math.floor((x + 0.5) * sourceSize), 0, sourceSize - 1);
+    const py = clamp(Math.floor((y + 0.5) * sourceSize), 0, sourceSize - 1);
+    return faceMap[px][py];
+}
+
+function biomeColor(heightValue, seaLevel, palette) {
+    if (heightValue < seaLevel) {
+        const depthRatio = clamp(heightValue / Math.max(0.0001, seaLevel), 0, 1);
+        return depthRatio > 0.58 ? palette.oceanLight : palette.oceanDark;
+    }
+
+    const landT = clamp((heightValue - seaLevel) / Math.max(0.0001, 1 - seaLevel), 0, 1);
+    if (landT > 0.86) {
+        return palette.highlight;
+    }
+
+    return landT > 0.42 ? palette.landLight : palette.landDark;
+}
+
+function projectIso(x, y, z, originX, originY, scaleX, scaleY, scaleZ) {
+    return {
+        x: originX + ((x - z) * scaleX),
+        y: originY + ((x + z) * scaleY) - (y * scaleZ)
+    };
+}
+
+function drawQuad(ctx, p1, p2, p3, p4, color) {
+    ctx.fillStyle = rgbToString(color);
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.lineTo(p3.x, p3.y);
+    ctx.lineTo(p4.x, p4.y);
+    ctx.closePath();
+    ctx.fill();
+}
+
+function drawCubeFace(ctx, options) {
+    const {
+        faceName,
+        faceMap,
+        faceResolution,
+        sourceResolution,
+        seaLevel,
+        palette,
+        originX,
+        originY,
+        scaleX,
+        scaleY,
+        scaleZ,
+        shadeFactor
+    } = options;
+
+    for (let row = 0; row < faceResolution; row += 1) {
+        for (let col = 0; col < faceResolution; col += 1) {
+            const x0 = col / faceResolution;
+            const x1 = (col + 1) / faceResolution;
+            const y0 = row / faceResolution;
+            const y1 = (row + 1) / faceResolution;
+
+            let p1;
+            let p2;
+            let p3;
+            let p4;
+
+            if (faceName === 'top') {
+                p1 = projectIso(x0, 1, y0, originX, originY, scaleX, scaleY, scaleZ);
+                p2 = projectIso(x1, 1, y0, originX, originY, scaleX, scaleY, scaleZ);
+                p3 = projectIso(x1, 1, y1, originX, originY, scaleX, scaleY, scaleZ);
+                p4 = projectIso(x0, 1, y1, originX, originY, scaleX, scaleY, scaleZ);
+            } else if (faceName === 'right') {
+                const ry0 = 1 - y0;
+                const ry1 = 1 - y1;
+                p1 = projectIso(1, ry0, x0, originX, originY, scaleX, scaleY, scaleZ);
+                p2 = projectIso(1, ry0, x1, originX, originY, scaleX, scaleY, scaleZ);
+                p3 = projectIso(1, ry1, x1, originX, originY, scaleX, scaleY, scaleZ);
+                p4 = projectIso(1, ry1, x0, originX, originY, scaleX, scaleY, scaleZ);
+            } else {
+                const fy0 = 1 - y0;
+                const fy1 = 1 - y1;
+                p1 = projectIso(x0, fy0, 1, originX, originY, scaleX, scaleY, scaleZ);
+                p2 = projectIso(x1, fy0, 1, originX, originY, scaleX, scaleY, scaleZ);
+                p3 = projectIso(x1, fy1, 1, originX, originY, scaleX, scaleY, scaleZ);
+                p4 = projectIso(x0, fy1, 1, originX, originY, scaleX, scaleY, scaleZ);
             }
 
-            if (frontLayer && y < 0) {
-                continue;
-            }
-            if (!frontLayer && y >= 0) {
-                continue;
-            }
-
-            const px = Math.round(center + x);
-            const py = Math.round(center + y);
-            const shadeJitter = random() > 0.6;
-            ctx.fillStyle = shadeJitter ? rgbToString(colorLight, 0.85) : rgbToString(colorDark, 0.8);
-            ctx.fillRect(px, py, 1, 1);
+            const faceHeight = sampleFace(faceMap, (x0 + x1) * 0.5 - 0.5, (y0 + y1) * 0.5 - 0.5, sourceResolution);
+            const base = biomeColor(faceHeight, seaLevel, palette);
+            const shaded = shadeColor(base, shadeFactor);
+            drawQuad(ctx, p1, p2, p3, p4, shaded);
         }
     }
 }
 
-function drawClouds(ctx, size, radius, random) {
-    const cloudBlobs = 2 + Math.floor(random() * 2);
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(size * 0.5, size * 0.5, radius, 0, Math.PI * 2);
-    ctx.clip();
+function generateCubeMaps(size, seedValue, params) {
+    const faces = {
+        top: Array.from({ length: size }, () => new Array(size).fill(0)),
+        bottom: Array.from({ length: size }, () => new Array(size).fill(0)),
+        left: Array.from({ length: size }, () => new Array(size).fill(0)),
+        right: Array.from({ length: size }, () => new Array(size).fill(0)),
+        front: Array.from({ length: size }, () => new Array(size).fill(0)),
+        back: Array.from({ length: size }, () => new Array(size).fill(0))
+    };
 
-    for (let i = 0; i < cloudBlobs; i += 1) {
-        const x = (size * 0.5) + ((random() * 2 - 1) * radius * 0.5);
-        const y = (size * 0.5) + ((random() * 2 - 1) * radius * 0.4);
-        const r = radius * (0.15 + random() * 0.1);
-        ctx.fillStyle = 'rgba(242, 247, 255, 0.6)';
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
+    const noise3D = createNoise3D(seedValue || 1);
+    const scale = params.scale;
+    const octaves = params.octaves;
+    const persistence = params.persistence;
+    const lacunarity = params.lacunarity;
+
+    for (const faceName of FACE_NAMES) {
+        const face = faces[faceName];
+        for (let x = 0; x < size; x += 1) {
+            for (let y = 0; y < size; y += 1) {
+                const u = ((x + 0.5) / size) * 2 - 1;
+                const v = ((y + 0.5) / size) * 2 - 1;
+                const [nx, ny, nz] = faceToXYZ(faceName, u, v);
+                const n = fbm(noise3D, nx * scale, ny * scale, nz * scale, octaves, persistence, lacunarity);
+                face[x][y] = clamp((n + 1) * 0.5, 0, 1);
+            }
+        }
     }
 
-    ctx.restore();
+    return faces;
 }
 
 export function generatePlanetTexture(seedValue, options = {}) {
     const size = options.size || 64;
-    const style = options.style || 'hybrid';
-    const radius = size * 0.5;
-    const center = radius;
     const random = rng(seedValue || 1);
-
     const type = options.type || pickPlanetType(seedValue || 1);
+    const hasClouds = options.hasClouds ?? (random() > 0.58);
+    const ringType = options.ringType || 'none';
+
     const paletteHex = PLANET_PALETTES[type] || PLANET_PALETTES.earth;
     const palette = {
         oceanDark: hexToRgb(paletteHex.oceanDark),
@@ -189,92 +322,91 @@ export function generatePlanetTexture(seedValue, options = {}) {
         highlight: hexToRgb(paletteHex.highlight)
     };
 
-    const hasClouds = options.hasClouds ?? (random() > 0.5);
-    const ringType = options.ringType || (random() > 0.7 ? 'thin' : 'none');
+    const params = {
+        scale: options.scale || 2.2,
+        octaves: options.octaves || 5,
+        persistence: options.persistence || 0.5,
+        lacunarity: options.lacunarity || 2,
+        seaLevel: clamp(options.seaLevel ?? 0.5, 0.15, 0.85)
+    };
+
+    const faceMaps = generateCubeMaps(size, seedValue || 1, params);
 
     const canvas = createCanvas(size);
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, size, size);
 
-    const landBlobs = createBlobSet(random, size, radius);
-    const lightDir = { x: -0.7, y: -0.3 };
+    const faceResolution = clamp(Math.floor(size / 3), 8, 24);
+    const originX = size * 0.5;
+    const originY = size * 0.87;
+    const scaleX = size * 0.26;
+    const scaleY = size * 0.13;
+    const scaleZ = size * 0.38;
 
-    if (ringType !== 'none') {
-        drawRingPixel(ctx, center, radius, random, palette.oceanDark, palette.oceanLight, false);
-    }
+    drawCubeFace(ctx, {
+        faceName: 'right',
+        faceMap: faceMaps.right,
+        faceResolution,
+        sourceResolution: size,
+        seaLevel: params.seaLevel,
+        palette,
+        originX,
+        originY,
+        scaleX,
+        scaleY,
+        scaleZ,
+        shadeFactor: 0.72
+    });
 
-    for (let y = 0; y < size; y += 1) {
-        for (let x = 0; x < size; x += 1) {
-            const nx = (x - center) / radius;
-            const ny = (y - center) / radius;
+    drawCubeFace(ctx, {
+        faceName: 'front',
+        faceMap: faceMaps.front,
+        faceResolution,
+        sourceResolution: size,
+        seaLevel: params.seaLevel,
+        palette,
+        originX,
+        originY,
+        scaleX,
+        scaleY,
+        scaleZ,
+        shadeFactor: 0.82
+    });
 
-            if (!isInsideStyleMask(nx, ny, style)) {
-                continue;
-            }
-
-            const sphereLen = (nx * nx) + (ny * ny);
-            if (sphereLen > 1) {
-                continue;
-            }
-
-            const nz = Math.sqrt(Math.max(0, 1 - sphereLen));
-            const dot = (nx * lightDir.x) + (ny * lightDir.y) + nz;
-            const shade = selectShade(dot);
-
-            let land = false;
-            for (const blob of landBlobs) {
-                const dx = x - blob.x;
-                const dy = y - blob.y;
-                if ((dx * dx) + (dy * dy) <= (blob.radius * blob.radius)) {
-                    land = true;
-                    break;
-                }
-            }
-
-            let color = palette.oceanDark;
-            if (!land && shade === 'mid') {
-                color = palette.oceanLight;
-            }
-            if (!land && shade === 'light') {
-                color = palette.highlight;
-            }
-
-            if (land && shade === 'dark') {
-                color = palette.landDark;
-            }
-            if (land && shade === 'mid') {
-                color = palette.landLight;
-            }
-            if (land && shade === 'light') {
-                color = palette.highlight;
-            }
-
-            const dither = random() > 0.92;
-            const toneShift = dither ? 1.08 : 1;
-            const finalColor = {
-                r: clamp(Math.round(color.r * toneShift), 0, 255),
-                g: clamp(Math.round(color.g * toneShift), 0, 255),
-                b: clamp(Math.round(color.b * toneShift), 0, 255)
-            };
-
-            ctx.fillStyle = rgbToString(finalColor);
-            ctx.fillRect(x, y, 1, 1);
-        }
-    }
+    drawCubeFace(ctx, {
+        faceName: 'top',
+        faceMap: faceMaps.top,
+        faceResolution,
+        sourceResolution: size,
+        seaLevel: params.seaLevel,
+        palette,
+        originX,
+        originY,
+        scaleX,
+        scaleY,
+        scaleZ,
+        shadeFactor: 1.06
+    });
 
     if (hasClouds) {
-        drawClouds(ctx, size, radius, random);
-    }
-
-    if (ringType !== 'none') {
-        drawRingPixel(ctx, center, radius, random, palette.landDark, palette.highlight, true);
+        const cloudCount = 3 + Math.floor(random() * 4);
+        for (let i = 0; i < cloudCount; i += 1) {
+            const cx = random();
+            const cz = random();
+            const p = projectIso(cx, 1.04, cz, originX, originY, scaleX, scaleY, scaleZ);
+            const radius = size * (0.018 + random() * 0.028);
+            ctx.fillStyle = 'rgba(235, 244, 255, 0.35)';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
 
     return {
         seed: seedValue,
         type,
-        style,
+        style: 'cube',
         ringType,
         hasClouds,
         canvas,
@@ -301,7 +433,7 @@ function ensureAtlasCanvas(size) {
 export async function buildPlanetAtlas(options = {}) {
     const count = options.count || 16;
     const cellSize = options.cellSize || 64;
-    const style = options.style || 'hybrid';
+    const style = options.style || 'cube';
     const grid = options.grid || Math.ceil(Math.sqrt(count));
     const atlasSize = grid * cellSize;
     const atlasCanvas = ensureAtlasCanvas(atlasSize);
@@ -311,8 +443,16 @@ export async function buildPlanetAtlas(options = {}) {
     const entries = [];
 
     for (let i = 0; i < count; i += 1) {
-        const seed = (options.baseSeed || 1000) + i * 37;
-        const planet = generatePlanetTexture(seed, { size: cellSize, style });
+        const seed = (options.baseSeed || 1000) + (i * 37);
+        const planet = generatePlanetTexture(seed, {
+            size: cellSize,
+            style,
+            scale: 1.8 + ((i % 7) * 0.17),
+            octaves: 4 + (i % 2),
+            persistence: 0.5,
+            lacunarity: 2,
+            seaLevel: 0.42 + ((i % 5) * 0.05)
+        });
 
         const gx = i % grid;
         const gy = Math.floor(i / grid);

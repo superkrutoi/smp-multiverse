@@ -62,7 +62,7 @@ export const State = {
             core: serverPayload.core || 'Paper',
             questionnaireUrl: serverPayload.questionnaireUrl || '',
             status: serverPayload.status || 'draft',
-            planetPreview: serverPayload.planetPreview || 'assets/planet_web/PixelPlanets.icon.png',
+            planetPreview: serverPayload.planetPreview || 'assets/icons/aliens.png',
             planetData: serverPayload.planetData || null,
             coords: Array.isArray(serverPayload.coords) && serverPayload.coords.length === 2
                 ? serverPayload.coords

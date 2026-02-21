@@ -271,16 +271,26 @@ body {
 
 .planet-editor-preview-wrap {
     border: 2px solid var(--mc-border);
-    background: radial-gradient(circle at 50% 40%, #181a30, #080912 75%);
+    background-color: var(--xaero-bg-dark);
+    background-image:
+        radial-gradient(circle at 15% 20%, rgba(230, 240, 255, 0.9) 0 1px, transparent 1px),
+        radial-gradient(circle at 72% 34%, rgba(190, 220, 255, 0.75) 0 1px, transparent 1px),
+        radial-gradient(circle at 42% 76%, rgba(220, 235, 255, 0.85) 0 1px, transparent 1px),
+        radial-gradient(circle at 85% 70%, rgba(180, 210, 255, 0.72) 0 1px, transparent 1px),
+        linear-gradient(180deg, #0a1020 0%, #050911 100%);
+    background-size: auto, auto, auto, auto, 100% 100%;
     box-shadow: 0 0 0 2px var(--mc-bg-medium) inset;
     display: grid;
     place-items: center;
-    min-height: 320px;
+    width: min(420px, 100%);
+    aspect-ratio: 1 / 1;
+    min-height: 0;
+    justify-self: center;
 }
 
 #planetEditorCanvas {
-    width: 220px;
-    height: 220px;
+    width: 288px;
+    height: 288px;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
 }
@@ -328,6 +338,11 @@ body {
     }
 
     .planet-editor-preview-wrap {
-        min-height: 250px;
+        width: min(320px, 100%);
+    }
+
+    #planetEditorCanvas {
+        width: 256px;
+        height: 256px;
     }
 }
