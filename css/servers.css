@@ -279,7 +279,8 @@ body {
         radial-gradient(circle at 86% 69%, rgba(184, 212, 255, 0.74) 0 1px, transparent 1px),
         radial-gradient(circle at 62% 55%, rgba(212, 230, 255, 0.62) 0 1px, transparent 1px),
         linear-gradient(160deg, #1a0d2b 0%, #0b0b1d 42%, #000000 100%);
-    background-size: auto, auto, auto, auto, 100% 100%;
+    background-size: auto, auto, auto, auto, auto, 100% 100%;
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0, center;
     box-shadow: 0 0 0 2px var(--mc-bg-medium) inset;
     display: grid;
     place-items: center;
@@ -287,6 +288,34 @@ body {
     aspect-ratio: 1 / 1;
     min-height: 0;
     justify-self: center;
+    position: relative;
+    overflow: hidden;
+    animation: editor-starfield-drift 28s linear infinite, editor-starfield-pulse 4.8s ease-in-out infinite;
+}
+
+.planet-editor-preview-wrap::before,
+.planet-editor-preview-wrap::after {
+    content: '';
+    position: absolute;
+    width: 2px;
+    height: 42px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0));
+    pointer-events: none;
+    opacity: 0;
+}
+
+.planet-editor-preview-wrap::before {
+    left: -20px;
+    top: 16%;
+    transform: rotate(66deg);
+    animation: editor-comet-1 7s linear infinite;
+}
+
+.planet-editor-preview-wrap::after {
+    right: -22px;
+    top: 52%;
+    transform: rotate(64deg);
+    animation: editor-comet-2 9s linear infinite;
 }
 
 #planetEditorCanvas {
@@ -294,6 +323,71 @@ body {
     height: 400px;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes editor-starfield-pulse {
+    0%,
+    100% {
+        filter: brightness(0.92);
+    }
+    50% {
+        filter: brightness(1.04);
+    }
+}
+
+@keyframes editor-starfield-drift {
+    0% {
+        background-position: 0 0, 0 0, 0 0, 0 0, 0 0, center;
+    }
+    100% {
+        background-position: -6px 8px, 10px -5px, -4px -9px, 8px 6px, -10px 4px, center;
+    }
+}
+
+@keyframes editor-comet-1 {
+    0% {
+        transform: translate(-10px, -14px) rotate(66deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.8;
+    }
+    45% {
+        transform: translate(470px, 180px) rotate(66deg);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(470px, 180px) rotate(66deg);
+        opacity: 0;
+    }
+}
+
+@keyframes editor-comet-2 {
+    0% {
+        transform: translate(8px, -8px) rotate(64deg);
+        opacity: 0;
+    }
+    12% {
+        opacity: 0.65;
+    }
+    38% {
+        transform: translate(-430px, 190px) rotate(64deg);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(-430px, 190px) rotate(64deg);
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .planet-editor-preview-wrap,
+    .planet-editor-preview-wrap::before,
+    .planet-editor-preview-wrap::after {
+        animation: none;
+    }
 }
 
 .planet-editor-controls {

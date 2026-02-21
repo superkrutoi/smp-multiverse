@@ -22,7 +22,7 @@ function createBuffer(width, height) {
 function posterizeBuffer(ctx, width, height) {
     const image = ctx.getImageData(0, 0, width, height);
     const data = image.data;
-    const step = 32;
+    const step = 64;
 
     for (let i = 0; i < data.length; i += 4) {
         const alpha = data[i + 3];
@@ -107,7 +107,7 @@ export function createPlanetEditor({
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
 
-    const textureSize = 64;
+    const textureSize = 96;
 
     const buffer = createBuffer(textureSize, textureSize);
     const bufferCtx = buffer.getContext('2d');
@@ -143,6 +143,7 @@ export function createPlanetEditor({
             octaves: params.octaves,
             persistence: params.persistence,
             seaLevel: params.seaLevel,
+            cloudDensity: params.cloudDensity,
             hasClouds: params.cloudDensity > 12,
             ringType: params.ringType
         });

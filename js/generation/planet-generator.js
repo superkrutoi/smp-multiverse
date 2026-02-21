@@ -80,6 +80,14 @@ function shadeColor(color, amount) {
     };
 }
 
+function quantizeColor(color, step = 48) {
+    return {
+        r: clamp(Math.round(color.r / step) * step, 0, 255),
+        g: clamp(Math.round(color.g / step) * step, 0, 255),
+        b: clamp(Math.round(color.b / step) * step, 0, 255)
+    };
+}
+
 export function rng(seed) {
     return function random() {
         seed |= 0;
@@ -192,7 +200,7 @@ function biomeColor(heightValue, seaLevel, palette) {
     }
 
     const landT = clamp((heightValue - seaLevel) / Math.max(0.0001, 1 - seaLevel), 0, 1);
-    if (landT > 0.86) {
+    if (landT > 0.93) {
         return palette.highlight;
     }
 
@@ -305,7 +313,7 @@ function drawCubeFace(ctx, options) {
             const localLight = clamp(0.88 + ((-slopeX) * 1.9) + ((-slopeY) * 1.3), 0.7, 1.22);
             const dither = orderedDitherFactor(col, row);
             const base = biomeColor(faceHeight, seaLevel, palette);
-            const shaded = shadeColor(base, shadeFactor * localLight * dither);
+            const shaded = quantizeColor(shadeColor(base, shadeFactor * localLight * dither));
             drawQuad(ctx, p1, p2, p3, p4, shaded);
         }
     }
@@ -348,6 +356,12 @@ export function generatePlanetTexture(seedValue, options = {}) {
     const random = rng(seedValue || 1);
     const type = options.type || pickPlanetType(seedValue || 1);
     const hasClouds = options.hasClouds ?? (random() > 0.58);
+    const rawCloudDensity = Number(options.cloudDensity);
+    const cloudDensity = clamp(
+        Number.isFinite(rawCloudDensity) ? rawCloudDensity / 100 : (hasClouds ? 0.5 : 0),
+        0,
+        1
+    );
     const ringType = options.ringType || 'none';
 
     const paletteHex = PLANET_PALETTES[type] || PLANET_PALETTES.earth;
@@ -377,7 +391,8 @@ export function generatePlanetTexture(seedValue, options = {}) {
     const faceResolution = clamp(Math.floor(size / 2.2), 10, 40);
     const scaleX = size * 0.26;
     const scaleY = size * 0.13;
-    const scaleZ = size * 0.38;
+    const verticalSquash = 0.86;
+    const scaleZ = size * 0.38 * verticalSquash;
     const bounds = getCubeProjectedBounds(scaleX, scaleY, scaleZ);
     const boundsCenterX = (bounds.minX + bounds.maxX) * 0.5;
     const boundsCenterY = (bounds.minY + bounds.maxY) * 0.5;
@@ -429,14 +444,15 @@ export function generatePlanetTexture(seedValue, options = {}) {
         shadeFactor: 1.06
     });
 
-    if (hasClouds) {
-        const cloudCount = 3 + Math.floor(random() * 4);
+    if (cloudDensity > 0.12) {
+        const cloudCount = 1 + Math.floor(cloudDensity * 4);
         for (let i = 0; i < cloudCount; i += 1) {
             const cx = random();
             const cz = random();
             const p = projectIso(cx, 1.04, cz, originX, originY, scaleX, scaleY, scaleZ);
-            const radius = size * (0.018 + random() * 0.028);
-            ctx.fillStyle = 'rgba(235, 244, 255, 0.35)';
+            const radius = size * (0.012 + (cloudDensity * 0.018) + (random() * 0.01));
+            const alpha = 0.14 + (cloudDensity * 0.14);
+            ctx.fillStyle = `rgba(236, 244, 255, ${alpha.toFixed(3)})`;
             ctx.beginPath();
             ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
             ctx.fill();
