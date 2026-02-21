@@ -180,8 +180,9 @@ export function createPlanetEditor({
         const sourceWidth = Math.max(1, spriteBounds.width);
         const sourceHeight = Math.max(1, spriteBounds.height);
         const fitScale = Math.min(maxPreviewSize / sourceWidth, maxPreviewSize / sourceHeight);
-        const drawWidth = Math.max(1, Math.floor(sourceWidth * fitScale));
-        const drawHeight = Math.max(1, Math.floor(sourceHeight * fitScale));
+        const pixelScale = Math.max(1, Math.floor(fitScale));
+        const drawWidth = Math.max(1, sourceWidth * pixelScale);
+        const drawHeight = Math.max(1, sourceHeight * pixelScale);
         const drawX = Math.round((canvas.width - drawWidth) * 0.5);
         const drawY = Math.round((canvas.height - drawHeight) * 0.5);
 

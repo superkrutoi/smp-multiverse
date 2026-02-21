@@ -206,6 +206,28 @@ function projectIso(x, y, z, originX, originY, scaleX, scaleY, scaleZ) {
     };
 }
 
+function getCubeProjectedBounds(scaleX, scaleY, scaleZ) {
+    const points = [
+        [0, 1, 0], [1, 1, 0], [1, 1, 1], [0, 1, 1],
+        [0, 0, 1], [1, 0, 1], [1, 0, 0]
+    ];
+
+    let minX = Number.POSITIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+
+    for (const [x, y, z] of points) {
+        const p = projectIso(x, y, z, 0, 0, scaleX, scaleY, scaleZ);
+        minX = Math.min(minX, p.x);
+        minY = Math.min(minY, p.y);
+        maxX = Math.max(maxX, p.x);
+        maxY = Math.max(maxY, p.y);
+    }
+
+    return { minX, minY, maxX, maxY };
+}
+
 function drawQuad(ctx, p1, p2, p3, p4, color) {
     ctx.fillStyle = rgbToString(color);
     ctx.beginPath();
@@ -353,11 +375,14 @@ export function generatePlanetTexture(seedValue, options = {}) {
     ctx.clearRect(0, 0, size, size);
 
     const faceResolution = clamp(Math.floor(size / 2.2), 10, 40);
-    const originX = size * 0.5;
-    const originY = size * 0.87;
     const scaleX = size * 0.26;
     const scaleY = size * 0.13;
     const scaleZ = size * 0.38;
+    const bounds = getCubeProjectedBounds(scaleX, scaleY, scaleZ);
+    const boundsCenterX = (bounds.minX + bounds.maxX) * 0.5;
+    const boundsCenterY = (bounds.minY + bounds.maxY) * 0.5;
+    const originX = (size * 0.5) - boundsCenterX;
+    const originY = (size * 0.5) - boundsCenterY;
 
     drawCubeFace(ctx, {
         faceName: 'right',
