@@ -217,6 +217,15 @@ function drawQuad(ctx, p1, p2, p3, p4, color) {
     ctx.fill();
 }
 
+function orderedDitherFactor(col, row) {
+    const matrix = [
+        [0, 2],
+        [3, 1]
+    ];
+    const threshold = matrix[row & 1][col & 1] / 3;
+    return 0.96 + (threshold * 0.08);
+}
+
 function drawCubeFace(ctx, options) {
     const {
         faceName,
@@ -267,8 +276,14 @@ function drawCubeFace(ctx, options) {
             }
 
             const faceHeight = sampleFace(faceMap, (x0 + x1) * 0.5 - 0.5, (y0 + y1) * 0.5 - 0.5, sourceResolution);
+            const faceHeightX = sampleFace(faceMap, ((x0 + x1) * 0.5) + (1 / sourceResolution) - 0.5, (y0 + y1) * 0.5 - 0.5, sourceResolution);
+            const faceHeightY = sampleFace(faceMap, (x0 + x1) * 0.5 - 0.5, ((y0 + y1) * 0.5) + (1 / sourceResolution) - 0.5, sourceResolution);
+            const slopeX = faceHeightX - faceHeight;
+            const slopeY = faceHeightY - faceHeight;
+            const localLight = clamp(0.88 + ((-slopeX) * 1.9) + ((-slopeY) * 1.3), 0.7, 1.22);
+            const dither = orderedDitherFactor(col, row);
             const base = biomeColor(faceHeight, seaLevel, palette);
-            const shaded = shadeColor(base, shadeFactor);
+            const shaded = shadeColor(base, shadeFactor * localLight * dither);
             drawQuad(ctx, p1, p2, p3, p4, shaded);
         }
     }
@@ -337,7 +352,7 @@ export function generatePlanetTexture(seedValue, options = {}) {
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, size, size);
 
-    const faceResolution = clamp(Math.floor(size / 3), 8, 24);
+    const faceResolution = clamp(Math.floor(size / 2.2), 10, 40);
     const originX = size * 0.5;
     const originY = size * 0.87;
     const scaleX = size * 0.26;

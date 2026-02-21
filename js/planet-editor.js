@@ -107,8 +107,7 @@ export function createPlanetEditor({
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
 
-    const textureSize = 32;
-    const renderSize = textureSize * 8;
+    const textureSize = 64;
 
     const buffer = createBuffer(textureSize, textureSize);
     const bufferCtx = buffer.getContext('2d');
@@ -125,7 +124,6 @@ export function createPlanetEditor({
         ringType: 'none'
     });
 
-    let cloudPhase = 0;
     let animationFrameId = null;
     let lastMeta = null;
     let dirty = true;
@@ -167,7 +165,7 @@ export function createPlanetEditor({
             cloudDensity: params.cloudDensity,
             atmosphere: params.atmosphere,
             textureSize,
-            renderSize
+            previewCanvasSize: canvas.width
         };
         dirty = false;
     }
@@ -178,7 +176,7 @@ export function createPlanetEditor({
         }
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const maxPreviewSize = Math.floor(Math.min(canvas.width, canvas.height) * 0.76);
+        const maxPreviewSize = Math.floor(Math.min(canvas.width, canvas.height) * 0.9);
         const sourceWidth = Math.max(1, spriteBounds.width);
         const sourceHeight = Math.max(1, spriteBounds.height);
         const fitScale = Math.min(maxPreviewSize / sourceWidth, maxPreviewSize / sourceHeight);
@@ -257,7 +255,6 @@ export function createPlanetEditor({
 
     function setParams(nextParams) {
         params = normalizePlanetParams({ ...params, ...(nextParams || {}) });
-        cloudPhase = 0;
         dirty = true;
 
         syncFieldsFromParams();
@@ -274,7 +271,6 @@ export function createPlanetEditor({
         params.cloudDensity = Math.floor(Math.random() * 101);
         params.atmosphere = Math.floor(Math.random() * 101);
         params.ringType = Math.random() > 0.6 ? (Math.random() > 0.5 ? 'thin' : 'wide') : 'none';
-        cloudPhase = 0;
         dirty = true;
 
         syncFieldsFromParams();
@@ -287,8 +283,7 @@ export function createPlanetEditor({
             preview: canvas.toDataURL('image/png'),
             params: {
                 ...params,
-                ...(lastMeta || {}),
-                cloudPhase
+                ...(lastMeta || {})
             }
         };
     }
@@ -333,8 +328,7 @@ export function createPlanetEditor({
         stopAnimation,
         getParams() {
             return {
-                ...params,
-                cloudPhase
+                ...params
             };
         }
     };
