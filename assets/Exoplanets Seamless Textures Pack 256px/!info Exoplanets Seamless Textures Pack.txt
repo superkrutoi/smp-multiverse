@@ -1,0 +1,24 @@
+Hello and welcome!
+
+This pack contains 74 unique seamlessly tiling textures, created within Jasc Paint Shop Pro 9.
+
+Includes various fictional terrain surfaces for all kinds of interesting exoplanets. 
+
+Scorching, freezing, energetic, dusty, ashen, microbial, claylike, gooey, rocky, sandy, stoney, acidic, cloudy... all kinds of strange surfaces.
+
+Format: PNG
+Image Size: 256x256px
+
+Use them as 3D terrain textures, 3D model textures, website backgrounds, or any other artistic endeavours.
+
+--
+
+License:
+
+CC-BY 4.0
+Reactorcore
+http://www.reactorcoregames.com
+
+This work © 2024 by Reactorcore is licensed under CC BY 4.0. To view a copy of this license, visit http://creativecommons.org/licenses/by/4.0/
+
+(It means you can use them anywhere, even commercially. You only need to mention me (Reactorcore) and my website in the credits.)

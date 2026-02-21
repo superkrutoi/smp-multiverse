@@ -30,6 +30,14 @@
             text-decoration: none;
             font-family: var(--font-ui);
         }
+        .galaxy-btn {
+            border: 2px solid var(--mc-border);
+            background: var(--mc-bg-light);
+            color: #111;
+            padding: 4px 8px;
+            font-family: var(--font-ui);
+            cursor: pointer;
+        }
         #galaxy-webgl {
             width: 100vw;
             height: 100vh;
@@ -41,9 +49,11 @@
 <body>
     <div class="galaxy-topbar">
         <a class="galaxy-link" href="../index.html">← Назад к карте</a>
-        <span>WebGL Instancing Demo (10 000 узлов)</span>
+        <button id="zoom-in" class="galaxy-btn" type="button" aria-label="Приблизить">Zoom +</button>
+        <button id="zoom-out" class="galaxy-btn" type="button" aria-label="Отдалить">Zoom -</button>
+        <span>GalaxyScene: 10 000 objects + instancing + starfield</span>
     </div>
     <canvas id="galaxy-webgl" aria-label="WebGL Galaxy"></canvas>
-    <script type="module" src="../js/webgl/bootstrap-galaxy.js"></script>
+    <script type="module" src="../js/scenes.js"></script>
 </body>
 </html>
