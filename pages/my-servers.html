@@ -95,30 +95,44 @@
                         <input type="number" id="planetSeed" min="1" max="999999" step="1">
                     </label>
                     <label class="field-label">
-                        Цвет планеты
-                        <input type="range" id="planetHue" min="0" max="360" step="1">
+                        Биом / палитра
+                        <select id="planetPalette">
+                            <option value="earth">Земная</option>
+                            <option value="lava">Лавовая</option>
+                            <option value="ice">Ледяная</option>
+                            <option value="toxic">Токсичная</option>
+                        </select>
                     </label>
                     <label class="field-label">
-                        Вода / лёд
-                        <input type="range" id="planetWater" min="0" max="100" step="1">
+                        Тип поверхности
+                        <select id="planetTerrain">
+                            <option value="smooth">Гладкая</option>
+                            <option value="mixed">Смешанная</option>
+                            <option value="rough">Шероховатая</option>
+                            <option value="cracked">Трещины</option>
+                        </select>
+                    </label>
+                    <label class="field-label">
+                        Облачность
+                        <input type="range" id="planetClouds" min="0" max="100" step="1">
                     </label>
                     <label class="field-label">
                         Атмосфера
                         <input type="range" id="planetAtmosphere" min="0" max="100" step="1">
                     </label>
                     <label class="field-label">
-                        Кратеры
-                        <input type="range" id="planetCraters" min="0" max="100" step="1">
-                    </label>
-                    <label class="field-label planet-checkbox-label">
-                        <input type="checkbox" id="planetRing">
-                        Кольцо планеты
+                        Кольцо
+                        <select id="planetRingType">
+                            <option value="none">Нет</option>
+                            <option value="thin">Тонкое</option>
+                            <option value="wide">Широкое</option>
+                        </select>
                     </label>
                     <button id="randomPlanetBtn" class="secondary-btn" type="button">Случайная планета</button>
                 </div>
             </div>
             <div class="planet-modal-actions">
-                <p class="planet-modal-note">Нативный редактор планет (без iframe/Godot).</p>
+                <p class="planet-modal-note">Atlas-редактор: дешёвый preview + параметры для масштабируемого рендера.</p>
                 <div class="planet-modal-buttons">
                     <button id="closePlanetModal" class="secondary-btn" type="button">Отмена</button>
                     <button id="applyPlanetBtn" class="primary-btn" type="button">Сохранить планету</button>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMP Multiverse — WebGL Galaxy Prototype</title>
+    <link rel="stylesheet" href="../style.css">
+    <script defer src="../js/page-transition.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background: #050512; }
+        .galaxy-topbar {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 20;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 8px 10px;
+            background: rgba(10, 12, 28, 0.85);
+            border: 2px solid var(--mc-border);
+            color: var(--mc-text);
+            font-family: var(--font-ui);
+        }
+        .galaxy-link {
+            border: 2px solid var(--mc-border);
+            background: var(--mc-bg-light);
+            color: #111;
+            padding: 4px 8px;
+            text-decoration: none;
+            font-family: var(--font-ui);
+        }
+        #galaxy-webgl {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body>
+    <div class="galaxy-topbar">
+        <a class="galaxy-link" href="../index.html">← Назад к карте</a>
+        <span>WebGL Instancing Demo (10 000 узлов)</span>
+    </div>
+    <canvas id="galaxy-webgl" aria-label="WebGL Galaxy"></canvas>
+    <script type="module" src="../js/webgl/bootstrap-galaxy.js"></script>
+</body>
+</html>

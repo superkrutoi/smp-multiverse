@@ -38,7 +38,8 @@ document.addEventListener('click', (event) => {
     const routes = {
         map: 'index.html',
         'my-servers': 'pages/my-servers.html',
-        profile: 'pages/profile.html'
+        profile: 'pages/profile.html',
+        'galaxy-webgl': 'pages/galaxy-webgl.html'
     };
 
     if (page && routes[page]) {

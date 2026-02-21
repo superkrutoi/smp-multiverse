@@ -27,11 +27,11 @@ const applyPlanetBtn = document.getElementById('applyPlanetBtn');
 const randomPlanetBtn = document.getElementById('randomPlanetBtn');
 const planetEditorCanvas = document.getElementById('planetEditorCanvas');
 const planetSeed = document.getElementById('planetSeed');
-const planetHue = document.getElementById('planetHue');
-const planetWater = document.getElementById('planetWater');
+const planetPalette = document.getElementById('planetPalette');
+const planetTerrain = document.getElementById('planetTerrain');
+const planetClouds = document.getElementById('planetClouds');
 const planetAtmosphere = document.getElementById('planetAtmosphere');
-const planetCraters = document.getElementById('planetCraters');
-const planetRing = document.getElementById('planetRing');
+const planetRingType = document.getElementById('planetRingType');
 
 let selectedPlanetPreview = '';
 let selectedPlanetData = null;
@@ -145,18 +145,24 @@ closeServerModalSecondary.addEventListener('click', () => {
 
 const planetModalControls = setupModal({
     modal: planetModal,
-    closeButton: closePlanetModal
+    closeButton: closePlanetModal,
+    onOpen: () => {
+        planetEditor.startAnimation();
+    },
+    onClose: () => {
+        planetEditor.stopAnimation();
+    }
 });
 
 const planetEditor = createPlanetEditor({
     canvas: planetEditorCanvas,
     fields: {
         seed: planetSeed,
-        hue: planetHue,
-        water: planetWater,
+        palette: planetPalette,
+        terrain: planetTerrain,
+        clouds: planetClouds,
         atmosphere: planetAtmosphere,
-        craters: planetCraters,
-        ring: planetRing
+        ringType: planetRingType
     }
 });
 

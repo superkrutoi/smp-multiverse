@@ -1,14 +1,4 @@
-function seededRandom(seedValue) {
-    let seed = Math.floor(Number(seedValue) || 1) % 2147483647;
-    if (seed <= 0) {
-        seed += 2147483646;
-    }
-
-    return function next() {
-        seed = (seed * 16807) % 2147483647;
-        return (seed - 1) / 2147483646;
-    };
-}
+import { renderPlanetAtlas, normalizePlanetParams } from './planet/renderer-atlas.js';
 
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
@@ -25,115 +15,85 @@ export function createPlanetEditor({
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
 
-    let params = {
+    let params = normalizePlanetParams({
         seed: randomSeed(),
-        hue: 210,
-        water: 40,
+        palette: 'earth',
+        terrain: 'mixed',
+        clouds: 45,
         atmosphere: 60,
-        craters: 35,
-        ring: false
-    };
+        ringType: 'none'
+    });
+
+    let rotation = 0;
+    let cloudRotation = 0;
+    let animationFrameId = null;
+    let previousTimestamp = 0;
+    let lastMeta = null;
+
+    function renderNow() {
+        lastMeta = renderPlanetAtlas(canvas, {
+            ...params,
+            rotation,
+            cloudRotation
+        });
+    }
 
     function drawPlanet() {
-        const size = 96;
-        const radius = 42;
-        const centerX = Math.floor(canvas.width / 2);
-        const centerY = Math.floor(canvas.height / 2);
-        const x0 = centerX - Math.floor(size / 2);
-        const y0 = centerY - Math.floor(size / 2);
-        const rand = seededRandom(params.seed);
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        if (params.ring) {
-            ctx.save();
-            ctx.translate(centerX, centerY);
-            ctx.rotate(-0.38);
-            ctx.fillStyle = 'rgba(190, 210, 255, 0.45)';
-            ctx.fillRect(-58, -6, 116, 12);
-            ctx.fillStyle = 'rgba(100, 120, 170, 0.5)';
-            ctx.fillRect(-50, -2, 100, 4);
-            ctx.restore();
-        }
-
-        for (let y = 0; y < size; y += 1) {
-            for (let x = 0; x < size; x += 1) {
-                const dx = x - size / 2;
-                const dy = y - size / 2;
-                if ((dx * dx) + (dy * dy) > radius * radius) {
-                    continue;
-                }
-
-                const noise = rand();
-                const shade = rand();
-                const polar = clamp((dy / radius + 1) / 2, 0, 1);
-
-                const hue = params.hue;
-                const sat = 55 + (params.water * 0.3);
-                const light = clamp(42 + ((shade - 0.5) * 18), 24, 70);
-
-                let color = `hsl(${hue}, ${sat}%, ${light}%)`;
-
-                if (noise > (0.82 - params.craters / 200)) {
-                    color = `hsl(${hue}, ${Math.max(25, sat - 35)}%, ${Math.max(15, light - 20)}%)`;
-                }
-
-                if (noise < (params.water / 200)) {
-                    color = `hsl(${clamp(hue + 18, 0, 360)}, ${clamp(sat + 12, 20, 95)}%, ${clamp(light + 8, 18, 80)}%)`;
-                }
-
-                if (polar < 0.2 || polar > 0.8) {
-                    color = `hsl(${clamp(hue - 6, 0, 360)}, ${Math.max(24, sat - 15)}%, ${clamp(light + 10, 22, 86)}%)`;
-                }
-
-                ctx.fillStyle = color;
-                ctx.fillRect(x0 + x, y0 + y, 1, 1);
-            }
-        }
-
-        if (params.atmosphere > 0) {
-            ctx.strokeStyle = `hsla(${clamp(params.hue + 10, 0, 360)}, 90%, 72%, ${clamp(params.atmosphere / 100, 0.08, 0.75)})`;
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius + 4, 0, Math.PI * 2);
-            ctx.stroke();
-        }
+        renderNow();
     }
 
     function syncFieldsFromParams() {
         fields.seed.value = String(params.seed);
-        fields.hue.value = String(params.hue);
-        fields.water.value = String(params.water);
+        if (fields.palette) {
+            fields.palette.value = String(params.palette);
+        }
+        if (fields.terrain) {
+            fields.terrain.value = String(params.terrain);
+        }
+        fields.clouds.value = String(params.clouds);
         fields.atmosphere.value = String(params.atmosphere);
-        fields.craters.value = String(params.craters);
-        fields.ring.checked = Boolean(params.ring);
+        fields.ringType.value = String(params.ringType);
     }
 
     function syncParamsFromFields() {
         params.seed = clamp(Number(fields.seed.value) || 1, 1, 999999);
-        params.hue = clamp(Number(fields.hue.value) || 0, 0, 360);
-        params.water = clamp(Number(fields.water.value) || 0, 0, 100);
+        if (fields.palette) {
+            params.palette = fields.palette.value || 'earth';
+        }
+        if (fields.terrain) {
+            params.terrain = fields.terrain.value || 'mixed';
+        }
+        params.clouds = clamp(Number(fields.clouds.value) || 0, 0, 100);
         params.atmosphere = clamp(Number(fields.atmosphere.value) || 0, 0, 100);
-        params.craters = clamp(Number(fields.craters.value) || 0, 0, 100);
-        params.ring = Boolean(fields.ring.checked);
+        params.ringType = fields.ringType.value || 'none';
     }
 
     function setParams(nextParams) {
-        params = {
-            ...params,
-            ...(nextParams || {})
-        };
+        params = normalizePlanetParams({ ...params, ...(nextParams || {}) });
+
+        if (Number.isFinite(Number(nextParams?.rotation))) {
+            rotation = Number(nextParams.rotation);
+        }
+
+        if (Number.isFinite(Number(nextParams?.cloudRotation))) {
+            cloudRotation = Number(nextParams.cloudRotation);
+        }
+
         syncFieldsFromParams();
         drawPlanet();
     }
 
     function randomize() {
         params.seed = randomSeed();
-        params.hue = Math.floor(Math.random() * 361);
-        params.water = Math.floor(Math.random() * 101);
+        const paletteKeys = ['earth', 'lava', 'ice', 'toxic'];
+        params.palette = paletteKeys[Math.floor(Math.random() * paletteKeys.length)];
+        const terrains = ['smooth', 'mixed', 'rough', 'cracked'];
+        params.terrain = terrains[Math.floor(Math.random() * terrains.length)];
+        params.clouds = Math.floor(Math.random() * 101);
         params.atmosphere = Math.floor(Math.random() * 101);
-        params.craters = Math.floor(Math.random() * 101);
-        params.ring = Math.random() > 0.55;
+        params.ringType = Math.random() > 0.6 ? (Math.random() > 0.5 ? 'thin' : 'wide') : 'none';
+        rotation = 0;
+        cloudRotation = 0;
 
         syncFieldsFromParams();
         drawPlanet();
@@ -143,11 +103,58 @@ export function createPlanetEditor({
         drawPlanet();
         return {
             preview: canvas.toDataURL('image/png'),
-            params: { ...params }
+            params: {
+                ...params,
+                ...(lastMeta || {}),
+                rotation,
+                cloudRotation
+            }
         };
     }
 
-    [fields.seed, fields.hue, fields.water, fields.atmosphere, fields.craters, fields.ring].forEach((field) => {
+    function tick(timestamp) {
+        if (!previousTimestamp) {
+            previousTimestamp = timestamp;
+        }
+
+        const dt = Math.min((timestamp - previousTimestamp) / 1000, 0.05);
+        previousTimestamp = timestamp;
+        rotation = (rotation + (dt * 0.22)) % (Math.PI * 2);
+        cloudRotation = (cloudRotation + (dt * 0.08)) % (Math.PI * 2);
+        renderNow();
+
+        animationFrameId = window.requestAnimationFrame(tick);
+    }
+
+    function startAnimation() {
+        if (animationFrameId) {
+            return;
+        }
+
+        previousTimestamp = 0;
+        animationFrameId = window.requestAnimationFrame(tick);
+    }
+
+    function stopAnimation() {
+        if (!animationFrameId) {
+            return;
+        }
+
+        window.cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+        previousTimestamp = 0;
+    }
+
+    const controls = [
+        fields.seed,
+        fields.palette,
+        fields.terrain,
+        fields.clouds,
+        fields.atmosphere,
+        fields.ringType
+    ].filter(Boolean);
+
+    controls.forEach((field) => {
         field.addEventListener('input', () => {
             syncParamsFromFields();
             drawPlanet();
@@ -161,8 +168,14 @@ export function createPlanetEditor({
         setParams,
         randomize,
         exportPlanet,
+        startAnimation,
+        stopAnimation,
         getParams() {
-            return { ...params };
+            return {
+                ...params,
+                rotation,
+                cloudRotation
+            };
         }
     };
 }
