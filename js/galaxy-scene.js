@@ -3,6 +3,7 @@ import { initWebGL2, resizeCanvasToDisplaySize, createTextureFromImage } from '.
 import { BatchInstancing } from './webgl/batch-instancing.js';
 import { Renderer } from './webgl/renderer.js';
 import { buildPlanetAtlas } from './generation/planet-generator.js';
+import { State } from './state.js';
 
 function mulberry32(seedValue) {
     let t = seedValue >>> 0;
@@ -64,6 +65,13 @@ export class GalaxyScene {
         this.onResize = this.onResize.bind(this);
     }
 
+    getPlanetDetailSize() {
+        if (typeof State.getPlanetDetailSize === 'function') {
+            return State.getPlanetDetailSize();
+        }
+        return 32;
+    }
+
     init() {
         this.disposed = false;
         this.gl = initWebGL2(this.canvas);
@@ -85,9 +93,12 @@ export class GalaxyScene {
     async prepareAtlas() {
         const atlas = await buildPlanetAtlas({
             count: this.atlasCount,
-            cellSize: 64,
+            cellSize: this.getPlanetDetailSize(),
             style: 'cube',
-            baseSeed: 7000
+            baseSeed: 7000,
+            lightDirection: { x: -0.38, y: 0.76, z: 0.52 },
+            shadowTint: '#1f2a42',
+            lightTint: '#dceeff'
         });
 
         if (!this.gl || this.disposed) {

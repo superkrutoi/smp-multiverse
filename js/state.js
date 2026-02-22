@@ -1,7 +1,19 @@
 const STORAGE_KEYS = {
     servers: 'smp.multiverse.servers',
     profile: 'smp.multiverse.profile',
-    auth: 'smp.multiverse.auth'
+    auth: 'smp.multiverse.auth',
+    graphics: 'smp.multiverse.graphics'
+};
+
+const DETAIL_LEVEL_TO_SIZE = {
+    1: 16,
+    2: 32,
+    3: 64,
+    4: 128
+};
+
+const defaultGraphics = {
+    planetDetailLevel: 2
 };
 
 const defaultProfile = {
@@ -136,5 +148,44 @@ export const State = {
 
     setAuthFlag(value) {
         localStorage.setItem(STORAGE_KEYS.auth, String(Boolean(value)));
+    },
+
+    getGraphicsSettings() {
+        const stored = readJson(STORAGE_KEYS.graphics, defaultGraphics);
+        const levelRaw = Number(stored?.planetDetailLevel);
+        const planetDetailLevel = Number.isFinite(levelRaw)
+            ? Math.max(1, Math.min(4, Math.round(levelRaw)))
+            : defaultGraphics.planetDetailLevel;
+
+        return {
+            ...defaultGraphics,
+            ...stored,
+            planetDetailLevel
+        };
+    },
+
+    saveGraphicsSettings(graphicsData) {
+        const current = this.getGraphicsSettings();
+        const next = {
+            ...current,
+            ...(graphicsData || {})
+        };
+
+        const levelRaw = Number(next.planetDetailLevel);
+        next.planetDetailLevel = Number.isFinite(levelRaw)
+            ? Math.max(1, Math.min(4, Math.round(levelRaw)))
+            : defaultGraphics.planetDetailLevel;
+
+        writeJson(STORAGE_KEYS.graphics, next);
+        return next;
+    },
+
+    getPlanetDetailLevel() {
+        return this.getGraphicsSettings().planetDetailLevel;
+    },
+
+    getPlanetDetailSize() {
+        const level = this.getPlanetDetailLevel();
+        return DETAIL_LEVEL_TO_SIZE[level] || DETAIL_LEVEL_TO_SIZE[defaultGraphics.planetDetailLevel];
     }
 };

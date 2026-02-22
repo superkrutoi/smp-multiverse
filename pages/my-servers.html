@@ -87,7 +87,53 @@
         <div class="planet-modal-content" role="dialog" aria-modal="true" aria-label="Генератор планет">
             <div class="planet-editor-layout">
                 <div class="planet-editor-preview-wrap">
-                    <canvas id="planetEditorCanvas" width="400" height="400" aria-label="Предпросмотр планеты"></canvas>
+                    <div id="planetPreviewDetailControls" class="planet-preview-detail-controls" aria-label="Детализация предпросмотра">
+                        <span class="planet-preview-detail-label" aria-hidden="true">Детализация</span>
+                        <button type="button" class="detail-level-btn is-active" data-preview-detail-level="1" data-tooltip="16×16" aria-pressed="true">1</button>
+                        <button type="button" class="detail-level-btn" data-preview-detail-level="2" data-tooltip="32×32" aria-pressed="false">2</button>
+                        <button type="button" class="detail-level-btn" data-preview-detail-level="3" data-tooltip="64×64" aria-pressed="false">3</button>
+                        <button type="button" class="detail-level-btn" data-preview-detail-level="4" data-tooltip="128×128" aria-pressed="false">4</button>
+                    </div>
+                    <div id="planetLightControl" class="planet-light-control" aria-label="Источник освещения">
+                        <div id="planetLightOrbit" class="planet-light-orbit" role="slider" aria-label="Положение источника света" aria-valuemin="0" aria-valuemax="360" aria-valuenow="315" tabindex="0">
+                            <span id="planetLightHandle" class="planet-light-handle" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                    <div class="planet-axis-tilt-panel" aria-label="Угол наклона оси вращения">
+                        <div class="planet-axis-tilt-slider-wrap">
+                            <input id="planetAxisTiltSlider" class="planet-axis-tilt-slider" type="range" min="0" max="90" step="0.01" value="23.44" aria-label="Ползунок наклона оси в градусах">
+                        </div>
+                        <div id="planetAxisTiltControl" class="planet-axis-tilt-control">
+                            <canvas id="planetAxisTiltCanvas" class="planet-axis-tilt-canvas" width="108" height="108" aria-hidden="true"></canvas>
+                            <label class="planet-axis-tilt-label" for="planetAxisTiltInput">
+                                Наклон оси
+                            </label>
+                            <div class="planet-axis-tilt-input-row">
+                                <input id="planetAxisTiltInput" class="planet-axis-tilt-input" type="number" min="0" max="90" step="0.01" value="23.44" aria-label="Угол наклона оси в градусах">
+                                <span class="planet-axis-tilt-unit">°</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="planet-axis-planet-overlay" aria-hidden="true">
+                        <span class="planet-axis-planet-line"></span>
+                    </div>
+                    <div id="planetCubePreview" class="planet-cube-wrapper" aria-label="3D предпросмотр кубической планеты">
+                        <canvas id="planetFaceFront" class="planet-cube-face face-front" width="32" height="32"></canvas>
+                        <canvas id="planetFaceBack" class="planet-cube-face face-back" width="32" height="32"></canvas>
+                        <canvas id="planetFaceLeft" class="planet-cube-face face-left" width="32" height="32"></canvas>
+                        <canvas id="planetFaceRight" class="planet-cube-face face-right" width="32" height="32"></canvas>
+                        <canvas id="planetFaceTop" class="planet-cube-face face-top" width="32" height="32"></canvas>
+                        <canvas id="planetFaceBottom" class="planet-cube-face face-bottom" width="32" height="32"></canvas>
+                    </div>
+                    <div class="planet-preview-zoom-controls" aria-label="Масштаб превью">
+                        <button id="planetPreviewZoomIn" class="map-zoom-btn" aria-label="Приблизить планету" title="Приблизить" data-tooltip="приблизить">
+                            <img src="../assets/Lucid_V1.2_icons/PNG/Flat/32/Magnifying-Glass-Add.png" alt="" class="map-zoom-icon" width="20" height="20">
+                        </button>
+                        <button id="planetPreviewZoomOut" class="map-zoom-btn" aria-label="Отдалить планету" title="Отдалить" data-tooltip="отдалить">
+                            <img src="../assets/Lucid_V1.2_icons/PNG/Flat/32/Magnifying-Glass-Reduce.png" alt="" class="map-zoom-icon" width="20" height="20">
+                        </button>
+                    </div>
+                    <canvas id="planetEditorCanvas" class="planet-editor-capture" width="400" height="400" aria-label="Предпросмотр планеты"></canvas>
                 </div>
                 <div class="planet-editor-controls">
                     <label class="field-label">
@@ -105,18 +151,19 @@
                         </select>
                     </label>
                     <label class="field-label">
-                        Масштаб континентов
-                        <input type="range" id="planetScale" min="120" max="340" step="1">
+                        Палитра (6 цветов)
+                        <div class="planet-palette-row" role="group" aria-label="Палитра планеты">
+                            <input type="color" class="planet-palette-swatch" id="planetOceanColor1" value="#1d3f66" title="Океан: глубокий" aria-label="Океан: глубокий">
+                            <input type="color" class="planet-palette-swatch" id="planetOceanColor2" value="#26547f" title="Океан: средний" aria-label="Океан: средний">
+                            <input type="color" class="planet-palette-swatch" id="planetOceanColor3" value="#2f6aa3" title="Океан: мелкий" aria-label="Океан: мелкий">
+                            <input type="color" class="planet-palette-swatch" id="planetLandColor1" value="#3f6c2f" title="Материк: низины" aria-label="Материк: низины">
+                            <input type="color" class="planet-palette-swatch" id="planetLandColor2" value="#6ea24c" title="Материк: равнины" aria-label="Материк: равнины">
+                            <input type="color" class="planet-palette-swatch" id="planetLandColor3" value="#9bc27f" title="Материк: вершины" aria-label="Материк: вершины">
+                        </div>
                     </label>
                     <label class="field-label">
-                        Детализация (octaves)
-                        <select id="planetOctaves">
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                            <option value="6">6</option>
-                            <option value="7">7</option>
-                        </select>
+                        Масштаб континентов
+                        <input type="range" id="planetScale" min="120" max="340" step="1">
                     </label>
                     <label class="field-label">
                         Уровень моря

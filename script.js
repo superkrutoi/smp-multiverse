@@ -145,14 +145,237 @@ window.setNotificationCount = (n) => {
 // Модальное окно настроек
 const settingsModal = document.getElementById('settings-modal');
 const settingsClose = document.querySelector('.settings-close');
+const sitePlanetDetailLevelControl = document.getElementById('site-planet-detail-level');
+const sitePlanetDetailPreviewCube = document.getElementById('site-planet-detail-preview-cube');
 const mascotMenu = document.getElementById('mascot-menu');
+let planetDetailPreviewSeed = Math.floor(Math.random() * 2147483647);
+let planetDetailPreviewParams = null;
+let planetGeneratorModulePromise = null;
+
+function createPreviewRng(initialSeed) {
+    let seed = initialSeed % 2147483647;
+    if (seed <= 0) {
+        seed += 2147483646;
+    }
+
+    return function next() {
+        seed = (seed * 16807) % 2147483647;
+        return (seed - 1) / 2147483646;
+    };
+}
+
+function createPlanetDetailTexture(detailSize, seedValue) {
+    const texture = document.createElement('canvas');
+    texture.width = detailSize;
+    texture.height = detailSize;
+    const textureCtx = texture.getContext('2d');
+    if (!textureCtx) {
+        return null;
+    }
+
+    const rand = createPreviewRng(seedValue);
+    const radius = Math.max(2, Math.floor(detailSize / 2) - 1);
+    const center = Math.floor(detailSize / 2);
+    const palette = ['#1d3f66', '#2f6aa3', '#3f6c2f', '#6ea24c', '#9bc27f'];
+
+    textureCtx.clearRect(0, 0, detailSize, detailSize);
+    for (let y = 0; y < detailSize; y += 1) {
+        for (let x = 0; x < detailSize; x += 1) {
+            const dx = x - center;
+            const dy = y - center;
+            if ((dx * dx) + (dy * dy) > radius * radius) {
+                continue;
+            }
+
+            const n = rand();
+            let color = palette[0];
+            if (n > 0.22) color = palette[1];
+            if (n > 0.45) color = palette[2];
+            if (n > 0.68) color = palette[3];
+            if (n > 0.86) color = palette[4];
+
+            textureCtx.fillStyle = color;
+            textureCtx.fillRect(x, y, 1, 1);
+        }
+    }
+
+    return texture;
+}
+
+function createRandomPlanetDetailPreviewParams(seedValue) {
+    const rand = createPreviewRng(seedValue ^ 0x9E3779B9);
+    const palettes = ['earth', 'lava', 'ice', 'desert', 'dark'];
+    const palette = palettes[Math.floor(rand() * palettes.length)] || 'earth';
+
+    return {
+        palette,
+        scale: Number((1.4 + (rand() * 1.8)).toFixed(2)),
+        octaves: 3 + Math.floor(rand() * 5),
+        persistence: Number((0.4 + (rand() * 0.28)).toFixed(2)),
+        seaLevel: Number((0.28 + (rand() * 0.44)).toFixed(2))
+    };
+}
+
+function getPreviewLightDirection() {
+    const phase = ((Date.now() % 16000) / 16000) * Math.PI * 2;
+    const x = Math.cos(phase) * 0.42;
+    const y = 0.74;
+    const z = 0.52 + (Math.sin(phase) * 0.18);
+    return { x, y, z };
+}
+
+function getPlanetGeneratorModule() {
+    if (!planetGeneratorModulePromise) {
+        planetGeneratorModulePromise = import('./js/generation/planet-generator.js');
+    }
+    return planetGeneratorModulePromise;
+}
+
+function buildFallbackFaceTextures(detailSize, seedValue) {
+    const faceNames = ['front', 'back', 'left', 'right', 'top', 'bottom'];
+    const faces = {};
+    faceNames.forEach((faceName, index) => {
+        faces[faceName] = createPlanetDetailTexture(detailSize, seedValue + ((index + 1) * 7919));
+    });
+    return faces;
+}
+
+async function getPlanetDetailFaceTextures(detailSize, seedValue) {
+    try {
+        const generatorModule = await getPlanetGeneratorModule();
+        if (!generatorModule || typeof generatorModule.generateCubeFaceTextures !== 'function') {
+            return buildFallbackFaceTextures(detailSize, seedValue);
+        }
+
+        if (!planetDetailPreviewParams) {
+            planetDetailPreviewParams = createRandomPlanetDetailPreviewParams(seedValue);
+        }
+
+        const result = generatorModule.generateCubeFaceTextures(seedValue, {
+            size: detailSize,
+            type: planetDetailPreviewParams.palette,
+            scale: planetDetailPreviewParams.scale,
+            octaves: planetDetailPreviewParams.octaves,
+            persistence: planetDetailPreviewParams.persistence,
+            seaLevel: planetDetailPreviewParams.seaLevel,
+            lightDirection: getPreviewLightDirection(),
+            shadowTint: '#1f2a42',
+            lightTint: '#dceeff',
+            strictPalette: true
+        });
+
+        return result?.faces || buildFallbackFaceTextures(detailSize, seedValue);
+    } catch {
+        return buildFallbackFaceTextures(detailSize, seedValue);
+    }
+}
+
+async function renderPlanetDetailPreviewCube(cubeElement, detailSize, seedValue) {
+    if (!cubeElement) {
+        return;
+    }
+
+    const faceNames = ['front', 'back', 'left', 'right', 'top', 'bottom'];
+    const faces = await getPlanetDetailFaceTextures(detailSize, seedValue);
+
+    faceNames.forEach((faceName) => {
+        const faceCanvas = cubeElement.querySelector(`[data-face="${faceName}"]`);
+        if (!faceCanvas) {
+            return;
+        }
+
+        faceCanvas.width = detailSize;
+        faceCanvas.height = detailSize;
+        const faceCtx = faceCanvas.getContext('2d');
+        if (!faceCtx) {
+            return;
+        }
+
+        const texture = faces?.[faceName];
+        if (!texture) {
+            return;
+        }
+
+        faceCtx.imageSmoothingEnabled = false;
+        faceCtx.clearRect(0, 0, detailSize, detailSize);
+        faceCtx.drawImage(texture, 0, 0, detailSize, detailSize);
+    });
+}
+
+async function renderPlanetDetailPreview(cubeElement, detailSize, seedValue) {
+    if (!cubeElement) {
+        return;
+    }
+
+    await renderPlanetDetailPreviewCube(cubeElement, detailSize, seedValue);
+    cubeElement.style.setProperty('--cube-zoom', '1');
+}
+
+function renderPlanetDetailPreviewWidgets() {
+    const detailSize = getPlanetDetailSize();
+    const previewCubes = [
+        sitePlanetDetailPreviewCube,
+        document.getElementById('dev-planet-detail-preview-cube')
+    ];
+
+    previewCubes.forEach((previewCube) => {
+        renderPlanetDetailPreview(previewCube, detailSize, planetDetailPreviewSeed);
+    });
+}
+
+function randomizePlanetDetailPreview() {
+    planetDetailPreviewSeed = Math.floor(Math.random() * 2147483647);
+    planetDetailPreviewParams = createRandomPlanetDetailPreviewParams(planetDetailPreviewSeed);
+    renderPlanetDetailPreviewWidgets();
+}
+
+function setDetailLevelButtonsState(container, levelValue) {
+    if (!container) {
+        return;
+    }
+
+    const normalizedLevel = String(normalizePlanetDetailLevel(levelValue));
+    const buttons = container.querySelectorAll('[data-detail-level]');
+    buttons.forEach((button) => {
+        const isActive = button.getAttribute('data-detail-level') === normalizedLevel;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+}
+
+function syncSiteSettingsForm() {
+    if (!sitePlanetDetailLevelControl) {
+        return;
+    }
+
+    setDetailLevelButtonsState(sitePlanetDetailLevelControl, getPlanetDetailLevel());
+    renderPlanetDetailPreviewWidgets();
+}
 
 // Открыть настройки по клику на кнопку в меню маскота
 mascotMenu.addEventListener('click', (e) => {
     if (e.target.textContent.trim() === 'Настройки') {
+        syncSiteSettingsForm();
+        randomizePlanetDetailPreview();
         settingsModal.classList.remove('hidden');
         mascotMenu.classList.add('hidden');
     }
+});
+
+if (sitePlanetDetailLevelControl) {
+    sitePlanetDetailLevelControl.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-detail-level]');
+        if (!button) {
+            return;
+        }
+
+        savePlanetDetailLevel(button.getAttribute('data-detail-level'));
+    });
+}
+
+window.addEventListener('planet-detail-level-changed', () => {
+    syncSiteSettingsForm();
+    renderPlanetDetailPreviewWidgets();
 });
 
 // Закрыть настройки по клику на крестик
@@ -212,6 +435,57 @@ let mapState = null;
 let mapToolsAPI = null;
 let mapToolsUI = null;
 
+const GRAPHICS_SETTINGS_KEY = 'smp.multiverse.graphics';
+const PLANET_DETAIL_LEVEL_TO_SIZE = {
+    1: 16,
+    2: 32,
+    3: 64,
+    4: 128
+};
+
+function normalizePlanetDetailLevel(value) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+        return 2;
+    }
+    return Math.max(1, Math.min(4, Math.round(numeric)));
+}
+
+function readGraphicsSettings() {
+    try {
+        const raw = localStorage.getItem(GRAPHICS_SETTINGS_KEY);
+        const parsed = raw ? JSON.parse(raw) : {};
+        return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch {
+        return {};
+    }
+}
+
+function getPlanetDetailLevel() {
+    return normalizePlanetDetailLevel(readGraphicsSettings().planetDetailLevel);
+}
+
+function getPlanetDetailSize() {
+    const level = getPlanetDetailLevel();
+    return PLANET_DETAIL_LEVEL_TO_SIZE[level] || 32;
+}
+
+function savePlanetDetailLevel(levelValue) {
+    const level = normalizePlanetDetailLevel(levelValue);
+    const current = readGraphicsSettings();
+    localStorage.setItem(GRAPHICS_SETTINGS_KEY, JSON.stringify({
+        ...current,
+        planetDetailLevel: level
+    }));
+    window.dispatchEvent(new CustomEvent('planet-detail-level-changed', {
+        detail: {
+            level,
+            size: PLANET_DETAIL_LEVEL_TO_SIZE[level]
+        }
+    }));
+    return level;
+}
+
 const renderDevMenuItem = async (itemNumber) => {
     devMenuBody.classList.toggle('dev-menu-body--images', String(itemNumber) === '2');
 
@@ -246,6 +520,18 @@ const renderDevMenuItem = async (itemNumber) => {
             { id: 'compact-mode', name: 'Компактный режим', type: 'checkbox', checked: false },
             { id: 'map-animations', name: 'Анимация карты', type: 'checkbox', checked: true },
             { id: 'enable-sounds', name: 'Звуковые уведомления', type: 'checkbox', checked: false },
+            {
+                id: 'planet-detail-level',
+                name: 'Детализация',
+                type: 'buttons',
+                options: [
+                    { value: '1', label: 'Уровень 1 (16×16)' },
+                    { value: '2', label: 'Уровень 2 (32×32)' },
+                    { value: '3', label: 'Уровень 3 (64×64)' },
+                    { value: '4', label: 'Уровень 4 (128×128)' }
+                ],
+                value: String(getPlanetDetailLevel())
+            },
             { id: 'map-testing-interface', name: 'Интерфес тестирования карты', type: 'checkbox', checked: false },
             { id: 'hide-map-comments', name: 'Скрыть комментарии', type: 'checkbox', checked: false }
         ];
@@ -255,15 +541,40 @@ const renderDevMenuItem = async (itemNumber) => {
             const q = filter.trim().toLowerCase();
 
             const filtered = settings.filter(s => s.name.toLowerCase().includes(q));
-            const mainSettings = filtered.filter(s => s.id === 'map-testing-interface');
-            const miscSettings = filtered.filter(s => s.id !== 'map-testing-interface');
+            const mainIds = ['map-testing-interface', 'planet-detail-level'];
+            const mainSettings = filtered.filter(s => mainIds.includes(s.id));
+            const miscSettings = filtered.filter(s => !mainIds.includes(s.id));
 
             const renderSettingsItems = (items) => items.map(s => `
-                <label class="setting-item">
+                <label class="setting-item ${s.type === 'select' || s.type === 'buttons' ? 'setting-item--select' : ''} ${s.id === 'planet-detail-level' ? 'setting-item--detail' : ''}">
                     <span class="setting-label">${s.name}</span>
-                    <input type="${s.type}" id="${s.id}" ${s.checked ? 'checked' : ''} />
-                    <span class="checkmark"></span>
+                    ${s.type === 'buttons'
+                        ? ''
+                        : s.type === 'select'
+                        ? `<select id="${s.id}" class="setting-select">${(s.options || []).map(option => `<option value="${option.value}" ${String(option.value) === String(s.value) ? 'selected' : ''}>${option.label}</option>`).join('')}</select>`
+                        : `<input type="${s.type}" id="${s.id}" ${s.checked ? 'checked' : ''} />
+                    <span class="checkmark"></span>`}
                 </label>
+                ${s.id === 'planet-detail-level'
+                    ? `<div class="planet-detail-preview-block planet-detail-preview-block--divider" aria-label="Предпросмотр детализации планеты">
+                        <div class="planet-detail-preview-layout">
+                            <div class="detail-level-control-group">
+                                <span class="detail-level-control-title">Детализация</span>
+                                <div id="${s.id}" class="detail-level-buttons" role="group" aria-label="Уровень детализации планет и объектов">${(s.options || []).map(option => `<button type="button" class="detail-level-btn ${String(option.value) === String(s.value) ? 'is-active' : ''}" data-detail-level="${option.value}" data-tooltip="${option.value === '1' ? '16×16' : option.value === '2' ? '32×32' : option.value === '3' ? '64×64' : '128×128'}" aria-pressed="${String(option.value) === String(s.value) ? 'true' : 'false'}">${option.value}</button>`).join('')}</div>
+                            </div>
+                            <div class="planet-detail-preview-card">
+                                <div id="dev-planet-detail-preview-cube" class="planet-detail-preview-cube" aria-hidden="true">
+                                    <canvas class="planet-detail-preview-face face-front" data-face="front" width="32" height="32"></canvas>
+                                    <canvas class="planet-detail-preview-face face-back" data-face="back" width="32" height="32"></canvas>
+                                    <canvas class="planet-detail-preview-face face-left" data-face="left" width="32" height="32"></canvas>
+                                    <canvas class="planet-detail-preview-face face-right" data-face="right" width="32" height="32"></canvas>
+                                    <canvas class="planet-detail-preview-face face-top" data-face="top" width="32" height="32"></canvas>
+                                    <canvas class="planet-detail-preview-face face-bottom" data-face="bottom" width="32" height="32"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`
+                    : ''}
             `).join('');
 
             let html = '';
@@ -286,10 +597,12 @@ const renderDevMenuItem = async (itemNumber) => {
             }
 
             listEl.innerHTML = html || '<div class="dev-settings-empty">Ничего не найдено</div>';
+            renderPlanetDetailPreviewWidgets();
         }
 
         renderList();
         renderHeaderSearch((value) => renderList(value));
+        randomizePlanetDetailPreview();
 
         // Синхронизация чекбокса с состоянием панели тестирования
         setTimeout(() => {
@@ -297,6 +610,11 @@ const renderDevMenuItem = async (itemNumber) => {
             if (testToggle) {
                 const isEnabled = localStorage.getItem('mapTestingEnabled') === 'true';
                 testToggle.checked = isEnabled;
+            }
+
+            const detailButtons = document.getElementById('planet-detail-level');
+            if (detailButtons) {
+                setDetailLevelButtonsState(detailButtons, getPlanetDetailLevel());
             }
         }, 10);
 
@@ -312,6 +630,17 @@ const renderDevMenuItem = async (itemNumber) => {
                     mapState.setHideComments(input.checked);
                 }
             }
+        });
+
+        listEl.addEventListener('click', (e) => {
+            const button = e.target.closest('#planet-detail-level [data-detail-level]');
+            if (!button) {
+                return;
+            }
+
+            savePlanetDetailLevel(button.getAttribute('data-detail-level'));
+            setDetailLevelButtonsState(document.getElementById('planet-detail-level'), getPlanetDetailLevel());
+            renderPlanetDetailPreviewWidgets();
         });
         return;
     }
@@ -1944,7 +2273,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function buildPlanetTexture(server, radius) {
         const texture = document.createElement('canvas');
-        const size = radius * 2;
+        const size = getPlanetDetailSize();
+        const textureRadius = Math.max(2, Math.floor(size / 2));
         texture.width = size;
         texture.height = size;
 
@@ -1957,9 +2287,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const color = serverColor(server).base;
         const toxicity = clamp(1 - server.atmosphere, 0, 1);
 
-        for (let y = -radius; y < radius; y += 1) {
-            for (let x = -radius; x < radius; x += 1) {
-                if ((x * x) + (y * y) > radius * radius) {
+        for (let y = -textureRadius; y < textureRadius; y += 1) {
+            for (let x = -textureRadius; x < textureRadius; x += 1) {
+                if ((x * x) + (y * y) > textureRadius * textureRadius) {
                     continue;
                 }
 
@@ -1974,7 +2304,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     textureCtx.fillStyle = `hsl(${hue}, 68%, ${clamp(50 + lightnessShift, 34, 68)}%)`;
                 }
 
-                textureCtx.fillRect(x + radius, y + radius, 1, 1);
+                textureCtx.fillRect(x + textureRadius, y + textureRadius, 1, 1);
             }
         }
 
@@ -2160,6 +2490,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             };
         });
     }
+
+    window.addEventListener('planet-detail-level-changed', () => {
+        createPlanets();
+    });
 
     function setZoom(nextZoom) {
         const now = performance.now();
