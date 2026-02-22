@@ -37,6 +37,17 @@ const DETAIL_LEVEL_TO_SIZE = {
     4: 128
 };
 
+const FACE_NAMES = ['front', 'back', 'left', 'right', 'top', 'bottom'];
+
+const ATMOSPHERE_FACE_OFFSETS = {
+    front: { x: 17, y: 31, z: 53 },
+    back: { x: 211, y: 73, z: 149 },
+    left: { x: 389, y: 127, z: 251 },
+    right: { x: 563, y: 191, z: 337 },
+    top: { x: 733, y: 257, z: 439 },
+    bottom: { x: 907, y: 313, z: 541 }
+};
+
 function normalizeHexColor(value, fallback) {
     if (typeof value !== 'string') {
         return fallback;
@@ -185,6 +196,7 @@ function normalizePlanetParams(input = {}) {
         seaLevel: clamp(Number.isFinite(fallbackSea) ? fallbackSea : 0.5, 0.25, 0.8),
         cloudDensity: clamp(Number(input.cloudDensity) || 40, 0, 100),
         atmosphere: clamp(Number(input.atmosphere) || 60, 0, 100),
+        atmosphereSize: clamp(Number(input.atmosphereSize) || 5, 0, 35),
         ringType: input.ringType || 'none'
     };
 }
@@ -204,6 +216,7 @@ export function createPlanetEditor({
         top: document.getElementById('planetFaceTop'),
         bottom: document.getElementById('planetFaceBottom')
     };
+    const cubeWrapper = document.getElementById('planetCubePreview');
 
     let textureSize = typeof State.getPlanetDetailSize === 'function'
         ? State.getPlanetDetailSize()
@@ -226,6 +239,17 @@ export function createPlanetEditor({
     });
 
     let animationFrameId = null;
+    let cloudOffset = 0;
+    let lastAtmosphereFrameMs = 0;
+    let atmosphereWrapper = null;
+    const atmosphereFaceCanvases = {
+        front: null,
+        back: null,
+        left: null,
+        right: null,
+        top: null,
+        bottom: null
+    };
     let lastMeta = null;
     let dirty = true;
     let previewLightDirection = normalizeLightDirection({ x: -0.38, y: 0.74, z: 0.56 });
@@ -255,6 +279,193 @@ export function createPlanetEditor({
             width: textureSize,
             height: textureSize
         };
+    }
+
+    function lerp(a, b, t) {
+        return a + ((b - a) * t);
+    }
+
+    function smoothstep(t) {
+        const clamped = clamp(t, 0, 1);
+        return clamped * clamped * (3 - (2 * clamped));
+    }
+
+    function hashNoise(x, y, z, seed) {
+        const value = Math.sin((x * 127.1) + (y * 311.7) + (z * 74.7) + (seed * 0.01173)) * 43758.5453123;
+        return value - Math.floor(value);
+    }
+
+    function valueNoise3D(x, y, z, seed) {
+        const ix = Math.floor(x);
+        const iy = Math.floor(y);
+        const iz = Math.floor(z);
+        const fx = smoothstep(x - ix);
+        const fy = smoothstep(y - iy);
+        const fz = smoothstep(z - iz);
+
+        const n000 = hashNoise(ix, iy, iz, seed);
+        const n100 = hashNoise(ix + 1, iy, iz, seed);
+        const n010 = hashNoise(ix, iy + 1, iz, seed);
+        const n110 = hashNoise(ix + 1, iy + 1, iz, seed);
+        const n001 = hashNoise(ix, iy, iz + 1, seed);
+        const n101 = hashNoise(ix + 1, iy, iz + 1, seed);
+        const n011 = hashNoise(ix, iy + 1, iz + 1, seed);
+        const n111 = hashNoise(ix + 1, iy + 1, iz + 1, seed);
+
+        const nx00 = lerp(n000, n100, fx);
+        const nx10 = lerp(n010, n110, fx);
+        const nx01 = lerp(n001, n101, fx);
+        const nx11 = lerp(n011, n111, fx);
+
+        const nxy0 = lerp(nx00, nx10, fy);
+        const nxy1 = lerp(nx01, nx11, fy);
+
+        return lerp(nxy0, nxy1, fz);
+    }
+
+    function fbmNoise3D(x, y, z, seed) {
+        let total = 0;
+        let amplitude = 0.62;
+        let frequency = 1;
+        let normalizer = 0;
+
+        for (let octave = 0; octave < 3; octave += 1) {
+            total += valueNoise3D(x * frequency, y * frequency, z * frequency, seed + (octave * 97)) * amplitude;
+            normalizer += amplitude;
+            frequency *= 2.03;
+            amplitude *= 0.52;
+        }
+
+        return normalizer > 0 ? total / normalizer : 0;
+    }
+
+    function getAtmosphereColor() {
+        if (typeof window === 'undefined') {
+            return { r: 255, g: 255, b: 255 };
+        }
+
+        const rootStyles = window.getComputedStyle(document.documentElement);
+        const colorHex = normalizeHexColor(rootStyles.getPropertyValue('--mc-text').trim(), '#ffffff');
+        return hexToRgb(colorHex);
+    }
+
+    function ensureAtmosphereLayer() {
+        if (!cubeWrapper) {
+            return;
+        }
+
+        if (atmosphereWrapper?.isConnected) {
+            return;
+        }
+
+        atmosphereWrapper = cubeWrapper.querySelector('.planet-cube-atmosphere-wrapper');
+
+        if (!atmosphereWrapper) {
+            atmosphereWrapper = document.createElement('div');
+            atmosphereWrapper.className = 'planet-cube-atmosphere-wrapper';
+
+            FACE_NAMES.forEach((faceName) => {
+                const faceCanvas = document.createElement('canvas');
+                faceCanvas.className = `planet-cube-atmosphere-face face-${faceName}`;
+                atmosphereWrapper.appendChild(faceCanvas);
+                atmosphereFaceCanvases[faceName] = faceCanvas;
+            });
+
+            cubeWrapper.appendChild(atmosphereWrapper);
+        }
+
+        FACE_NAMES.forEach((faceName) => {
+            if (!atmosphereFaceCanvases[faceName]) {
+                atmosphereFaceCanvases[faceName] = atmosphereWrapper.querySelector(`.planet-cube-atmosphere-face.face-${faceName}`);
+            }
+        });
+    }
+
+    function drawAtmosphereFaces(detailLevel, forceRedraw = false) {
+        ensureAtmosphereLayer();
+        if (!atmosphereWrapper) {
+            return;
+        }
+
+        const atmospherePower = clamp((params.atmosphere || 0) / 100, 0, 1);
+        const atmosphereScale = 1 + (clamp(params.atmosphereSize || 0, 0, 35) / 100);
+        atmosphereWrapper.style.setProperty('--planet-atmosphere-scale', atmosphereScale.toFixed(3));
+        if (atmospherePower <= 0.001) {
+            atmosphereWrapper.style.setProperty('--planet-atmosphere-alpha', '0');
+            FACE_NAMES.forEach((faceName) => {
+                const faceCanvas = atmosphereFaceCanvases[faceName];
+                if (!faceCanvas) {
+                    return;
+                }
+                const faceCtx = faceCanvas.getContext('2d');
+                if (faceCtx) {
+                    faceCtx.clearRect(0, 0, faceCanvas.width, faceCanvas.height);
+                }
+            });
+            return;
+        }
+
+        atmosphereWrapper.style.setProperty('--planet-atmosphere-alpha', (0.28 + (atmospherePower * 0.5)).toFixed(3));
+
+        const size = textureSize;
+        const cloudDensity = clamp((params.cloudDensity || 0) / 100, 0, 1);
+        const detail = Math.max(1, detailLevel || 1);
+        const cloudNoiseScale = (0.05 / detail) * 0.5;
+        const threshold = clamp(0.84 - (cloudDensity * 0.38) - (atmospherePower * 0.14), 0.34, 0.9);
+        const alphaBase = 0.4 + (atmospherePower * 0.3);
+        const glowRgb = getAtmosphereColor();
+
+        FACE_NAMES.forEach((faceName, faceIndex) => {
+            const faceCanvas = atmosphereFaceCanvases[faceName];
+            if (!faceCanvas) {
+                return;
+            }
+
+            if (faceCanvas.width !== size || faceCanvas.height !== size) {
+                faceCanvas.width = size;
+                faceCanvas.height = size;
+            }
+
+            const faceCtx = faceCanvas.getContext('2d', { willReadFrequently: true });
+            if (!faceCtx) {
+                return;
+            }
+
+            const image = faceCtx.createImageData(size, size);
+            const data = image.data;
+            const offset = ATMOSPHERE_FACE_OFFSETS[faceName] || { x: 0, y: 0, z: 0 };
+            const driftX = cloudOffset * (10 + detail * 2.8);
+            const driftY = Math.sin(cloudOffset * 1.1) * 5;
+            const driftZ = cloudOffset * 1.7;
+
+            for (let y = 0; y < size; y += 1) {
+                for (let x = 0; x < size; x += 1) {
+                    const nx = (x + offset.x + driftX) * cloudNoiseScale;
+                    const ny = (y + offset.y + driftY) * cloudNoiseScale;
+                    const nz = (offset.z + driftZ + (params.seed * 0.02) + (faceIndex * 11)) * cloudNoiseScale;
+
+                    const cloudNoise = fbmNoise3D(nx, ny, nz, params.seed + (faceIndex * 131));
+                    if (cloudNoise <= threshold) {
+                        continue;
+                    }
+
+                    const t = clamp((cloudNoise - threshold) / Math.max(0.0001, 1 - threshold), 0, 1);
+                    const alpha = clamp(alphaBase + (t * 0.3), 0, 1);
+                    const pixel = ((y * size) + x) * 4;
+                    data[pixel] = glowRgb.r;
+                    data[pixel + 1] = glowRgb.g;
+                    data[pixel + 2] = glowRgb.b;
+                    data[pixel + 3] = Math.round(alpha * 255);
+                }
+            }
+
+            faceCtx.clearRect(0, 0, size, size);
+            faceCtx.putImageData(image, 0, 0);
+        });
+
+        if (forceRedraw) {
+            lastAtmosphereFrameMs = 0;
+        }
     }
 
     function drawCubeFaces() {
@@ -295,6 +506,7 @@ export function createPlanetEditor({
     function regenerateBase() {
         syncTextureSizeFromSettings();
         drawCubeFaces();
+        drawAtmosphereFaces(getPreviewDetailLevel(), true);
         const lightDirection = previewLightDirection;
 
         const generated = generatePlanetTexture(params.seed, {
@@ -333,6 +545,7 @@ export function createPlanetEditor({
             persistence: params.persistence,
             cloudDensity: params.cloudDensity,
             atmosphere: params.atmosphere,
+            atmosphereSize: params.atmosphereSize,
             textureSize,
             previewCanvasSize: canvas.width
         };
@@ -410,6 +623,9 @@ export function createPlanetEditor({
         if (fields.atmosphere) {
             fields.atmosphere.value = String(params.atmosphere);
         }
+        if (fields.atmosphereSize) {
+            fields.atmosphereSize.value = String(params.atmosphereSize);
+        }
         if (fields.ringType) {
             fields.ringType.value = String(params.ringType);
         }
@@ -448,6 +664,9 @@ export function createPlanetEditor({
         }
         if (fields.atmosphere) {
             params.atmosphere = clamp(Number(fields.atmosphere.value) || 0, 0, 100);
+        }
+        if (fields.atmosphereSize) {
+            params.atmosphereSize = clamp(Number(fields.atmosphereSize.value) || 0, 0, 35);
         }
         if (fields.ringType) {
             params.ringType = fields.ringType.value || 'none';
@@ -503,6 +722,7 @@ export function createPlanetEditor({
         params.seaLevel = Number((0.3 + Math.random() * 0.4).toFixed(2));
         params.cloudDensity = Math.floor(Math.random() * 101);
         params.atmosphere = Math.floor(Math.random() * 101);
+        params.atmosphereSize = 3 + Math.floor(Math.random() * 10);
         params.ringType = Math.random() > 0.6 ? (Math.random() > 0.5 ? 'thin' : 'wide') : 'none';
         dirty = true;
 
@@ -523,13 +743,35 @@ export function createPlanetEditor({
 
     function startAnimation() {
         renderNow();
+
+        if (animationFrameId !== null) {
+            return;
+        }
+
+        const run = (timestamp) => {
+            if (animationFrameId === null) {
+                return;
+            }
+
+            if (!lastAtmosphereFrameMs || (timestamp - lastAtmosphereFrameMs) >= 33) {
+                cloudOffset += 0.005;
+                drawAtmosphereFaces(getPreviewDetailLevel());
+                lastAtmosphereFrameMs = timestamp;
+            }
+
+            animationFrameId = window.requestAnimationFrame(run);
+        };
+
+        animationFrameId = window.requestAnimationFrame(run);
     }
 
     function stopAnimation() {
-        if (animationFrameId) {
+        if (animationFrameId !== null) {
             window.cancelAnimationFrame(animationFrameId);
             animationFrameId = null;
         }
+
+        lastAtmosphereFrameMs = 0;
     }
 
     const controls = [
@@ -546,6 +788,7 @@ export function createPlanetEditor({
         fields.seaLevel,
         fields.cloudDensity,
         fields.atmosphere,
+        fields.atmosphereSize,
         fields.ringType
     ].filter(Boolean);
 

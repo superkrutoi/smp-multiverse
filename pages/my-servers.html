@@ -101,7 +101,7 @@
                     </div>
                     <div class="planet-axis-tilt-panel" aria-label="Угол наклона оси вращения">
                         <div class="planet-axis-tilt-slider-wrap">
-                            <input id="planetAxisTiltSlider" class="planet-axis-tilt-slider" type="range" min="0" max="90" step="0.01" value="23.44" aria-label="Ползунок наклона оси в градусах">
+                            <input id="planetAxisTiltSlider" class="planet-axis-tilt-slider" type="range" min="0" max="180" step="0.01" value="23.44" aria-label="Ползунок наклона оси в градусах">
                         </div>
                         <div id="planetAxisTiltControl" class="planet-axis-tilt-control">
                             <canvas id="planetAxisTiltCanvas" class="planet-axis-tilt-canvas" width="108" height="108" aria-hidden="true"></canvas>
@@ -109,7 +109,7 @@
                                 Наклон оси
                             </label>
                             <div class="planet-axis-tilt-input-row">
-                                <input id="planetAxisTiltInput" class="planet-axis-tilt-input" type="number" min="0" max="90" step="0.01" value="23.44" aria-label="Угол наклона оси в градусах">
+                                <input id="planetAxisTiltInput" class="planet-axis-tilt-input" type="number" min="0" max="180" step="0.01" value="23.44" aria-label="Угол наклона оси в градусах">
                                 <span class="planet-axis-tilt-unit">°</span>
                             </div>
                         </div>
@@ -176,6 +176,10 @@
                     <label class="field-label">
                         Атмосфера
                         <input type="range" id="planetAtmosphere" min="0" max="100" step="1">
+                    </label>
+                    <label class="field-label">
+                        Размер внешнего слоя облаков
+                        <input type="range" id="planetAtmosphereSize" min="0" max="35" step="1" value="5">
                     </label>
                     <label class="field-label">
                         Кольцо

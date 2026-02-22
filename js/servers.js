@@ -48,6 +48,7 @@ const planetScale = document.getElementById('planetScale');
 const planetSeaLevel = document.getElementById('planetSeaLevel');
 const planetCloudDensity = document.getElementById('planetCloudDensity');
 const planetAtmosphere = document.getElementById('planetAtmosphere');
+const planetAtmosphereSize = document.getElementById('planetAtmosphereSize');
 const planetRingType = document.getElementById('planetRingType');
 
 let selectedPlanetPreview = '';
@@ -61,7 +62,7 @@ const PLANET_PREVIEW_DETAIL_DEFAULT = 2;
 const PLANET_LIGHT_DEFAULT = { x: -0.38, y: 0.74, z: 0.56 };
 const PLANET_AXIS_TILT_DEFAULT = 23.44;
 const PLANET_AXIS_TILT_MIN = 0;
-const PLANET_AXIS_TILT_MAX = 90;
+const PLANET_AXIS_TILT_MAX = 180;
 let planetPreviewScale = 100;
 let lightControlDragging = false;
 let planetAxisTiltDeg = PLANET_AXIS_TILT_DEFAULT;
@@ -481,6 +482,7 @@ const planetEditor = createPlanetEditor({
         seaLevel: planetSeaLevel,
         cloudDensity: planetCloudDensity,
         atmosphere: planetAtmosphere,
+        atmosphereSize: planetAtmosphereSize,
         ringType: planetRingType
     }
 });

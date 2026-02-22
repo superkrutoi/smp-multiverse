@@ -687,12 +687,66 @@ body {
     --cube-size: 100px;
     --cube-half: calc(var(--cube-size) / 2);
     --cube-zoom: 1;
+    --planet-atmosphere-scale: 1.05;
+    --planet-atmosphere-cube-size: calc(var(--cube-size) * var(--planet-atmosphere-scale));
+    --planet-atmosphere-cube-half: calc(var(--planet-atmosphere-cube-size) / 2);
     width: var(--cube-size);
     height: var(--cube-size);
     position: relative;
     transform-style: preserve-3d;
     animation: cube-preview-rotate 16s linear infinite;
     z-index: 2;
+}
+
+.planet-cube-atmosphere-wrapper {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    pointer-events: none;
+    animation: planet-atmosphere-breathe 8s ease-in-out infinite;
+}
+
+.planet-cube-atmosphere-face {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--planet-atmosphere-cube-size);
+    height: var(--planet-atmosphere-cube-size);
+    margin-left: calc(var(--planet-atmosphere-cube-size) / -2);
+    margin-top: calc(var(--planet-atmosphere-cube-size) / -2);
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    image-rendering: -moz-crisp-edges;
+    -ms-interpolation-mode: nearest-neighbor;
+    backface-visibility: hidden;
+    opacity: var(--planet-atmosphere-alpha, 0.45);
+    filter: blur(0.85px);
+    mix-blend-mode: screen;
+    box-shadow: 0 0 10px color-mix(in srgb, var(--mc-text) 34%, transparent);
+}
+
+.planet-cube-atmosphere-face.face-front {
+    transform: translateZ(var(--planet-atmosphere-cube-half));
+}
+
+.planet-cube-atmosphere-face.face-back {
+    transform: rotateY(180deg) translateZ(var(--planet-atmosphere-cube-half));
+}
+
+.planet-cube-atmosphere-face.face-left {
+    transform: rotateY(-90deg) translateZ(var(--planet-atmosphere-cube-half));
+}
+
+.planet-cube-atmosphere-face.face-right {
+    transform: rotateY(90deg) translateZ(var(--planet-atmosphere-cube-half));
+}
+
+.planet-cube-atmosphere-face.face-top {
+    transform: rotateX(90deg) translateZ(var(--planet-atmosphere-cube-half));
+}
+
+.planet-cube-atmosphere-face.face-bottom {
+    transform: rotateX(-90deg) translateZ(var(--planet-atmosphere-cube-half));
 }
 
 .planet-cube-face {
@@ -758,6 +812,17 @@ body {
     }
     100% {
         transform: scale(var(--cube-zoom)) rotateZ(calc(var(--planet-axis-tilt-deg) * -1)) rotateX(-18deg) rotateY(360deg);
+    }
+}
+
+@keyframes planet-atmosphere-breathe {
+    0%,
+    100% {
+        transform: scale(calc(var(--planet-atmosphere-scale) * 0.996));
+    }
+
+    50% {
+        transform: scale(calc(var(--planet-atmosphere-scale) * 1.006));
     }
 }
 
