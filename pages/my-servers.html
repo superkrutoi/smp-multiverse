@@ -208,7 +208,7 @@
                     <div class="section-label">Параметры спутника</div>
                     <div class="satellite-settings-grid">
                         <label class="field-label">
-                            <span class="control-label">Имя спутника</span>
+                            <span class="control-label">Наименование</span>
                             <input type="text" id="satelliteNameInput" maxlength="30" value="Луна">
                         </label>
 
@@ -228,7 +228,7 @@
 
                         <label class="field-label">
                             <span class="satellite-size-label-text control-label">
-                                Размер спутника
+                                Размер
                                 <button
                                     type="button"
                                     id="satelliteMoonSizeHint"
@@ -237,22 +237,34 @@
                                     data-tooltip="Размер Луны"
                                 ></button>
                             </span>
-                            <input type="range" id="satelliteSize" min="22" max="72" step="1" value="25">
+                            <div class="range-with-value">
+                                <input type="range" id="satelliteSize" min="22" max="72" step="1" value="25">
+                                <span id="satelliteSizeValue" class="value-highlight satellite-value-label">100%</span>
+                            </div>
                         </label>
 
                         <label class="field-label">
-                            <span class="control-label">Радиус орбиты</span>
-                            <input type="range" id="satelliteOrbitRadius" min="90" max="1200" step="1" value="120">
+                            <span class="control-label">Удаленность</span>
+                            <div class="range-with-value">
+                                <input type="range" id="satelliteOrbitRadius" min="90" max="1200" step="1" value="120">
+                                <span id="satelliteOrbitDistanceValue" class="value-highlight satellite-value-label">384,4&nbsp;тыс. км</span>
+                            </div>
                         </label>
 
                         <label class="field-label">
-                            <span class="control-label">Скорость орбиты</span>
-                            <input type="range" id="satelliteOrbitSpeed" min="5" max="120" step="1" value="26">
+                            <span class="control-label">Скорость</span>
+                            <div class="range-with-value">
+                                <input type="range" id="satelliteOrbitSpeed" min="5" max="120" step="1" value="26">
+                                <span id="satelliteOrbitSpeedValue" class="value-highlight satellite-value-label">26%</span>
+                            </div>
                         </label>
 
                         <label class="field-label">
                             <span class="control-label">Наклон оси</span>
-                            <input type="range" id="satelliteTilt" min="0" max="180" step="1" value="0">
+                            <div class="range-with-value">
+                                <input type="range" id="satelliteTilt" min="0" max="180" step="1" value="0">
+                                <span id="satelliteTiltValue" class="value-highlight satellite-value-label">0°</span>
+                            </div>
                         </label>
 
                         <div class="satellite-editor-actions">

@@ -4,12 +4,40 @@ export function setupModal({
     onOpen,
     onClose
 }) {
+    function focusFirstElement() {
+        if (!modal) {
+            return;
+        }
+
+        const root = modal.querySelector('[role="dialog"], [role="alertdialog"]') || modal;
+        const focusableSelector = [
+            'button:not([disabled])',
+            '[href]',
+            'input:not([disabled]):not([type="hidden"])',
+            'select:not([disabled])',
+            'textarea:not([disabled])',
+            '[tabindex]:not([tabindex="-1"])'
+        ].join(', ');
+
+        const firstFocusable = root.querySelector(focusableSelector);
+
+        if (firstFocusable && typeof firstFocusable.focus === 'function') {
+            firstFocusable.focus();
+            return;
+        }
+
+        if (root && typeof root.focus === 'function') {
+            root.focus();
+        }
+    }
+
     function open() {
         modal.classList.remove('hidden');
         modal.setAttribute('aria-hidden', 'false');
         if (typeof onOpen === 'function') {
             onOpen();
         }
+        focusFirstElement();
     }
 
     function close() {

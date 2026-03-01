@@ -19,12 +19,21 @@ function initSettingsShortcut() {
     const settingsClose = document.querySelector('.settings-close');
     const detailLevelControl = document.getElementById('site-planet-detail-level');
     const detailPreviewCube = document.getElementById('site-planet-detail-preview-cube');
+    const detailLevelTooltip = document.getElementById('site-planet-detail-tooltip');
+    const fullscreenButton = document.getElementById('settings-fullscreen-toggle');
+    const tabButtons = settingsModal ? Array.from(settingsModal.querySelectorAll('.settings-tab-button')) : [];
+    const tabPanels = settingsModal ? Array.from(settingsModal.querySelectorAll('[data-tab-panel]')) : [];
+    const volumeMasterInput = document.getElementById('settings-volume-master');
+    const volumeSfxInput = document.getElementById('settings-volume-sfx');
+    const volumeMusicInput = document.getElementById('settings-volume-music');
 
     if (!settingsModal || !settingsClose || !detailLevelControl) {
         return;
     }
 
     window.__smpSettingsShortcutInitialized = true;
+
+    const canUseFullscreen = !!(document.documentElement && document.documentElement.requestFullscreen && document.exitFullscreen);
 
     const clampLevel = (value) => Math.max(1, Math.min(4, Math.round(Number(value) || 2)));
     let previewSeed = Math.floor(Math.random() * 999999) + 1;
@@ -38,9 +47,69 @@ function initSettingsShortcut() {
         });
     }
 
+    function showDetailTooltip(text) {
+        if (!detailLevelTooltip) {
+            return;
+        }
+
+        const value = String(text || '').trim();
+        detailLevelTooltip.textContent = value;
+        const isVisible = value.length > 0;
+        detailLevelTooltip.classList.toggle('is-visible', isVisible);
+        detailLevelTooltip.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+    }
+
     function syncSettingsForm() {
         setButtonsState(State.getPlanetDetailLevel());
         renderPlanetDetailPreviewWidgets();
+    }
+
+    function normalizeVolumePercent(value) {
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) {
+            return 100;
+        }
+        return Math.max(0, Math.min(100, Math.round(numeric)));
+    }
+
+    function syncAudioSettingsForm() {
+        if (!volumeMasterInput || !volumeSfxInput || !volumeMusicInput) {
+            return;
+        }
+
+        const audio = State.getAudioSettings();
+        volumeMasterInput.value = normalizeVolumePercent(audio.masterVolume * 100);
+        volumeSfxInput.value = normalizeVolumePercent(audio.sfxVolume * 100);
+        volumeMusicInput.value = normalizeVolumePercent(audio.musicVolume * 100);
+    }
+
+    function saveAudioSettingsFromForm() {
+        if (!volumeMasterInput || !volumeSfxInput || !volumeMusicInput) {
+            return;
+        }
+
+        const toScalar = (input) => {
+            const numeric = Number(input.value);
+            if (!Number.isFinite(numeric)) {
+                return 1;
+            }
+            return Math.max(0, Math.min(1, numeric / 100));
+        };
+
+        const next = State.saveAudioSettings({
+            masterVolume: toScalar(volumeMasterInput),
+            sfxVolume: toScalar(volumeSfxInput),
+            musicVolume: toScalar(volumeMusicInput)
+        });
+
+        const globalAudio = document.getElementById('global-audio');
+        if (globalAudio && typeof globalAudio.volume === 'number') {
+            globalAudio.volume = next.masterVolume;
+        }
+
+        window.dispatchEvent(new CustomEvent('audio-settings-changed', {
+            detail: next
+        }));
     }
 
     function randomizePlanetDetailPreview() {
@@ -86,9 +155,27 @@ function initSettingsShortcut() {
         });
     }
 
+    function setActiveTab(tabId) {
+        const targetTab = String(tabId || 'main');
+
+        tabButtons.forEach((button) => {
+            const isActive = button.getAttribute('data-tab') === targetTab;
+            button.classList.toggle('is-active', isActive);
+            button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+
+        tabPanels.forEach((panel) => {
+            const isActive = panel.getAttribute('data-tab-panel') === targetTab;
+            panel.classList.toggle('hidden', !isActive);
+            panel.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+        });
+    }
+
     function openSettings() {
         syncSettingsForm();
+        syncAudioSettingsForm();
         randomizePlanetDetailPreview();
+        setActiveTab('main');
         settingsModal.classList.remove('hidden');
         settingsModal.setAttribute('aria-hidden', 'false');
     }
@@ -96,6 +183,23 @@ function initSettingsShortcut() {
     function closeSettings() {
         settingsModal.classList.add('hidden');
         settingsModal.setAttribute('aria-hidden', 'true');
+    }
+
+    function updateFullscreenButtonLabel() {
+        if (!fullscreenButton) {
+            return;
+        }
+
+        if (!canUseFullscreen) {
+            fullscreenButton.disabled = true;
+            fullscreenButton.textContent = 'Полноэкранный режим недоступен';
+            return;
+        }
+
+        const isFullscreen = !!document.fullscreenElement;
+        fullscreenButton.textContent = isFullscreen
+            ? 'Выйти из полноэкранного режима'
+            : 'Открыть сайт на весь экран';
     }
 
     detailLevelControl.addEventListener('click', (event) => {
@@ -111,6 +215,86 @@ function initSettingsShortcut() {
         window.dispatchEvent(new CustomEvent('planet-detail-level-changed'));
     });
 
+    // Общая подсказка под кнопками детализации
+    if (detailLevelControl && detailLevelTooltip) {
+        const getTooltipText = (target) => target?.getAttribute('data-tooltip') || '';
+
+        detailLevelControl.addEventListener('mouseenter', (event) => {
+            const button = event.target.closest('[data-detail-level]');
+            if (!button) {
+                return;
+            }
+            showDetailTooltip(getTooltipText(button));
+        });
+
+        detailLevelControl.addEventListener('mousemove', (event) => {
+            const button = event.target.closest('[data-detail-level]');
+            if (!button) {
+                return;
+            }
+            showDetailTooltip(getTooltipText(button));
+        });
+
+        detailLevelControl.addEventListener('mouseleave', () => {
+            showDetailTooltip('');
+        });
+
+        detailLevelControl.addEventListener('focusin', (event) => {
+            const button = event.target.closest('[data-detail-level]');
+            if (!button) {
+                return;
+            }
+            showDetailTooltip(getTooltipText(button));
+        });
+
+        detailLevelControl.addEventListener('focusout', (event) => {
+            if (!detailLevelControl.contains(event.relatedTarget)) {
+                showDetailTooltip('');
+            }
+        });
+    }
+
+    if (tabButtons.length) {
+        tabButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                const tabId = button.getAttribute('data-tab') || 'main';
+                setActiveTab(tabId);
+            });
+        });
+    }
+
+    if (volumeMasterInput && volumeSfxInput && volumeMusicInput) {
+        const onVolumeInput = () => {
+            saveAudioSettingsFromForm();
+        };
+
+        volumeMasterInput.addEventListener('input', onVolumeInput);
+        volumeSfxInput.addEventListener('input', onVolumeInput);
+        volumeMusicInput.addEventListener('input', onVolumeInput);
+    }
+
+    if (fullscreenButton) {
+        updateFullscreenButtonLabel();
+
+        if (canUseFullscreen) {
+            fullscreenButton.addEventListener('click', async () => {
+                try {
+                    if (document.fullscreenElement) {
+                        await document.exitFullscreen();
+                    } else {
+                        await document.documentElement.requestFullscreen();
+                    }
+                } catch (error) {
+                    console.error('Fullscreen toggle failed', error);
+                }
+            });
+
+            document.addEventListener('fullscreenchange', updateFullscreenButtonLabel);
+        } else {
+            updateFullscreenButtonLabel();
+        }
+    }
+
     settingsClose.addEventListener('click', closeSettings);
 
     settingsModal.addEventListener('click', (event) => {
@@ -120,17 +304,47 @@ function initSettingsShortcut() {
     });
 
     document.addEventListener('keydown', (event) => {
-        if (event.key !== 'Tab') {
-            return;
+        const planetModal = document.getElementById('planetModal');
+        const isPlanetModalOpen = planetModal && !planetModal.classList.contains('hidden');
+        const isInPlanetModal = isPlanetModalOpen && event.target instanceof HTMLElement && planetModal.contains(event.target);
+
+        const isInputTarget = event.target instanceof HTMLElement &&
+            (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.isContentEditable);
+
+        if (event.key === 'Tab') {
+            const settingsHidden = settingsModal.classList.contains('hidden');
+
+            // В модалке планеты Tab всегда открывает настройки, даже из инпутов
+            if (isPlanetModalOpen && isInPlanetModal && settingsHidden) {
+                event.preventDefault();
+                openSettings();
+                return;
+            }
+
+            if (!isInputTarget && settingsHidden) {
+                event.preventDefault();
+                openSettings();
+                return;
+            }
         }
 
-        if (!settingsModal.classList.contains('hidden')) {
-            return;
-        }
+        if (!isInputTarget && event.key === 'Enter' && event.altKey) {
+            if (!fullscreenButton || !canUseFullscreen) {
+                return;
+            }
 
-        event.preventDefault();
-        openSettings();
+            event.preventDefault();
+
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+            } else {
+                document.documentElement.requestFullscreen().catch(() => {});
+            }
+        }
     });
+
+    // Expose helper for other scripts (e.g. mascot menu on index)
+    window.__smpOpenSettingsModal = openSettings;
 }
 
 if (document.readyState === 'loading') {

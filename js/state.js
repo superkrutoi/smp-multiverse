@@ -2,7 +2,8 @@ const STORAGE_KEYS = {
     servers: 'smp.multiverse.servers',
     profile: 'smp.multiverse.profile',
     auth: 'smp.multiverse.auth',
-    graphics: 'smp.multiverse.graphics'
+    graphics: 'smp.multiverse.graphics',
+    audio: 'smp.multiverse.audio'
 };
 
 const DETAIL_LEVEL_TO_SIZE = {
@@ -14,6 +15,12 @@ const DETAIL_LEVEL_TO_SIZE = {
 
 const defaultGraphics = {
     planetDetailLevel: 2
+};
+
+const defaultAudio = {
+    masterVolume: 1,
+    sfxVolume: 1,
+    musicVolume: 1
 };
 
 const defaultProfile = {
@@ -187,5 +194,51 @@ export const State = {
     getPlanetDetailSize() {
         const level = this.getPlanetDetailLevel();
         return DETAIL_LEVEL_TO_SIZE[level] || DETAIL_LEVEL_TO_SIZE[defaultGraphics.planetDetailLevel];
+    },
+
+    getAudioSettings() {
+        const stored = readJson(STORAGE_KEYS.audio, defaultAudio) || {};
+
+        const clampVolume = (value) => {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) {
+                return 1;
+            }
+            return Math.max(0, Math.min(1, numeric));
+        };
+
+        const normalized = {
+            ...defaultAudio,
+            ...(stored || {})
+        };
+
+        normalized.masterVolume = clampVolume(normalized.masterVolume);
+        normalized.sfxVolume = clampVolume(normalized.sfxVolume);
+        normalized.musicVolume = clampVolume(normalized.musicVolume);
+
+        return normalized;
+    },
+
+    saveAudioSettings(audioData) {
+        const current = this.getAudioSettings();
+        const next = {
+            ...current,
+            ...(audioData || {})
+        };
+
+        const clampVolume = (value) => {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) {
+                return 1;
+            }
+            return Math.max(0, Math.min(1, numeric));
+        };
+
+        next.masterVolume = clampVolume(next.masterVolume);
+        next.sfxVolume = clampVolume(next.sfxVolume);
+        next.musicVolume = clampVolume(next.musicVolume);
+
+        writeJson(STORAGE_KEYS.audio, next);
+        return next;
     }
 };

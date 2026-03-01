@@ -365,12 +365,20 @@ function syncSiteSettingsForm() {
 }
 
 function openRegularSettingsModal() {
-    syncSiteSettingsForm();
-    randomizePlanetDetailPreview();
-    settingsModal.classList.remove('hidden');
-    mascotMenu.classList.add('hidden');
+    if (typeof window.__smpOpenSettingsModal === 'function') {
+        window.__smpOpenSettingsModal();
+    } else if (settingsModal) {
+        // Fallback to legacy behavior if shortcut script is not loaded
+        syncSiteSettingsForm();
+        randomizePlanetDetailPreview();
+        settingsModal.classList.remove('hidden');
+    }
 
-    if (devMenuModal && !devMenuModal.classList.contains('hidden')) {
+    if (mascotMenu) {
+        mascotMenu.classList.add('hidden');
+    }
+
+    if (typeof devMenuModal !== 'undefined' && devMenuModal && !devMenuModal.classList.contains('hidden')) {
         devMenuModal.classList.add('hidden');
     }
 
@@ -403,17 +411,19 @@ window.addEventListener('planet-detail-level-changed', () => {
     renderPlanetDetailPreviewWidgets();
 });
 
-// Закрыть настройки по клику на крестик
-settingsClose.addEventListener('click', () => {
-    settingsModal.classList.add('hidden');
-});
-
-// Закрыть настройки по клику вне окна (на фон)
-settingsModal.addEventListener('click', (e) => {
-    if (e.target === settingsModal) {
+// Закрыть настройки по клику на крестик (устаревший обработчик, оставлен для совместимости)
+if (settingsClose && settingsModal) {
+    settingsClose.addEventListener('click', () => {
         settingsModal.classList.add('hidden');
-    }
-});
+    });
+
+    // Закрыть настройки по клику вне окна (на фон)
+    settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) {
+            settingsModal.classList.add('hidden');
+        }
+    });
+}
 // Dev Menu Logic
 const devMenuModal = document.getElementById('dev-menu-modal');
 const devMenuClose = document.querySelector('.dev-menu-close');
@@ -713,6 +723,174 @@ const renderDevMenuItem = async (itemNumber) => {
             });
         }
 
+        // Просмотр шрифтов
+        function renderFonts() {
+            const escapeHtml = (value) => String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+
+            const defaultSample = 'SMP Multiverse — пример текста 0123 ABC абв';
+            const savedSample = localStorage.getItem('dev.fonts.sampleText') || defaultSample;
+
+            tabContent.innerHTML = `
+                <div class="dev-fonts-browser">
+                    <div class="dev-fonts-header">
+                        <label class="dev-fonts-label">
+                            <span class="dev-fonts-label-text">Пример текста для предпросмотра шрифтов:</span>
+                            <input id="dev-fonts-sample-input" class="dev-fonts-input" type="text" value="${escapeHtml(savedSample)}" />
+                        </label>
+                    </div>
+                    <div class="dev-fonts-list" id="dev-fonts-list"></div>
+                </div>
+            `;
+
+            const fonts = [
+                {
+                    id: 'TipoMine',
+                    family: 'TipoMine',
+                    file: 'tipo_mine.woff2',
+                    role: 'Основной текст (var(--font-primary))',
+                    status: 'used'
+                },
+                {
+                    id: 'ContraPhobotech',
+                    family: 'ContraPhobotech',
+                    file: 'Contra Phobotech Regular.woff2',
+                    role: 'Заголовки / UI (var(--font-heading), частично var(--font-ui))',
+                    status: 'used'
+                },
+                {
+                    id: 'Mintsoda',
+                    family: 'Mintsoda',
+                    file: 'MintsodaLimeGreen13X16Regular-KVvzA.woff2',
+                    role: 'Акцентный курсив (var(--font-accent))',
+                    status: 'used'
+                },
+                {
+                    id: 'HUDSonic',
+                    family: 'HUDSonic',
+                    file: 'HUD Sonic X1 Regular.woff2',
+                    role: 'UI, заголовки панелей (var(--font-ui))',
+                    status: 'used'
+                },
+                {
+                    id: 'Glasstown',
+                    family: 'Glasstown',
+                    file: 'GlasstownNbpRegular-RyMM.woff2',
+                    role: 'Отдельные заголовки / карточки',
+                    status: 'used'
+                },
+                {
+                    id: 'PixelRegular',
+                    family: 'PixelRegular',
+                    file: 'Pixel-Regular.woff2',
+                    role: 'Tab-кнопки и элементы интерфейса',
+                    status: 'used'
+                },
+                {
+                    id: 'Shylock',
+                    family: 'Shylock',
+                    file: 'Shylock.woff2',
+                    role: 'Пиксельный шрифт для отдельных UI-кнопок',
+                    status: 'used'
+                },
+                {
+                    id: 'Dungeonmode',
+                    family: 'Dungeonmode',
+                    file: 'dungeon-mode.woff2',
+                    role: 'Зарезервирован для ретро-эффектов',
+                    status: 'reserved',
+                    note: 'Внимание: имя файла в assets отличается от пути в @font-face.'
+                },
+                {
+                    id: 'DungeonmodeInverted',
+                    family: 'DungeonmodeInverted',
+                    file: 'dungeon-mode-inverted.woff2',
+                    role: 'Зарезервирован для ретро-эффектов (инвертированный)',
+                    status: 'reserved',
+                    note: 'Внимание: имя файла в assets отличается от пути в @font-face.'
+                },
+                {
+                    id: 'StarseedProLegacy',
+                    family: 'StarseedProLegacy',
+                    file: 'StarseedPro.woff2',
+                    role: 'Устаревший, заменён на Contra Phobotech',
+                    status: 'legacy'
+                },
+                {
+                    id: 'Datcub_DOTS',
+                    family: null,
+                    file: 'Datcub_DOTS.woff2',
+                    role: 'Файл есть, но @font-face не объявлен в style.css',
+                    status: 'unused'
+                }
+            ];
+
+            const fontsListEl = document.getElementById('dev-fonts-list');
+            if (!fontsListEl) return;
+
+            const buildStatusLabel = (status) => {
+                switch (status) {
+                    case 'used': return 'используется';
+                    case 'reserved': return 'зарезервирован';
+                    case 'legacy': return 'устаревший';
+                    case 'unused': return 'не используется';
+                    default: return '';
+                }
+            };
+
+            const rowsHtml = fonts.map((font) => {
+                const statusLabel = buildStatusLabel(font.status);
+                const metaParts = [];
+                if (font.file) metaParts.push(font.file);
+                if (font.role) metaParts.push(font.role);
+                if (statusLabel) metaParts.push(statusLabel);
+                if (font.note) metaParts.push(font.note);
+                const metaLine = metaParts.join(' • ');
+
+                const familyCss = font.family
+                    ? `font-family: '${font.family}', var(--font-primary);`
+                    : `font-family: var(--font-primary);`;
+
+                return `
+                    <div class="dev-font-row" data-font-id="${escapeHtml(font.id)}">
+                        <div class="dev-font-row-header">
+                            <div class="dev-font-name">${escapeHtml(font.id)}</div>
+                            ${metaLine ? `<div class="dev-font-meta">${escapeHtml(metaLine)}</div>` : ''}
+                        </div>
+                        <div class="dev-font-sample" style="${familyCss}">
+                            <span class="dev-font-sample-text"></span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            fontsListEl.innerHTML = rowsHtml;
+
+            const sampleInput = document.getElementById('dev-fonts-sample-input');
+            const sampleEls = fontsListEl.querySelectorAll('.dev-font-sample-text');
+
+            const applySampleText = (text) => {
+                const value = text && text.length ? text : defaultSample;
+                sampleEls.forEach((el) => {
+                    el.textContent = value;
+                });
+            };
+
+            applySampleText(savedSample);
+
+            if (sampleInput) {
+                sampleInput.addEventListener('input', (e) => {
+                    const value = e.target.value;
+                    localStorage.setItem('dev.fonts.sampleText', value);
+                    applySampleText(value);
+                });
+            }
+        }
+
         // Переменная для хранения manifest в памяти
         let manifest = null;
 
@@ -1007,6 +1185,7 @@ const renderDevMenuItem = async (itemNumber) => {
                 if (key === 'colors') renderColors();
                 if (key === 'images') await renderImages();
                 if (key === 'sounds') await renderSounds();
+                if (key === 'fonts') renderFonts();
             }));
             // default to images
             setActiveSub('images');
@@ -1017,16 +1196,21 @@ const renderDevMenuItem = async (itemNumber) => {
             tabContent.innerHTML = `<div class="dev-sounds-browser"><div class="dev-sounds-sidebar" id="sounds-sidebar">Загрузка...</div><div class="dev-sounds-main"><div class="dev-sounds-scroll" id="sounds-scroll"><div class="dev-sounds-content" id="sounds-content"></div></div></div></div>`;
 
             try {
-                const soundsPath = 'assets/ui/sfx/JDSherbert_Pixel_UI_SFX_Pack';
-                const manifestRes = await fetch(`${soundsPath}/manifest.json?v=${Date.now()}`);
-                if (!manifestRes.ok) throw new Error(`HTTP ${manifestRes.status}`);
-                const soundsManifest = await manifestRes.json();
-
                 const sidebarEl = document.getElementById('sounds-sidebar');
                 const contentEl = document.getElementById('sounds-content');
                 const globalAudio = document.getElementById('global-audio');
+
+                const jdshPath = 'assets/ui/sfx/JDSherbert_Pixel_UI_SFX_Pack';
+                const unholyPath = 'assets/ui/sfx/--Unholy';
+                const pixelatedPath = 'assets/ui/sfx/Pixelated UI';
+
                 const formatsToShow = ['mp3', 'ogg'];
-                const folders = [{ name: 'JDSh_Ui', path: soundsPath }];
+
+                const folders = [
+                    { id: 'JDSh_Ui', name: 'JDSh_Ui', type: 'jdsh', basePath: jdshPath, manifest: 'manifest.json' },
+                    { id: 'Unholy', name: '--Unholy', type: 'flat', basePath: unholyPath, manifest: 'manifest.json' },
+                    { id: 'PixelatedUI', name: 'Pixelated UI', type: 'flat', basePath: pixelatedPath, manifest: 'manifest.json' }
+                ];
 
                 const escapeHtml = (value) => String(value || '')
                     .replace(/&/g, '&amp;')
@@ -1087,9 +1271,14 @@ const renderDevMenuItem = async (itemNumber) => {
 
                 const stripPrefix = (fileName) => fileName
                     .replace(/JDSherbert - Pixel UI SFX Pack - /, '')
-                    .replace(/\.(mp3|ogg)$/i, '');
+                    .replace(/\.(mp3|ogg|wav)$/i, '');
 
-                const buildSoundsMap = () => {
+                const stripSimpleName = (filePath) => {
+                    const justName = String(filePath).split(/[/\\]/).pop() || '';
+                    return justName.replace(/\.(mp3|ogg|wav)$/i, '');
+                };
+
+                const buildJdshSoundsMap = (soundsManifest, soundsPath) => {
                     const soundsMap = new Map();
                     for (const [category, formats] of Object.entries(soundsManifest.sounds || {})) {
                         const normalizedCategory = String(category).toLowerCase();
@@ -1119,54 +1308,75 @@ const renderDevMenuItem = async (itemNumber) => {
                     return Array.from(soundsMap.values()).sort((a, b) => a.title.localeCompare(b.title, 'ru'));
                 };
 
+                const buildFlatSoundsMap = (flatManifest, basePath) => {
+                    const files = Array.isArray(flatManifest.files) ? flatManifest.files : [];
+                    return files.map((relativePath) => {
+                        const fullPath = `${basePath}/${relativePath}`;
+                        const title = stripSimpleName(relativePath);
+                        return {
+                            title,
+                            files: {
+                                mono: { mp3: null, ogg: null, wav: fullPath },
+                                stereo: { mp3: null, ogg: null, wav: null }
+                            }
+                        };
+                    }).sort((a, b) => a.title.localeCompare(b.title, 'ru'));
+                };
+
                 async function buildSoundItem(rawSound) {
-                    const pickSource = (format) => rawSound.files.stereo[format] || rawSound.files.mono[format] || null;
+                    const pickSource = (format) => (rawSound.files.stereo && rawSound.files.stereo[format]) || (rawSound.files.mono && rawSound.files.mono[format]) || null;
+
                     const mp3Source = pickSource('mp3');
                     const oggSource = pickSource('ogg');
+                    const wavSource = pickSource('wav');
 
-                    const [mp3Size, oggSize, mp3Dur, oggDur] = await Promise.all([
+                    const [mp3Size, oggSize, wavSize, mp3Dur, oggDur, wavDur] = await Promise.all([
                         mp3Source ? getFileSize(mp3Source) : Promise.resolve(null),
                         oggSource ? getFileSize(oggSource) : Promise.resolve(null),
+                        wavSource ? getFileSize(wavSource) : Promise.resolve(null),
                         mp3Source ? getDuration(mp3Source) : Promise.resolve(0),
-                        oggSource ? getDuration(oggSource) : Promise.resolve(0)
+                        oggSource ? getDuration(oggSource) : Promise.resolve(0),
+                        wavSource ? getDuration(wavSource) : Promise.resolve(0)
                     ]);
 
                     const formats = [];
                     if (mp3Source) formats.push('mp3');
                     if (oggSource) formats.push('ogg');
+                    if (wavSource) formats.push('wav');
 
                     return {
                         title: rawSound.title,
                         formats,
-                        fileSizes: { mp3: mp3Size, ogg: oggSize },
-                        duration: Math.max(mp3Dur || 0, oggDur || 0),
+                        fileSizes: { mp3: mp3Size, ogg: oggSize, wav: wavSize },
+                        duration: Math.max(mp3Dur || 0, oggDur || 0, wavDur || 0),
                         files: rawSound.files
                     };
                 }
 
-                function createSoundHTML(soundObj) {
+                function createSoundHTML(soundObj, folderName) {
                     const stereoAvailable = soundObj.formats.some((format) => Boolean(soundObj.files.stereo[format]));
                     const monoAvailable = soundObj.formats.some((format) => Boolean(soundObj.files.mono[format]));
 
                     const defaultMode = stereoAvailable ? 'stereo' : (monoAvailable ? 'mono' : 'stereo');
-                    const defaultSrc = soundObj.files[defaultMode].mp3 || soundObj.files[defaultMode].ogg || '';
+                    const defaultSrc = soundObj.files[defaultMode].mp3 || soundObj.files[defaultMode].ogg || soundObj.files[defaultMode].wav || '';
 
                     const mp3Meta = soundObj.formats.includes('mp3') ? `MP3 (${formatBytes(soundObj.fileSizes.mp3)})` : null;
                     const oggMeta = soundObj.formats.includes('ogg') ? `OGG (${formatBytes(soundObj.fileSizes.ogg)})` : null;
-                    const metaChunks = [mp3Meta, oggMeta].filter(Boolean);
+                    const wavMeta = soundObj.formats.includes('wav') ? `WAV (${formatBytes(soundObj.fileSizes.wav)})` : null;
+                    const metaChunks = [mp3Meta, oggMeta, wavMeta].filter(Boolean);
                     metaChunks.push(formatMs(soundObj.duration));
                     const metaLine = metaChunks.join(' • ');
 
                     return `
-                        <div class="sound-card" data-default-src="${escapeHtml(defaultSrc)}">
+                        <div class="sound-card" data-default-src="${escapeHtml(defaultSrc)}" data-folder-name="${escapeHtml(folderName || '')}">
                             <button class="play-btn" type="button" aria-label="Воспроизвести">▶</button>
                             <div class="sound-info">
                                 <div class="sound-title" title="${escapeHtml(soundObj.title)}">${escapeHtml(soundObj.title)}</div>
                                 <div class="sound-meta">${escapeHtml(metaLine)}</div>
                                 <div class="sound-controls-row">
                                     <div class="sound-mode-switcher">
-                                        ${stereoAvailable ? `<button type="button" class="sound-mode-btn ${defaultMode === 'stereo' ? 'active' : ''}" data-mode="stereo" data-src="${escapeHtml(soundObj.files.stereo.mp3 || soundObj.files.stereo.ogg || '')}"><span class="mode-btn-text">L / R</span></button>` : ''}
-                                        ${monoAvailable ? `<button type="button" class="sound-mode-btn ${defaultMode === 'mono' ? 'active' : ''}" data-mode="mono" data-src="${escapeHtml(soundObj.files.mono.mp3 || soundObj.files.mono.ogg || '')}"><span class="mode-btn-text">M</span></button>` : ''}
+                                        ${stereoAvailable ? `<button type="button" class="sound-mode-btn ${defaultMode === 'stereo' ? 'active' : ''}" data-mode="stereo" data-src="${escapeHtml(soundObj.files.stereo.mp3 || soundObj.files.stereo.ogg || soundObj.files.stereo.wav || '')}"><span class="mode-btn-text">L / R</span></button>` : ''}
+                                        ${monoAvailable ? `<button type="button" class="sound-mode-btn ${defaultMode === 'mono' ? 'active' : ''}" data-mode="mono" data-src="${escapeHtml(soundObj.files.mono.mp3 || soundObj.files.mono.ogg || soundObj.files.mono.wav || '')}"><span class="mode-btn-text">M</span></button>` : ''}
                                     </div>
                                     <div class="sound-time"><span class="sound-current">00:00</span> / <span class="sound-duration">${formatMs(soundObj.duration)}</span></div>
                                 </div>
@@ -1176,10 +1386,10 @@ const renderDevMenuItem = async (itemNumber) => {
                     `;
                 }
 
-                async function renderSoundsList(soundItems) {
+                async function renderSoundsList(soundItems, folderName) {
                     contentEl.innerHTML = `
                         <div class="sounds-content-header">
-                            <h4>Папка: JDSh_Ui</h4>
+                            <h4>Папка: ${escapeHtml(folderName || 'Звуки')}</h4>
                         </div>
                         <div class="sounds-files-list" id="sounds-files-list"><div class="sounds-empty">Подготовка звуков...</div></div>
                     `;
@@ -1318,18 +1528,13 @@ const renderDevMenuItem = async (itemNumber) => {
                     globalAudio.addEventListener('ended', globalAudio._soundEndedHandler);
                 }
 
-                const rawSounds = buildSoundsMap();
-
                 let sidebarHtml = '<ul class="sounds-tree">';
                 folders.forEach((folder) => {
                     const folderName = folder.name;
-                    let isOpen = false;
-                    if (folderName === 'JDSh_Ui') {
-                        isOpen = true;
-                    }
+                    const isOpen = folderName === 'JDSh_Ui';
                     sidebarHtml += `
                         <li class="sounds-folder-item ${isOpen ? 'open' : ''}">
-                            <button class="sounds-folder-btn ${isOpen ? 'active' : ''}" data-folder-name="${folderName}">
+                            <button class="sounds-folder-btn ${isOpen ? 'active' : ''}" data-folder-id="${folder.id}" data-folder-name="${folderName}">
                                 <span class="file-icon">📁</span>
                                 <span>${folderName}</span>
                             </button>
@@ -1339,22 +1544,41 @@ const renderDevMenuItem = async (itemNumber) => {
                 sidebarHtml += '</ul>';
                 sidebarEl.innerHTML = sidebarHtml;
 
-                const openFolder = async (folderName) => {
+                const openFolder = async (folderId) => {
+                    const folder = folders.find((f) => f.id === folderId) || folders[0];
+                    if (!folder) return;
+
                     sidebarEl.querySelectorAll('.sounds-folder-btn').forEach((btn) => {
-                        btn.classList.toggle('active', btn.dataset.folderName === folderName);
+                        btn.classList.toggle('active', btn.dataset.folderId === folder.id);
                     });
-                    await renderSoundsList(rawSounds);
+
+                    try {
+                        const manifestRes = await fetch(`${folder.basePath}/${folder.manifest}?v=${Date.now()}`);
+                        if (!manifestRes.ok) throw new Error(`HTTP ${manifestRes.status}`);
+                        const manifest = await manifestRes.json();
+
+                        let rawSounds;
+                        if (folder.type === 'jdsh') {
+                            rawSounds = buildJdshSoundsMap(manifest, folder.basePath);
+                        } else {
+                            rawSounds = buildFlatSoundsMap(manifest, folder.basePath);
+                        }
+
+                        await renderSoundsList(rawSounds, folder.name);
+                    } catch (err) {
+                        contentEl.innerHTML = `<div style="padding: 20px; color: var(--mc-red);">Ошибка загрузки манифеста для ${escapeHtml(folder.name)}: ${escapeHtml(err.message)}</div>`;
+                    }
                 };
 
                 sidebarEl.querySelectorAll('.sounds-folder-btn').forEach((btn) => {
                     btn.addEventListener('click', async () => {
-                        await openFolder(btn.dataset.folderName);
+                        await openFolder(btn.dataset.folderId);
                     });
                 });
 
-                const defaultFolderBtn = sidebarEl.querySelector('.sounds-folder-btn[data-folder-name="JDSh_Ui"]') || sidebarEl.querySelector('.sounds-folder-btn');
+                const defaultFolderBtn = sidebarEl.querySelector('.sounds-folder-btn[data-folder-id="JDSh_Ui"]') || sidebarEl.querySelector('.sounds-folder-btn');
                 if (defaultFolderBtn) {
-                    await openFolder(defaultFolderBtn.dataset.folderName);
+                    await openFolder(defaultFolderBtn.dataset.folderId);
                 }
             } catch (err) {
                 tabContent.innerHTML = `<div class="dev-sounds-browser"><div style="padding: 20px; color: var(--mc-red);">Ошибка загрузки звуков: ${err.message}</div></div>`;

@@ -309,20 +309,19 @@ body {
 }
 
 .planet-modal-content {
-    width: min(1220px, 100%);
-    height: min(760px, calc(100vh - 32px));
+    width: min(1440px, 100%);
     max-height: calc(100vh - 32px);
     border: 2px solid var(--mc-border);
     background: #111;
     display: grid;
-    grid-template-rows: 1fr auto;
+    grid-template-rows: minmax(0, 1fr) auto;
     position: relative;
     overflow: hidden;
 }
 
 .planet-editor-layout {
     display: grid;
-    grid-template-columns: minmax(280px, 1fr) minmax(440px, 1.35fr) minmax(280px, 1fr);
+    grid-template-columns: minmax(260px, 1.05fr) minmax(430px, 1.3fr) minmax(320px, 1.15fr);
     gap: 20px;
     padding: 16px;
     align-items: stretch;
@@ -775,6 +774,7 @@ body {
     height: calc(var(--orbit-radius, 120px) * 2);
     transform: translate(-50%, -50%);
     border: 1px dashed rgba(140, 220, 140, 0.35);
+    border-width: calc(1px / var(--preview-cube-zoom, 1));
     border-radius: 50%;
 }
 
@@ -1068,6 +1068,7 @@ body {
     background: color-mix(in srgb, var(--xaero-bg-card) 88%, transparent);
     min-height: 0;
     overflow-y: auto;
+    overflow-x: hidden;
     position: relative;
 }
 
@@ -1081,6 +1082,7 @@ body {
     background: color-mix(in srgb, var(--xaero-bg-card) 88%, transparent);
     min-height: 0;
     overflow-y: auto;
+    overflow-x: hidden;
     position: relative;
 }
 
@@ -1266,10 +1268,37 @@ body {
     color: var(--mc-accent);
 }
 
+.range-with-value {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.range-with-value input[type='range'] {
+    flex: 1 1 auto;
+}
+
+.satellite-value-label {
+    min-width: 72px;
+    text-align: right;
+    font-size: 0.78rem;
+    font-weight: 300;
+    white-space: nowrap;
+    opacity: 0.9;
+}
+
 .satellite-editor-actions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
+}
+
+.satellite-editor-actions .editor-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.86rem;
+    line-height: 1.1;
 }
 
 .satellite-delete-btn {
@@ -1385,27 +1414,46 @@ body {
     gap: 6px;
 }
 
-.satellite-tab,
+.satellite-tab {
+    border: 1px solid var(--xaero-border-alt);
+    background-color: color-mix(in srgb, var(--xaero-bg-dark) 86%, transparent);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+    color: var(--mc-accent);
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    line-height: 1;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    cursor: pointer;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.85);
+    transform-origin: center;
+    transition: transform 0.12s ease-out, box-shadow 0.12s ease-out, border-color 0.12s ease-out, color 0.12s ease-out;
+}
+
+.satellite-tab.is-active {
+    color: #fff;
+    border-width: 2px;
+    border-color: var(--mc-accent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--mc-accent) 70%, transparent);
+}
+
+.satellite-tab:hover,
+.satellite-tab:focus-visible {
+    transform: scale(1.06);
+}
+
 .satellite-add-btn {
     border: 1px solid var(--xaero-border-alt);
     background: color-mix(in srgb, var(--xaero-bg-dark) 86%, transparent);
     color: var(--xaero-text-light);
     font-family: var(--font-ui);
-    padding: 7px 10px;
-    cursor: pointer;
-}
-
-.satellite-tab.is-active {
-    color: #fff;
-    border-color: var(--xaero-accent-bright);
-    background: linear-gradient(
-        145deg,
-        color-mix(in srgb, var(--xaero-accent) 75%, #0a1e4f),
-        color-mix(in srgb, var(--xaero-accent-bright) 60%, #102c73)
-    );
-}
-
-.satellite-add-btn {
     width: 36px;
     height: 36px;
     padding: 0;
@@ -1413,6 +1461,7 @@ body {
     line-height: 1;
     display: grid;
     place-items: center;
+    cursor: pointer;
 }
 
 .planet-modal-content .editor-btn {
@@ -1589,5 +1638,20 @@ body {
     .satellite-settings-grid,
     .satellite-editor-actions {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-height: 780px) {
+    .planet-modal-content {
+        overflow-y: auto;
+    }
+
+    .planet-editor-layout {
+        align-items: flex-start;
+    }
+
+    .planet-editor-controls,
+    .satellite-editor-panel {
+        overflow-y: visible;
     }
 }

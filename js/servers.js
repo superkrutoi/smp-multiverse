@@ -63,6 +63,10 @@ const satelliteMoonSizeHint = document.getElementById('satelliteMoonSizeHint');
 const satelliteOrbitRadius = document.getElementById('satelliteOrbitRadius');
 const satelliteOrbitSpeed = document.getElementById('satelliteOrbitSpeed');
 const satelliteTilt = document.getElementById('satelliteTilt');
+const satelliteSizeValue = document.getElementById('satelliteSizeValue');
+const satelliteOrbitDistanceValue = document.getElementById('satelliteOrbitDistanceValue');
+const satelliteTiltValue = document.getElementById('satelliteTiltValue');
+const satelliteOrbitSpeedValue = document.getElementById('satelliteOrbitSpeedValue');
 const randomSatelliteBtn = document.getElementById('randomSatelliteBtn');
 const deleteSatelliteBtn = document.getElementById('deleteSatelliteBtn');
 const satelliteDeleteConfirm = document.getElementById('satelliteDeleteConfirm');
@@ -74,11 +78,16 @@ let selectedPlanetPreview = '';
 let selectedPlanetData = null;
 let editingServerId = null;
 
-const PLANET_PREVIEW_ZOOM_MIN = 60;
+const PLANET_PREVIEW_ZOOM_MIN = 15;
 const PLANET_PREVIEW_ZOOM_MAX = 220;
 const PLANET_PREVIEW_ZOOM_STEP = 10;
 const SATELLITE_ORBIT_RADIUS_MIN = 90;
 const SATELLITE_ORBIT_RADIUS_MAX = 1200;
+const SATELLITE_DISTANCE_BASE_KM = 50000;
+const SATELLITE_DEFAULT_MOON_DISTANCE_KM = 384400;
+const SATELLITE_DEFAULT_MOON_ORBIT_RADIUS = 120;
+const SATELLITE_DISTANCE_PER_RADIUS_KM = (SATELLITE_DEFAULT_MOON_DISTANCE_KM - SATELLITE_DISTANCE_BASE_KM) /
+    (SATELLITE_DEFAULT_MOON_ORBIT_RADIUS - SATELLITE_ORBIT_RADIUS_MIN);
 const PLANET_PREVIEW_DETAIL_DEFAULT = 2;
 const PLANET_LIGHT_DEFAULT = { x: -0.38, y: 0.74, z: 0.56 };
 const PLANET_AXIS_TILT_DEFAULT = 23.44;
@@ -170,6 +179,33 @@ function randomSatelliteSeed() {
 function getDefaultMoonSize() {
     const planetDiameter = getPlanetPreviewRadius() * 2;
     return clamp(Math.round(planetDiameter / 4), 22, 72);
+}
+
+function formatSatelliteSizePercent(sizeValue) {
+    const moonSize = getDefaultMoonSize();
+    if (!moonSize || !Number.isFinite(moonSize)) {
+        return '';
+    }
+    const numericSize = Number(sizeValue) || moonSize;
+    const percent = clamp((numericSize / moonSize) * 100, 10, 400);
+    return `${Math.round(percent)}%`;
+}
+
+function getSatelliteDistanceKm(orbitRadius) {
+    const radius = clamp(Number(orbitRadius) || SATELLITE_ORBIT_RADIUS_MIN, SATELLITE_ORBIT_RADIUS_MIN, SATELLITE_ORBIT_RADIUS_MAX);
+    const offset = radius - SATELLITE_ORBIT_RADIUS_MIN;
+    return SATELLITE_DISTANCE_BASE_KM + (offset * SATELLITE_DISTANCE_PER_RADIUS_KM);
+}
+
+function formatSatelliteDistanceLabel(orbitRadius) {
+    const distanceKm = getSatelliteDistanceKm(orbitRadius);
+    const thousands = clamp(distanceKm / 1000, 0, 999999);
+    return thousands.toFixed(1).replace('.', ',');
+}
+
+function formatSatelliteTiltLabel(tiltDegRaw) {
+    const value = clamp(Number(tiltDegRaw) || 0, 0, 180);
+    return `${value.toFixed(0)}\u00b0`;
 }
 
 function playSatelliteDeletePromptSound() {
@@ -672,6 +708,20 @@ function getSatellitePresetOptions(satellite) {
     };
 }
 
+function getSatelliteTabPreviewDataUrl(index) {
+    const visual = satelliteVisuals[index];
+    if (!visual || !visual.faceCanvases || !visual.faceCanvases.front) {
+        return null;
+    }
+
+    const canvas = visual.faceCanvases.front;
+    try {
+        return canvas.toDataURL('image/png');
+    } catch {
+        return null;
+    }
+}
+
 function renderSatelliteTabs() {
     if (!satelliteTabs) {
         return;
@@ -679,13 +729,46 @@ function renderSatelliteTabs() {
 
     satelliteTabs.innerHTML = '';
     satelliteItems.forEach((satellite, index) => {
+        const fullName = satellite.name || `спутник ${index + 1}`;
+        const normalized = String(fullName).trim();
+
+        let shortName;
+
+        if (normalized) {
+            const parts = normalized.split(/\s+/);
+
+            if (parts.length >= 2) {
+                const first = parts[0].charAt(0) || '';
+                const secondWord = parts[1] || '';
+                const digitMatch = secondWord.match(/\d/);
+
+                if (digitMatch) {
+                    shortName = (first + digitMatch[0]).toUpperCase();
+                } else {
+                    const second = secondWord.charAt(0) || '';
+                    shortName = (first + second).toUpperCase();
+                }
+            } else {
+                const compact = normalized.replace(/\s+/g, '');
+                shortName = compact.slice(0, 2).toUpperCase();
+            }
+        }
+
+        if (!shortName) {
+            shortName = `С${index + 1}`;
+        }
         const button = document.createElement('button');
         button.type = 'button';
         button.className = `satellite-tab${index === activeSatelliteIndex ? ' is-active' : ''}`;
         button.setAttribute('data-satellite-index', String(index));
         button.setAttribute('role', 'tab');
         button.setAttribute('aria-selected', index === activeSatelliteIndex ? 'true' : 'false');
-        button.textContent = satellite.name || `спутник ${index + 1}`;
+        button.textContent = shortName;
+        button.title = fullName;
+        const previewUrl = getSatelliteTabPreviewDataUrl(index);
+        if (previewUrl) {
+            button.style.backgroundImage = `url(${previewUrl})`;
+        }
         satelliteTabs.appendChild(button);
     });
 }
@@ -737,6 +820,10 @@ function syncSatelliteEditorFields() {
     if (satelliteOrbitRadius) satelliteOrbitRadius.value = String(Math.round(current.orbitRadius));
     if (satelliteOrbitSpeed) satelliteOrbitSpeed.value = String(Math.round(current.orbitSpeed * 100));
     if (satelliteTilt) satelliteTilt.value = String(Math.round(current.tilt || 0));
+    if (satelliteSizeValue) satelliteSizeValue.textContent = formatSatelliteSizePercent(current.size);
+    if (satelliteOrbitDistanceValue) satelliteOrbitDistanceValue.innerHTML = formatSatelliteDistanceLabel(current.orbitRadius);
+    if (satelliteOrbitSpeedValue) satelliteOrbitSpeedValue.textContent = `${Math.round(current.orbitSpeed * 100)}%`;
+    if (satelliteTiltValue) satelliteTiltValue.textContent = formatSatelliteTiltLabel(current.tilt || 0);
     updateMoonSizeHintState();
 }
 
@@ -889,6 +976,14 @@ function renderSatelliteTextures() {
             targetCtx.clearRect(0, 0, options.size, options.size);
             targetCtx.drawImage(source, 0, 0, options.size, options.size);
         });
+
+        if (satelliteTabs) {
+            const button = satelliteTabs.querySelector(`[data-satellite-index="${index}"]`);
+            const previewUrl = getSatelliteTabPreviewDataUrl(index);
+            if (button && previewUrl) {
+                button.style.backgroundImage = `url(${previewUrl})`;
+            }
+        }
     });
 }
 
@@ -1172,6 +1267,28 @@ const planetModalControls = setupModal({
         closeSatelliteDeleteConfirm();
         planetEditor.stopAnimation();
         stopSatelliteAnimation();
+    }
+});
+
+// Открытие настроек по Tab даже когда открыт редактор планеты
+document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Tab') {
+        return;
+    }
+
+    if (!planetModal || planetModal.classList.contains('hidden')) {
+        return;
+    }
+
+    const settingsModal = document.getElementById('settings-modal');
+    if (settingsModal && !settingsModal.classList.contains('hidden')) {
+        return;
+    }
+
+    event.preventDefault();
+
+    if (typeof window.__smpOpenSettingsModal === 'function') {
+        window.__smpOpenSettingsModal();
     }
 });
 
@@ -1459,6 +1576,9 @@ if (satelliteOrbitSpeed) {
         }
 
         current.orbitSpeed = clamp((Number(event.target.value) || 26) / 100, 0.05, 1.2);
+        if (satelliteOrbitSpeedValue) {
+            satelliteOrbitSpeedValue.textContent = `${Math.round(current.orbitSpeed * 100)}%`;
+        }
     });
 }
 
