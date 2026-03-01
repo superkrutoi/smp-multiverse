@@ -68,16 +68,28 @@ document.addEventListener('keydown', (e) => {
 
     const target = e.target;
     const isEditable = target && target.closest('input, textarea, select, button, [contenteditable="true"]');
-    if (isEditable) return;
-
     const devModal = document.getElementById('dev-menu-modal');
-    const settingsModal = document.getElementById('settings-modal');
+    const settingsModalEl = document.getElementById('settings-modal');
     const imageModal = document.getElementById('image-viewer-modal');
-    const hasOpenModal =
-        (devModal && !devModal.classList.contains('hidden')) ||
-        (settingsModal && !settingsModal.classList.contains('hidden')) ||
-        (imageModal && !imageModal.classList.contains('hidden'));
-    if (hasOpenModal) return;
+    const mascotDropdown = document.getElementById('mascot-menu');
+    const statusDropdown = document.getElementById('status-dropdown');
+
+    const isSettingsOpen = settingsModalEl && !settingsModalEl.classList.contains('hidden');
+    const isDevOpen = devModal && !devModal.classList.contains('hidden');
+    const isImageOpen = imageModal && !imageModal.classList.contains('hidden');
+    const isMascotOpen = mascotDropdown && !mascotDropdown.classList.contains('hidden');
+    const isStatusOpen = statusDropdown && !statusDropdown.classList.contains('hidden');
+    const isMenuContext = isDevOpen || isImageOpen || isMascotOpen || isStatusOpen;
+
+    if (isMenuContext) {
+        e.preventDefault();
+        if (!isSettingsOpen) {
+            openRegularSettingsModal();
+        }
+        return;
+    }
+
+    if (isEditable || isSettingsOpen) return;
 
     e.preventDefault();
     toggleSidebar();
@@ -352,13 +364,26 @@ function syncSiteSettingsForm() {
     renderPlanetDetailPreviewWidgets();
 }
 
+function openRegularSettingsModal() {
+    syncSiteSettingsForm();
+    randomizePlanetDetailPreview();
+    settingsModal.classList.remove('hidden');
+    mascotMenu.classList.add('hidden');
+
+    if (devMenuModal && !devMenuModal.classList.contains('hidden')) {
+        devMenuModal.classList.add('hidden');
+    }
+
+    const imageModal = document.getElementById('image-viewer-modal');
+    if (imageModal && !imageModal.classList.contains('hidden')) {
+        imageModal.classList.add('hidden');
+    }
+}
+
 // Открыть настройки по клику на кнопку в меню маскота
 mascotMenu.addEventListener('click', (e) => {
     if (e.target.textContent.trim() === 'Настройки') {
-        syncSiteSettingsForm();
-        randomizePlanetDetailPreview();
-        settingsModal.classList.remove('hidden');
-        mascotMenu.classList.add('hidden');
+        openRegularSettingsModal();
     }
 });
 

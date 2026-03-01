@@ -37,16 +37,9 @@ const DETAIL_LEVEL_TO_SIZE = {
     4: 128
 };
 
-const FACE_NAMES = ['front', 'back', 'left', 'right', 'top', 'bottom'];
+const CLOUD_ANIMATION_SPEED = 0.05;
 
-const ATMOSPHERE_FACE_OFFSETS = {
-    front: { x: 17, y: 31, z: 53 },
-    back: { x: 211, y: 73, z: 149 },
-    left: { x: 389, y: 127, z: 251 },
-    right: { x: 563, y: 191, z: 337 },
-    top: { x: 733, y: 257, z: 439 },
-    bottom: { x: 907, y: 313, z: 541 }
-};
+const FACE_NAMES = ['front', 'back', 'left', 'right', 'top', 'bottom'];
 
 function normalizeHexColor(value, fallback) {
     if (typeof value !== 'string') {
@@ -217,6 +210,8 @@ export function createPlanetEditor({
         bottom: document.getElementById('planetFaceBottom')
     };
     const cubeWrapper = document.getElementById('planetCubePreview');
+    const atmosphereWrapper = document.querySelector('.planet-atmosphere-wrapper');
+    const atmosphereCube = document.querySelector('.planet-atmosphere-cube');
 
     let textureSize = typeof State.getPlanetDetailSize === 'function'
         ? State.getPlanetDetailSize()
@@ -241,14 +236,13 @@ export function createPlanetEditor({
     let animationFrameId = null;
     let cloudOffset = 0;
     let lastAtmosphereFrameMs = 0;
-    let atmosphereWrapper = null;
     const atmosphereFaceCanvases = {
-        front: null,
-        back: null,
-        left: null,
-        right: null,
-        top: null,
-        bottom: null
+        front: document.getElementById('atmoFaceFront'),
+        back: document.getElementById('atmoFaceBack'),
+        left: document.getElementById('atmoFaceLeft'),
+        right: document.getElementById('atmoFaceRight'),
+        top: document.getElementById('atmoFaceTop'),
+        bottom: document.getElementById('atmoFaceBottom')
     };
     let lastMeta = null;
     let dirty = true;
@@ -349,118 +343,149 @@ export function createPlanetEditor({
         return hexToRgb(colorHex);
     }
 
-    function ensureAtmosphereLayer() {
-        if (!cubeWrapper) {
-            return;
+    function hasAtmosphereLayer() {
+        if (!atmosphereWrapper || !atmosphereCube) {
+            return false;
         }
 
-        if (atmosphereWrapper?.isConnected) {
-            return;
+        return FACE_NAMES.every((faceName) => Boolean(atmosphereFaceCanvases[faceName]));
+    }
+
+    function cubeToSphere(faceName, u, v) {
+        let x = 0;
+        let y = 0;
+        let z = 0;
+
+        if (faceName === 'front') {
+            x = u;
+            y = v;
+            z = 1;
+        } else if (faceName === 'back') {
+            x = -u;
+            y = v;
+            z = -1;
+        } else if (faceName === 'left') {
+            x = -1;
+            y = v;
+            z = u;
+        } else if (faceName === 'right') {
+            x = 1;
+            y = v;
+            z = -u;
+        } else if (faceName === 'top') {
+            x = u;
+            y = 1;
+            z = -v;
+        } else {
+            x = u;
+            y = -1;
+            z = v;
         }
 
-        atmosphereWrapper = cubeWrapper.querySelector('.planet-cube-atmosphere-wrapper');
+        const invLen = 1 / Math.max(0.00001, Math.hypot(x, y, z));
+        return {
+            x: x * invLen,
+            y: y * invLen,
+            z: z * invLen
+        };
+    }
 
-        if (!atmosphereWrapper) {
-            atmosphereWrapper = document.createElement('div');
-            atmosphereWrapper.className = 'planet-cube-atmosphere-wrapper';
-
-            FACE_NAMES.forEach((faceName) => {
-                const faceCanvas = document.createElement('canvas');
-                faceCanvas.className = `planet-cube-atmosphere-face face-${faceName}`;
-                atmosphereWrapper.appendChild(faceCanvas);
-                atmosphereFaceCanvases[faceName] = faceCanvas;
-            });
-
-            cubeWrapper.appendChild(atmosphereWrapper);
+    function generateCloudFace({
+        face,
+        size,
+        seed,
+        scale,
+        density,
+        time,
+        alphaBoost,
+        color
+    }) {
+        const faceBuffer = createBuffer(size, size);
+        const faceCtx = faceBuffer.getContext('2d');
+        if (!faceCtx) {
+            return faceBuffer;
         }
 
-        FACE_NAMES.forEach((faceName) => {
-            if (!atmosphereFaceCanvases[faceName]) {
-                atmosphereFaceCanvases[faceName] = atmosphereWrapper.querySelector(`.planet-cube-atmosphere-face.face-${faceName}`);
+        const image = faceCtx.createImageData(size, size);
+        const data = image.data;
+        const divisor = Math.max(1, size - 1);
+
+        for (let y = 0; y < size; y += 1) {
+            for (let x = 0; x < size; x += 1) {
+                const u = ((x / divisor) * 2) - 1;
+                const v = ((y / divisor) * 2) - 1;
+                const point = cubeToSphere(face, u, v);
+
+                const n = fbmNoise3D(
+                    (point.x * scale) + time,
+                    (point.y * scale) + (time * 0.53),
+                    (point.z * scale) + (time * 0.29),
+                    seed
+                );
+
+                if (n < density) {
+                    continue;
+                }
+
+                const normalized = clamp((n - density) / Math.max(0.0001, 1 - density), 0, 1);
+                const alpha = clamp(normalized * alphaBoost, 0, 1);
+                const index = ((y * size) + x) * 4;
+                data[index] = color.r;
+                data[index + 1] = color.g;
+                data[index + 2] = color.b;
+                data[index + 3] = Math.round(alpha * 255);
             }
+        }
+
+        faceCtx.putImageData(image, 0, 0);
+        return faceBuffer;
+    }
+
+    function generateCloudCube({
+        size,
+        seed,
+        detailLevel,
+        density,
+        time,
+        alphaBoost,
+        color
+    }) {
+        const faces = {};
+        const scale = 1.4 / Math.max(1, detailLevel);
+
+        FACE_NAMES.forEach((face, faceIndex) => {
+            faces[face] = generateCloudFace({
+                face,
+                size,
+                seed: seed + (faceIndex * 131),
+                scale,
+                density,
+                time,
+                alphaBoost,
+                color
+            });
         });
+
+        return faces;
     }
 
     function drawAtmosphereFaces(detailLevel, forceRedraw = false) {
-        ensureAtmosphereLayer();
-        if (!atmosphereWrapper) {
+        if (!hasAtmosphereLayer()) {
             return;
         }
 
-        const atmospherePower = clamp((params.atmosphere || 0) / 100, 0, 1);
-        const atmosphereScale = 1 + (clamp(params.atmosphereSize || 0, 0, 35) / 100);
-        atmosphereWrapper.style.setProperty('--planet-atmosphere-scale', atmosphereScale.toFixed(3));
-        if (atmospherePower <= 0.001) {
-            atmosphereWrapper.style.setProperty('--planet-atmosphere-alpha', '0');
-            FACE_NAMES.forEach((faceName) => {
-                const faceCanvas = atmosphereFaceCanvases[faceName];
-                if (!faceCanvas) {
-                    return;
-                }
-                const faceCtx = faceCanvas.getContext('2d');
-                if (faceCtx) {
-                    faceCtx.clearRect(0, 0, faceCanvas.width, faceCanvas.height);
-                }
-            });
-            return;
-        }
+        atmosphereWrapper.style.setProperty('--planet-atmosphere-alpha', '0');
 
-        atmosphereWrapper.style.setProperty('--planet-atmosphere-alpha', (0.28 + (atmospherePower * 0.5)).toFixed(3));
-
-        const size = textureSize;
-        const cloudDensity = clamp((params.cloudDensity || 0) / 100, 0, 1);
-        const detail = Math.max(1, detailLevel || 1);
-        const cloudNoiseScale = (0.05 / detail) * 0.5;
-        const threshold = clamp(0.84 - (cloudDensity * 0.38) - (atmospherePower * 0.14), 0.34, 0.9);
-        const alphaBase = 0.4 + (atmospherePower * 0.3);
-        const glowRgb = getAtmosphereColor();
-
-        FACE_NAMES.forEach((faceName, faceIndex) => {
+        FACE_NAMES.forEach((faceName) => {
             const faceCanvas = atmosphereFaceCanvases[faceName];
             if (!faceCanvas) {
                 return;
             }
-
-            if (faceCanvas.width !== size || faceCanvas.height !== size) {
-                faceCanvas.width = size;
-                faceCanvas.height = size;
-            }
-
-            const faceCtx = faceCanvas.getContext('2d', { willReadFrequently: true });
+            const faceCtx = faceCanvas.getContext('2d');
             if (!faceCtx) {
                 return;
             }
-
-            const image = faceCtx.createImageData(size, size);
-            const data = image.data;
-            const offset = ATMOSPHERE_FACE_OFFSETS[faceName] || { x: 0, y: 0, z: 0 };
-            const driftX = cloudOffset * (10 + detail * 2.8);
-            const driftY = Math.sin(cloudOffset * 1.1) * 5;
-            const driftZ = cloudOffset * 1.7;
-
-            for (let y = 0; y < size; y += 1) {
-                for (let x = 0; x < size; x += 1) {
-                    const nx = (x + offset.x + driftX) * cloudNoiseScale;
-                    const ny = (y + offset.y + driftY) * cloudNoiseScale;
-                    const nz = (offset.z + driftZ + (params.seed * 0.02) + (faceIndex * 11)) * cloudNoiseScale;
-
-                    const cloudNoise = fbmNoise3D(nx, ny, nz, params.seed + (faceIndex * 131));
-                    if (cloudNoise <= threshold) {
-                        continue;
-                    }
-
-                    const t = clamp((cloudNoise - threshold) / Math.max(0.0001, 1 - threshold), 0, 1);
-                    const alpha = clamp(alphaBase + (t * 0.3), 0, 1);
-                    const pixel = ((y * size) + x) * 4;
-                    data[pixel] = glowRgb.r;
-                    data[pixel + 1] = glowRgb.g;
-                    data[pixel + 2] = glowRgb.b;
-                    data[pixel + 3] = Math.round(alpha * 255);
-                }
-            }
-
-            faceCtx.clearRect(0, 0, size, size);
-            faceCtx.putImageData(image, 0, 0);
+            faceCtx.clearRect(0, 0, faceCanvas.width, faceCanvas.height);
         });
 
         if (forceRedraw) {
@@ -640,6 +665,7 @@ export function createPlanetEditor({
         const paletteChanged = params.palette !== prevPalette;
         if (paletteChanged && fields.palette) {
             params.paletteColors = normalizePaletteColors(undefined, params.palette);
+            syncFieldsFromParams();
         } else {
             params.paletteColors = normalizePaletteColors({
                 ocean1: fields.oceanColor1?.value || params.paletteColors.ocean1,
@@ -743,26 +769,6 @@ export function createPlanetEditor({
 
     function startAnimation() {
         renderNow();
-
-        if (animationFrameId !== null) {
-            return;
-        }
-
-        const run = (timestamp) => {
-            if (animationFrameId === null) {
-                return;
-            }
-
-            if (!lastAtmosphereFrameMs || (timestamp - lastAtmosphereFrameMs) >= 33) {
-                cloudOffset += 0.005;
-                drawAtmosphereFaces(getPreviewDetailLevel());
-                lastAtmosphereFrameMs = timestamp;
-            }
-
-            animationFrameId = window.requestAnimationFrame(run);
-        };
-
-        animationFrameId = window.requestAnimationFrame(run);
     }
 
     function stopAnimation() {
@@ -793,10 +799,13 @@ export function createPlanetEditor({
     ].filter(Boolean);
 
     controls.forEach((field) => {
-        field.addEventListener('input', () => {
+        const onFieldChange = () => {
             syncParamsFromFields();
             drawPlanet();
-        });
+        };
+
+        field.addEventListener('input', onFieldChange);
+        field.addEventListener('change', onFieldChange);
     });
 
     syncFieldsFromParams();

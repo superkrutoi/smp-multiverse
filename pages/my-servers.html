@@ -125,7 +125,19 @@
                         <canvas id="planetFaceTop" class="planet-cube-face face-top" width="32" height="32"></canvas>
                         <canvas id="planetFaceBottom" class="planet-cube-face face-bottom" width="32" height="32"></canvas>
                     </div>
+                    <div id="satelliteOrbitLayer" class="satellite-orbit-layer" aria-hidden="true"></div>
+                    <div class="planet-atmosphere-wrapper" aria-hidden="true">
+                        <div class="planet-atmosphere-cube">
+                            <canvas id="atmoFaceFront" class="planet-atmosphere-face atmo-front" width="32" height="32"></canvas>
+                            <canvas id="atmoFaceBack" class="planet-atmosphere-face atmo-back" width="32" height="32"></canvas>
+                            <canvas id="atmoFaceLeft" class="planet-atmosphere-face atmo-left" width="32" height="32"></canvas>
+                            <canvas id="atmoFaceRight" class="planet-atmosphere-face atmo-right" width="32" height="32"></canvas>
+                            <canvas id="atmoFaceTop" class="planet-atmosphere-face atmo-top" width="32" height="32"></canvas>
+                            <canvas id="atmoFaceBottom" class="planet-atmosphere-face atmo-bottom" width="32" height="32"></canvas>
+                        </div>
+                    </div>
                     <div class="planet-preview-zoom-controls" aria-label="Масштаб превью">
+                        <span id="planetPreviewZoomValue" class="planet-preview-zoom-value" aria-live="polite">100%</span>
                         <button id="planetPreviewZoomIn" class="map-zoom-btn" aria-label="Приблизить планету" title="Приблизить" data-tooltip="приблизить">
                             <img src="../assets/Lucid_V1.2_icons/PNG/Flat/32/Magnifying-Glass-Add.png" alt="" class="map-zoom-icon" width="20" height="20">
                         </button>
@@ -136,72 +148,142 @@
                     <canvas id="planetEditorCanvas" class="planet-editor-capture" width="400" height="400" aria-label="Предпросмотр планеты"></canvas>
                 </div>
                 <div class="planet-editor-controls">
-                    <label class="field-label">
-                        Seed
-                        <input type="number" id="planetSeed" min="1" max="999999" step="1">
-                    </label>
-                    <label class="field-label">
-                        Биом / палитра
-                        <select id="planetPalette">
-                            <option value="earth">Земная</option>
-                            <option value="lava">Лавовая</option>
-                            <option value="ice">Ледяная</option>
-                            <option value="desert">Пустынная</option>
-                            <option value="dark">Тёмная</option>
-                        </select>
-                    </label>
-                    <label class="field-label">
-                        Палитра (6 цветов)
-                        <div class="planet-palette-row" role="group" aria-label="Палитра планеты">
-                            <input type="color" class="planet-palette-swatch" id="planetOceanColor1" value="#1d3f66" title="Океан: глубокий" aria-label="Океан: глубокий">
-                            <input type="color" class="planet-palette-swatch" id="planetOceanColor2" value="#26547f" title="Океан: средний" aria-label="Океан: средний">
-                            <input type="color" class="planet-palette-swatch" id="planetOceanColor3" value="#2f6aa3" title="Океан: мелкий" aria-label="Океан: мелкий">
-                            <input type="color" class="planet-palette-swatch" id="planetLandColor1" value="#3f6c2f" title="Материк: низины" aria-label="Материк: низины">
-                            <input type="color" class="planet-palette-swatch" id="planetLandColor2" value="#6ea24c" title="Материк: равнины" aria-label="Материк: равнины">
-                            <input type="color" class="planet-palette-swatch" id="planetLandColor3" value="#9bc27f" title="Материк: вершины" aria-label="Материк: вершины">
-                        </div>
-                    </label>
-                    <label class="field-label">
-                        Масштаб континентов
-                        <input type="range" id="planetScale" min="120" max="340" step="1">
-                    </label>
-                    <label class="field-label">
-                        Уровень моря
-                        <input type="range" id="planetSeaLevel" min="25" max="80" step="1">
-                    </label>
-                    <label class="field-label">
-                        Плотность облаков
-                        <input type="range" id="planetCloudDensity" min="0" max="100" step="1">
-                    </label>
-                    <label class="field-label">
-                        Атмосфера
-                        <input type="range" id="planetAtmosphere" min="0" max="100" step="1">
-                    </label>
-                    <label class="field-label">
-                        Размер внешнего слоя облаков
-                        <input type="range" id="planetAtmosphereSize" min="0" max="35" step="1" value="5">
-                    </label>
-                    <label class="field-label">
-                        Кольцо
-                        <select id="planetRingType">
-                            <option value="none">Нет</option>
-                            <option value="thin">Тонкое</option>
-                            <option value="wide">Широкое</option>
-                        </select>
-                    </label>
-                    <button id="randomPlanetBtn" class="secondary-btn" type="button">Случайная планета</button>
+                    <div class="planet-editor-title">Планета</div>
+                    <div class="section-label">Базовые параметры</div>
+                    <div class="section-label">Параметры генерации</div>
+                    <div class="planet-settings-grid">
+                        <label class="field-label">
+                            <span class="control-label">Seed</span>
+                            <input type="number" id="planetSeed" min="1" max="999999" step="1">
+                        </label>
+                        <label class="field-label">
+                            <span class="control-label">Биом / палитра</span>
+                            <select id="planetPalette">
+                                <option value="earth">Земная</option>
+                                <option value="lava">Лавовая</option>
+                                <option value="ice">Ледяная</option>
+                                <option value="desert">Пустынная</option>
+                                <option value="dark">Тёмная</option>
+                            </select>
+                        </label>
+                        <label class="field-label">
+                            <span class="control-label">Палитра (6 цветов)</span>
+                            <div class="planet-palette-row" role="group" aria-label="Палитра планеты">
+                                <input type="color" class="planet-palette-swatch" id="planetOceanColor1" value="#1d3f66" title="Океан: глубокий" aria-label="Океан: глубокий">
+                                <input type="color" class="planet-palette-swatch" id="planetOceanColor2" value="#26547f" title="Океан: средний" aria-label="Океан: средний">
+                                <input type="color" class="planet-palette-swatch" id="planetOceanColor3" value="#2f6aa3" title="Океан: мелкий" aria-label="Океан: мелкий">
+                                <input type="color" class="planet-palette-swatch" id="planetLandColor1" value="#3f6c2f" title="Материк: низины" aria-label="Материк: низины">
+                                <input type="color" class="planet-palette-swatch" id="planetLandColor2" value="#6ea24c" title="Материк: равнины" aria-label="Материк: равнины">
+                                <input type="color" class="planet-palette-swatch" id="planetLandColor3" value="#9bc27f" title="Материк: вершины" aria-label="Материк: вершины">
+                            </div>
+                        </label>
+                        <label class="field-label">
+                            <span class="control-label">Масштаб континентов</span>
+                            <input type="range" id="planetScale" min="120" max="340" step="1">
+                        </label>
+                        <label class="field-label">
+                            <span class="control-label">Уровень моря</span>
+                            <input type="range" id="planetSeaLevel" min="25" max="80" step="1">
+                        </label>
+                        <label class="field-label">
+                            <span class="control-label">Кольцо</span>
+                            <select id="planetRingType">
+                                <option value="none">Нет</option>
+                                <option value="thin">Тонкое</option>
+                                <option value="wide">Широкое</option>
+                            </select>
+                        </label>
+                        <button id="randomPlanetBtn" class="secondary-btn editor-btn editor-btn--random" type="button">Случайная планета</button>
+                    </div>
                 </div>
+                <aside class="satellite-editor-panel" aria-label="Редактор спутников">
+                    <div class="planet-editor-title">Спутники</div>
+                    <div class="satellite-tabs-wrap">
+                        <div id="satelliteTabs" class="satellite-tabs" role="tablist" aria-label="Спутники">
+                            <button type="button" class="satellite-tab editor-btn is-active" data-satellite-index="0" role="tab" aria-selected="true">Луна</button>
+                        </div>
+                        <button id="addSatelliteBtn" class="satellite-add-btn editor-btn" type="button" aria-label="Добавить спутник">+</button>
+                    </div>
+
+                    <div class="section-label">Параметры спутника</div>
+                    <div class="satellite-settings-grid">
+                        <label class="field-label">
+                            <span class="control-label">Имя спутника</span>
+                            <input type="text" id="satelliteNameInput" maxlength="30" value="Луна">
+                        </label>
+
+                        <label class="field-label">
+                            <span class="control-label">Seed</span>
+                            <input type="number" id="satelliteSeed" min="1" max="999999" step="1">
+                        </label>
+
+                        <label class="field-label">
+                            <span class="control-label">Пресет поверхности</span>
+                            <select id="satellitePreset">
+                                <option value="moon">Луна (серый)</option>
+                                <option value="rocky">Каменистый</option>
+                                <option value="ice">Ледяной</option>
+                            </select>
+                        </label>
+
+                        <label class="field-label">
+                            <span class="satellite-size-label-text control-label">
+                                Размер спутника
+                                <button
+                                    type="button"
+                                    id="satelliteMoonSizeHint"
+                                    class="satellite-size-moon-hint"
+                                    aria-label="Размер Луны"
+                                    data-tooltip="Размер Луны"
+                                ></button>
+                            </span>
+                            <input type="range" id="satelliteSize" min="22" max="72" step="1" value="25">
+                        </label>
+
+                        <label class="field-label">
+                            <span class="control-label">Радиус орбиты</span>
+                            <input type="range" id="satelliteOrbitRadius" min="90" max="1200" step="1" value="120">
+                        </label>
+
+                        <label class="field-label">
+                            <span class="control-label">Скорость орбиты</span>
+                            <input type="range" id="satelliteOrbitSpeed" min="5" max="120" step="1" value="26">
+                        </label>
+
+                        <label class="field-label">
+                            <span class="control-label">Наклон оси</span>
+                            <input type="range" id="satelliteTilt" min="0" max="180" step="1" value="0">
+                        </label>
+
+                        <div class="satellite-editor-actions">
+                            <button id="randomSatelliteBtn" class="secondary-btn editor-btn editor-btn--random" type="button">Случайный спутник</button>
+                            <button id="deleteSatelliteBtn" class="secondary-btn satellite-delete-btn editor-btn editor-btn--danger" type="button">Удалить спутник</button>
+                        </div>
+                    </div>
+                </aside>
             </div>
             <div class="planet-modal-actions">
                 <p class="planet-modal-note">Cube-генерация: бесшовный 3D-noise + псевдо-3D canvas preview.</p>
                 <div class="planet-modal-buttons">
-                    <button id="closePlanetModal" class="secondary-btn" type="button">Отмена</button>
-                    <button id="applyPlanetBtn" class="primary-btn" type="button">Сохранить планету</button>
+                    <button id="closePlanetModal" class="secondary-btn editor-btn" type="button">Отмена</button>
+                    <button id="applyPlanetBtn" class="primary-btn editor-btn editor-btn--primary" type="button">Сохранить</button>
+                </div>
+            </div>
+
+            <div id="satelliteDeleteConfirm" class="satellite-delete-confirm hidden" aria-hidden="true">
+                <div class="satellite-delete-confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="satelliteDeleteConfirmText">
+                    <p id="satelliteDeleteConfirmText" class="satellite-delete-confirm-text">Вы точно хотите удалить спутник?</p>
+                    <div class="satellite-delete-confirm-actions">
+                        <button id="satelliteDeleteConfirmYes" class="primary-btn editor-btn editor-btn--danger" type="button">Удалить</button>
+                        <button id="satelliteDeleteConfirmNo" class="secondary-btn editor-btn" type="button">Отмена</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <script defer src="../js/settings-modal-shared.js"></script>
+    <script type="module" src="../js/settings-shortcut.js"></script>
     <script type="module" src="../js/servers.js"></script>
 </body>
 </html>
