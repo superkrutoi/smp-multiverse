@@ -73,6 +73,8 @@ const satelliteDeleteConfirm = document.getElementById('satelliteDeleteConfirm')
 const satelliteDeleteConfirmText = document.getElementById('satelliteDeleteConfirmText');
 const satelliteDeleteConfirmYes = document.getElementById('satelliteDeleteConfirmYes');
 const satelliteDeleteConfirmNo = document.getElementById('satelliteDeleteConfirmNo');
+const satelliteSubtabButtons = document.querySelectorAll('.satellite-subtab-btn');
+const satelliteSubtabPanels = document.querySelectorAll('.satellite-subtab-panel');
 
 let selectedPlanetPreview = '';
 let selectedPlanetData = null;
@@ -1592,6 +1594,28 @@ if (satelliteTilt) {
         current.tilt = clamp(Number(event.target.value) || 0, 0, 180);
         updateSatelliteOrbitPositions(0);
         syncSatelliteEditorFields();
+    });
+}
+
+if (satelliteSubtabButtons.length && satelliteSubtabPanels.length) {
+    satelliteSubtabButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            const target = button.getAttribute('data-subtab');
+            if (!target) {
+                return;
+            }
+
+            satelliteSubtabButtons.forEach((btn) => {
+                const isActive = btn === button;
+                btn.classList.toggle('is-active', isActive);
+                btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            });
+
+            satelliteSubtabPanels.forEach((panel) => {
+                const panelKey = panel.getAttribute('data-subtab-panel');
+                panel.classList.toggle('is-active', panelKey === target);
+            });
+        });
     });
 }
 

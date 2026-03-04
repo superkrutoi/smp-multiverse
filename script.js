@@ -732,7 +732,7 @@ const renderDevMenuItem = async (itemNumber) => {
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
 
-            const defaultSample = 'SMP Multiverse — пример текста 0123 ABC абв';
+            const defaultSample = 'так выглядит на русском & it looks like this in English';
             const savedSample = localStorage.getItem('dev.fonts.sampleText') || defaultSample;
 
             tabContent.innerHTML = `
@@ -802,16 +802,14 @@ const renderDevMenuItem = async (itemNumber) => {
                     family: 'Dungeonmode',
                     file: 'dungeon-mode.woff2',
                     role: 'Зарезервирован для ретро-эффектов',
-                    status: 'reserved',
-                    note: 'Внимание: имя файла в assets отличается от пути в @font-face.'
+                    status: 'reserved'
                 },
                 {
                     id: 'DungeonmodeInverted',
                     family: 'DungeonmodeInverted',
                     file: 'dungeon-mode-inverted.woff2',
                     role: 'Зарезервирован для ретро-эффектов (инвертированный)',
-                    status: 'reserved',
-                    note: 'Внимание: имя файла в assets отличается от пути в @font-face.'
+                    status: 'reserved'
                 },
                 {
                     id: 'StarseedProLegacy',
@@ -844,12 +842,16 @@ const renderDevMenuItem = async (itemNumber) => {
 
             const rowsHtml = fonts.map((font) => {
                 const statusLabel = buildStatusLabel(font.status);
-                const metaParts = [];
-                if (font.file) metaParts.push(font.file);
-                if (font.role) metaParts.push(font.role);
-                if (statusLabel) metaParts.push(statusLabel);
-                if (font.note) metaParts.push(font.note);
-                const metaLine = metaParts.join(' • ');
+
+                const roleParts = [];
+                if (font.role) roleParts.push(font.role);
+                if (statusLabel) roleParts.push(statusLabel);
+                const roleLine = roleParts.join(' • ');
+
+                const descParts = [];
+                if (font.file) descParts.push(font.file);
+                if (font.note) descParts.push(font.note);
+                const descLine = descParts.join(' • ');
 
                 const familyCss = font.family
                     ? `font-family: '${font.family}', var(--font-primary);`
@@ -857,10 +859,11 @@ const renderDevMenuItem = async (itemNumber) => {
 
                 return `
                     <div class="dev-font-row" data-font-id="${escapeHtml(font.id)}">
-                        <div class="dev-font-row-header">
+                        <div class="dev-font-header">
                             <div class="dev-font-name">${escapeHtml(font.id)}</div>
-                            ${metaLine ? `<div class="dev-font-meta">${escapeHtml(metaLine)}</div>` : ''}
+                            ${roleLine ? `<div class="dev-font-role">${escapeHtml(roleLine)}</div>` : ''}
                         </div>
+                        ${descLine ? `<div class="dev-font-desc">${escapeHtml(descLine)}</div>` : ''}
                         <div class="dev-font-sample" style="${familyCss}">
                             <span class="dev-font-sample-text"></span>
                         </div>

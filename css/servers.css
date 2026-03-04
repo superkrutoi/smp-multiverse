@@ -317,6 +317,10 @@ body {
     grid-template-rows: minmax(0, 1fr) auto;
     position: relative;
     overflow: hidden;
+    /* Масштабирование всего содержимого модалки на низких экранах */
+    --planet-modal-scale: 1;
+    transform-origin: top center;
+    transform: scale(var(--planet-modal-scale));
 }
 
 .planet-editor-layout {
@@ -1058,6 +1062,35 @@ body {
     }
 }
 
+@media (max-height: 900px) {
+    .planet-modal-content {
+        --planet-modal-scale: 0.94;
+    }
+
+    .planet-editor-controls,
+    .satellite-editor-panel {
+        overflow-y: visible;
+    }
+}
+
+@media (max-height: 820px) {
+    .planet-modal-content {
+        --planet-modal-scale: 0.88;
+    }
+}
+
+@media (max-height: 760px) {
+    .planet-modal-content {
+        --planet-modal-scale: 0.82;
+    }
+}
+
+@media (max-height: 700px) {
+    .planet-modal-content {
+        --planet-modal-scale: 0.76;
+    }
+}
+
 .planet-editor-controls {
     order: 1;
     display: grid;
@@ -1084,6 +1117,75 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
+}
+
+.satellite-subtabs {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+.satellite-subtab-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background-color: rgba(0, 0, 0, 0.45);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: background-color 0.14s ease-out, border-color 0.14s ease-out, transform 0.08s ease-out, opacity 0.14s ease-out;
+}
+
+.satellite-subtab-btn.is-active {
+    opacity: 1;
+    background-color: rgba(46, 139, 87, 0.35);
+    border-color: var(--mc-accent);
+}
+
+.satellite-subtab-btn:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+}
+
+.satellite-subtab-icon {
+    width: 22px;
+    height: 22px;
+    image-rendering: pixelated;
+}
+
+.satellite-subtab-panel {
+    display: none;
+}
+
+.satellite-subtab-panel.is-active {
+    display: block;
+}
+
+.satellite-subtab-window {
+    border: 2px solid var(--mc-border);
+    background: color-mix(in srgb, var(--xaero-bg-dark) 82%, transparent);
+    box-shadow: 0 0 0 2px var(--mc-bg-medium) inset;
+    border-radius: 8px;
+    padding: 8px 10px;
+    width: 100%;
+    margin: 0 2px;
+    min-height: 120px;
+}
+
+.field-label--name-with-tabs .satellite-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.field-label--name-with-tabs .satellite-name-row input[type='text'] {
+    flex: 1 1 auto;
 }
 
 .planet-editor-controls::after,
@@ -1141,7 +1243,7 @@ body {
 .planet-settings-grid,
 .satellite-settings-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     gap: 12px 14px;
     align-content: start;
 }
@@ -1269,13 +1371,25 @@ body {
 }
 
 .range-with-value {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    display: block;
 }
 
 .range-with-value input[type='range'] {
-    flex: 1 1 auto;
+    width: 100%;
+}
+
+.field-label--slider {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field-label-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 2px;
 }
 
 .satellite-value-label {

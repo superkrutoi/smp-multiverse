@@ -1,19 +1,59 @@
 ﻿{
-    "images":  [
-                   "maxresdefault.jpg"
-               ],
-    "ui":  [
-
-           ],
-    "icons":  [
-                  "aliens.png",
-                  "bell 1.png",
-                  "bell 2.png",
-                  "closed_folder.png",
-                  "edit.png",
-                  "hide.png",
-                  "open_folder.png",
-                  "support.png",
-                  "view.png"
-              ]
+  "icons": [
+    "aliens.png",
+    "bell 1.png",
+    "bell 2.png",
+    "closed_folder.png",
+    "edit.png",
+    "hide.png",
+    "open_folder.png",
+    "support.png",
+    "view.png"
+  ],
+  "images": [],
+  "ui": [],
+  "fonts": [
+    {
+      "file": "GlasstownNbpRegular-RyMM.woff2",
+      "type": "Пиксельный не жирный",
+      "size": 15872
+    },
+    {
+      "file": "Contra Phobotech Regular.woff2",
+      "type": "Пиксельный жирный",
+      "size": 24576
+    },
+    {
+      "file": "MintsodaLimeGreen13X16Regular-KVvzA.woff2",
+      "type": "Пиксельный курсив",
+      "size": 13440
+    },
+    {
+      "file": "HUD Sonic X1 Regular.woff2",
+      "type": "Пиксельный полужирный",
+      "size": 18432
+    },
+    {
+      "file": "StarseedPro.woff2",
+      "type": "Устарел ❌ (заменен на Contra Phobotech)",
+      "size": 12544
+    },
+    {
+      "file": "Dungeonmode.woff2",
+      "type": "Ретро-игры (зарезервирован)",
+      "size": 19200
+    },
+    {
+      "file": "Dungeonmode Inverted.woff2",
+      "type": "Ретро-игры инвертированный (зарезервирован)",
+      "size": 19200
+    }
+  ],
+  "lucid-icons": [
+    "Gear.png",
+    "Message-Three-Dots.png",
+    "Message-Exclamation.png",
+    "Person.png",
+    "Game-Controller.png"
+  ]
 }
